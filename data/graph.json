@@ -1,0 +1,63 @@
+{
+  "directed": true,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "node_type": "DonorCompany",
+      "cin": "L27105HR1979PLC009913",
+      "name": "JINDAL STEEL AND POWER LIMITED",
+      "id": "donor:L27105HR1979PLC009913"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "L74899DL1960GOI003335",
+      "name": "NBCC (India) Limited",
+      "scrip_code": "534309",
+      "sector": "Industrials",
+      "market_cap": 25058.6988544,
+      "id": "company:L74899DL1960GOI003335"
+    },
+    {
+      "node_type": "Director",
+      "din": "01234567",
+      "name": "K. P. Mahadevaswamy",
+      "id": "director:01234567"
+    },
+    {
+      "node_type": "Director",
+      "din": "09876543",
+      "name": "Rajesh Kumar",
+      "id": "director:09876543"
+    },
+    {
+      "node_type": "ElectoralTrust",
+      "name": "Electoral Bonds",
+      "id": "trust:Electoral Bonds"
+    }
+  ],
+  "edges": [
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "donor:L27105HR1979PLC009913",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "SITS_ON_BOARD",
+      "source": "director:01234567",
+      "target": "company:L74899DL1960GOI003335"
+    },
+    {
+      "edge_type": "SITS_ON_BOARD",
+      "source": "director:01234567",
+      "target": "donor:L27105HR1979PLC009913"
+    },
+    {
+      "edge_type": "SITS_ON_BOARD",
+      "source": "director:09876543",
+      "target": "company:L74899DL1960GOI003335"
+    }
+  ]
+}

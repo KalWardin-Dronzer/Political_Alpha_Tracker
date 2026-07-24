@@ -1,0 +1,3 @@
+# Place Electoral Bond SBI disclosure CSV here.
+# Download from: https://www.eci.gov.in or search "India Electoral Bonds SBI" on Kaggle
+# Expected columns: purchaser_name, denomination, encashment_party, purchase_date
