@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment secrets
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (cached, not source-controlled except graph.json)
+data/cache.sqlite
+data/cache.sqlite-wal
+data/cache.sqlite-shm
+data/pipeline.log
+data/refresh.log
+data/nse_industry_mapping.csv
+data/held_positions.csv
+
+# Keep these tracked
+!data/.gitkeep
+!data/PurchaseData.csv
+!data/EncashmentData.csv
+!data/graph.json

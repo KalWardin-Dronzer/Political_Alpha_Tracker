@@ -1,0 +1,54 @@
+name: Daily Alpha Tracker
+
+on:
+  schedule:
+    # 6:00 PM IST (12:30 UTC) on weekdays
+    - cron: '30 12 * * 1-5'
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  daily-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Ensure data directory
+        run: mkdir -p data
+
+      - name: Run daily pipeline
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
+
+      - name: Upload cache artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-data-${{ github.run_number }}
+          path: |
+            data/cache.sqlite
+            data/graph.json
+            data/pipeline.log
+          retention-days: 7
+
+      - name: Commit updated data files
+        if: success()
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add data/graph.json data/cache.sqlite data/held_positions.csv || true
+          git diff --staged --quiet || git commit -m "chore: daily pipeline update $(date +%Y-%m-%d)"
+          git push || true

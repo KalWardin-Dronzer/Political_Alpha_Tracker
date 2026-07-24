@@ -1,0 +1,43 @@
+name: Annual Donor Data Refresh
+
+on:
+  schedule:
+    # March 15 at 9:30 AM IST (04:00 UTC) — after ADR typically publishes
+    - cron: '0 4 15 3 *'
+  workflow_dispatch:
+
+jobs:
+  annual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          # tabula-py requires Java
+          sudo apt-get update && sudo apt-get install -y default-jre-headless
+
+      - name: Run annual donor refresh
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python refresh.py --mode annual
+
+      - name: Commit refreshed data
+        if: success()
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add data/ || true
+          git diff --staged --quiet || git commit -m "chore: annual donor data refresh $(date +%Y-%m-%d)"
+          git push || true
