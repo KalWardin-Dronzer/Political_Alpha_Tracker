@@ -30,6 +30,7 @@ NSE_INDUSTRY_FILE = DATA_DIR / "nse_industry_mapping.csv"
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 TELEGRAM_API_BASE = "https://api.telegram.org/bot{token}"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 # ──────────────────────────────────────────────
 # Cache TTLs (days)
@@ -106,12 +107,18 @@ CONTRACT_EXCLUSION_PATTERN = re.compile(
 # ──────────────────────────────────────────────
 # Fundamental Thresholds (The Porinju Layer)
 # ──────────────────────────────────────────────
-MAX_DEBT_TO_EQUITY = 2.0
+MAX_DEBT_TO_EQUITY = 5.0  # Loosened to include more leveraged companies
 MAX_PROMOTER_PLEDGE_PCT = 50.0  # Absolute max
 MIN_OPERATING_CASHFLOW = 0  # Must be non-negative at least once in last 2 years
-MARKET_CAP_MIN_CR = 50  # ₹50 Crore minimum (too small = illiquid)
-MARKET_CAP_MAX_CR = 1000000  # ₹10,00,000 Crore maximum (increased to include large-caps)
-MIN_CONTRACT_FREQUENCY = 2  # Minimum contract announcements in lookback period
+MARKET_CAP_MIN_CR = 50  # Rs.50 Crore minimum (too small = illiquid)
+MARKET_CAP_MAX_CR = 1000000  # Rs.10,00,000 Crore maximum (includes large-caps)
+MIN_CONTRACT_FREQUENCY = 1  # Minimum contract announcements in lookback period
+
+# ──────────────────────────────────────────────
+# Donor Match Thresholds
+# ──────────────────────────────────────────────
+DONOR_MIN_AMOUNT_CR = 10  # Rs.10 Crore minimum donation to qualify for watchlist
+DONOR_MATCH_SCORE = 75  # Fuzzy match threshold for donor-company name matching
 
 # ──────────────────────────────────────────────
 # BSE API Configuration
@@ -151,14 +158,28 @@ MCA_HEADERS = {
 MCA_REQUEST_DELAY = 2.0  # seconds between requests
 
 # ──────────────────────────────────────────────
+# Zaubacorp Configuration (Director Data Fallback)
+# ──────────────────────────────────────────────
+ZAUBACORP_BASE_URL = "https://www.zaubacorp.com/company"
+ZAUBACORP_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+ZAUBACORP_REQUEST_DELAY = 2.0  # seconds between requests (be respectful)
+
+# ──────────────────────────────────────────────
 # Electoral Trust / Donor Configuration
 # ──────────────────────────────────────────────
 # MyNeta URLs for electoral trust data
 MYNETA_TRUST_URL = "https://www.myneta.info/party/index.php?action=electoral_trusts"
 ECI_TRUST_URL = "https://www.eci.gov.in/electoral-trusts"
 
-DONATION_RECENCY_YEARS = 2  # Only consider donations within last N years
-DONATION_RECENCY_YEARS = 10  # Only consider donations within last N years
+DONATION_RECENCY_YEARS = 10  # Cover all Electoral Bonds history (banned in 2024)
 DONATION_MIN_AMOUNT_LAKHS = 10  # Minimum ₹10 lakh to filter noise
 DONATION_MIN_AMOUNT = DONATION_MIN_AMOUNT_LAKHS * 100_000  # In rupees
 
@@ -189,3 +210,36 @@ MIN_WIN_RATE = 0.55  # 55% win rate threshold
 # ──────────────────────────────────────────────
 TENDER_MAX_AGE_MONTHS = 24  # Remove tenders older than 2 years
 DONOR_MAX_AGE_YEARS = 5  # Remove donations older than 5 years
+
+# ──────────────────────────────────────────────
+# State vs Central Mapping (Phase 2)
+# ──────────────────────────────────────────────
+STATE_PARTY_MAPPING = {
+    "telangana": ["bharat rashtra samithi", "trs", "brs"],
+    "west bengal": ["all india trinamool congress", "tmc", "trinamool"],
+    "tamil nadu": ["dravida munnetra kazhagam", "dmk", "aiadmk"],
+    "odisha": ["biju janata dal", "bjd"],
+    "andhra pradesh": ["yuvajana sramika rythu congress party", "ysrcp", "telugu desam party", "tdp"],
+    "maharashtra": ["shiv sena", "ncp", "nationalist congress party"],
+    "bihar": ["janata dal (united)", "jdu", "rashtriya janata dal", "rjd"],
+    "karnataka": ["janata dal (secular)", "jds", "inc", "bjp"],
+    "central": ["bharatiya janata party", "bjp", "indian national congress", "inc"],
+    # Default to broad matches for pan-India parties
+    "unknown": ["bharatiya janata party", "bjp", "indian national congress", "inc"]
+}
+
+# ──────────────────────────────────────────────
+# Election Cycle Weighting (Phase 5)
+# ──────────────────────────────────────────────
+ELECTION_MULTIPLIER = 1.5  # Boost alpha score by 50% if election is within 12 months
+UPCOMING_ELECTIONS = {
+    # State: (Year, Month)
+    "maharashtra": (2024, 10),
+    "haryana": (2024, 10),
+    "jharkhand": (2024, 11),
+    "delhi": (2025, 2),
+    "bihar": (2025, 10),
+    "west bengal": (2026, 4),
+    "tamil nadu": (2026, 4),
+    "central": (2029, 4), # Next Lok Sabha
+}

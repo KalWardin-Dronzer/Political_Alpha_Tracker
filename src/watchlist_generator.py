@@ -1,31 +1,37 @@
 """
-Political Alpha Tracker — Watchlist Generator
+Political Alpha Tracker -- Watchlist Generator
 
-Automatically generates the target watchlist through a four-stage funnel:
-    Stage A: Sector sweep — filter BSE-listed companies by government-dependent sectors
-    Stage B: Market cap filter — keep small-caps and micro-caps (₹50Cr - ₹5,000Cr)
-    Stage C: Contract frequency scoring — rank by historical BSE contract announcements
-    Stage D: Fundamental gate — discard unhealthy companies (Porinju Layer)
+Automatically generates the target watchlist through a five-stage funnel:
+    Stage A1: Sector sweep -- filter by government-dependent sectors
+    Stage A2: Donor match -- cross-reference electoral bond donors against listed companies
+    Stage B:  Market cap filter -- keep companies within Rs.50Cr - Rs.10L Cr
+    Stage C:  Contract frequency scoring -- rank by BSE contract announcements
+              (skipped for donor-matched companies)
+    Stage D:  Fundamental gate -- discard unhealthy companies (Porinju Layer)
 
-Output: 40-60 companies, refreshed quarterly.
+Output: 40-100 companies, refreshed quarterly.
 """
 
 import io
+import re
 import time
 import logging
 from typing import Optional
 
 import pandas as pd
 import requests
+from rapidfuzz import fuzz
 
 from src.config import (
     BSE_HEADERS, GOVT_DEPENDENT_SECTORS,
     MARKET_CAP_MIN_CR, MARKET_CAP_MAX_CR,
     MIN_CONTRACT_FREQUENCY, ANNOUNCEMENT_LOOKBACK_DAYS,
+    DONOR_MIN_AMOUNT_CR, DONOR_MATCH_SCORE,
 )
 from src.cache_manager import CacheManager
 from src.bse_monitor import BSEMonitor
 from src.financial_screener import FinancialScreener
+from src.entity_resolver import EntityResolver
 
 logger = logging.getLogger(__name__)
 
@@ -260,10 +266,11 @@ class WatchlistGenerator:
         Returns:
             List of candidate company dicts.
         """
-        logger.info("=== Stage A: Sector Sweep ===")
+        logger.info("=== Stage A1: Sector Sweep ===")
 
         # Step 1: Get full company universe from NSE
         nse_df = self._fetch_nse_equity_list()
+        self._nse_df = nse_df  # Store for Stage A2 reuse
         if nse_df.empty:
             logger.error("NSE equity listing is empty, cannot generate watchlist")
             return []
@@ -342,9 +349,6 @@ class WatchlistGenerator:
             # BSE often uses the same scrip code structure
             # We'll do a best-effort lookup
             batch_count += 1
-            if batch_count > 500:  # Cap to avoid excessive API calls
-                logger.info("  Capped BSE enrichment at 500 lookups")
-                break
 
             # Progress logging
             if batch_count % 100 == 0:
@@ -397,6 +401,7 @@ class WatchlistGenerator:
                     "sector": candidate.get("sector", ""),
                     "industry": candidate.get("industry", ""),
                     "face_value": candidate.get("face_value"),
+                    "source": "sector",
                 })
 
                 # Cache the company
@@ -422,12 +427,162 @@ class WatchlistGenerator:
             time.sleep(0.3)  # Rate limit BSE API
 
         logger.info(
-            f"Stage A complete: {len(resolved_candidates)} candidates "
+            f"Stage A1 complete: {len(resolved_candidates)} candidates "
             f"from govt-dependent sectors "
             f"(out of {len(merged)} total, {len(candidates)} matched sectors)"
         )
 
         return resolved_candidates
+
+    def stage_a2_donor_match(
+        self, nse_df: pd.DataFrame, existing_isins: set
+    ) -> list[dict]:
+        """
+        Stage A2: Cross-reference electoral bond donors against listed companies.
+
+        Finds listed companies (or their parent/group) that donated >= DONOR_MIN_AMOUNT_CR
+        via electoral bonds. These companies get added to the watchlist regardless
+        of their sector, because their political connections ARE the alpha signal.
+
+        Args:
+            nse_df: NSE equity listing DataFrame (full universe).
+            existing_isins: ISINs already found by Stage A1 (to avoid duplicates).
+
+        Returns:
+            List of donor-matched candidate dicts with source='donor_match'.
+        """
+        logger.info("=== Stage A2: Donor Match ===")
+
+        # Step 1: Load significant donors (aggregate by normalized name)
+        min_amount = DONOR_MIN_AMOUNT_CR * 1e7  # Convert Cr to raw amount
+        import sqlite3
+        conn = sqlite3.connect(str(self.cache.db_path))
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT donor_name, SUM(amount) as total "
+            "FROM donors GROUP BY donor_name HAVING total >= ? "
+            "ORDER BY total DESC",
+            (min_amount,),
+        ).fetchall()
+        conn.close()
+
+        # Build a dict of normalized_donor_name -> (original_name, total_amount)
+        donor_index = {}
+        for row in rows:
+            name = row["donor_name"]
+            normalized = EntityResolver.normalize_company_name(name)
+            if normalized and len(normalized) > 2:
+                # Aggregate duplicates (e.g. "VEDANTA LIMITED" and "VEDANTA LTD")
+                if normalized in donor_index:
+                    donor_index[normalized] = (
+                        donor_index[normalized][0],
+                        donor_index[normalized][1] + row["total"],
+                    )
+                else:
+                    donor_index[normalized] = (name, row["total"])
+
+        logger.info(
+            f"Loaded {len(donor_index)} unique significant donors "
+            f"(>= Rs.{DONOR_MIN_AMOUNT_CR} Cr)"
+        )
+
+        # Step 2: Match donors against NSE companies
+        donor_names = list(donor_index.keys())
+        candidates = []
+        matched_donors = set()
+
+        for idx, row in nse_df.iterrows():
+            isin = str(row.get("isin", ""))
+            if isin in existing_isins:
+                continue  # Already found by Stage A1
+
+            company_name = str(row.get("name", ""))
+            nse_symbol = str(row.get("nse_symbol", ""))
+            normalized_company = EntityResolver.normalize_company_name(
+                company_name
+            )
+
+            if not normalized_company or len(normalized_company) < 3:
+                continue
+
+            # Fuzzy match against all significant donors
+            best_match = None
+            best_score = 0
+
+            for donor_norm, (donor_orig, total) in donor_index.items():
+                score = fuzz.token_sort_ratio(normalized_company, donor_norm)
+                if score > best_score:
+                    best_score = score
+                    best_match = (donor_norm, donor_orig, total)
+
+            if best_match and best_score >= DONOR_MATCH_SCORE:
+                donor_norm, donor_orig, total_donated = best_match
+                candidates.append({
+                    "nse_symbol": nse_symbol,
+                    "name": company_name,
+                    "isin": isin,
+                    "sector": "",
+                    "industry": "",
+                    "face_value": row.get("face_value"),
+                    "scrip_code": "",
+                    "source": "donor_match",
+                    "donor_name": donor_orig,
+                    "donor_amount": total_donated,
+                    "donor_match_score": best_score,
+                })
+                matched_donors.add(donor_norm)
+
+        logger.info(
+            f"Stage A2: {len(candidates)} listed companies matched "
+            f"to electoral bond donors (from {len(donor_index)} donors)"
+        )
+
+        # Step 3: Resolve BSE scrip codes for donor-matched companies
+        resolved = []
+        for i, candidate in enumerate(candidates):
+            bse_data = self._resolve_bse_scrip_code(
+                candidate["nse_symbol"], candidate["name"]
+            )
+
+            if bse_data:
+                candidate["scrip_code"] = bse_data["scrip_code"]
+                if bse_data.get("sector"):
+                    candidate["sector"] = bse_data["sector"]
+                if bse_data.get("industry"):
+                    candidate["industry"] = bse_data["industry"]
+
+                resolved.append(candidate)
+
+                # Cache the company
+                self.cache.upsert_company(
+                    scrip_code=candidate["scrip_code"],
+                    name=candidate["name"],
+                    isin=candidate["isin"],
+                    sector=candidate.get("sector", ""),
+                    industry=candidate.get("industry", ""),
+                    face_value=candidate.get("face_value"),
+                )
+
+                logger.debug(
+                    f"  Matched: {candidate['name']} <-> "
+                    f"{candidate['donor_name']} "
+                    f"(Rs.{candidate['donor_amount']/1e7:.1f} Cr, "
+                    f"score={candidate['donor_match_score']})"
+                )
+
+            if (i + 1) % 20 == 0:
+                logger.info(
+                    f"  Resolved {i + 1}/{len(candidates)} "
+                    f"donor-matched scrip codes..."
+                )
+            time.sleep(0.3)
+
+        logger.info(
+            f"Stage A2 complete: {len(resolved)} donor-matched companies "
+            f"with BSE scrip codes"
+        )
+
+        return resolved
 
     def _resolve_bse_scrip_code(
         self, nse_symbol: str, company_name: str
@@ -602,9 +757,17 @@ class WatchlistGenerator:
 
         return watchlist
 
-    def generate(self, max_companies: int = 60) -> list[dict]:
+    def generate(self, max_companies: int = 150) -> list[dict]:
         """
         Run the full watchlist generation pipeline.
+
+        Two entry paths:
+            Stage A1: Sector sweep (govt-dependent sectors)
+            Stage A2: Donor match (electoral bond donors)
+        Then unified through:
+            Stage B: Market cap filter
+            Stage C: Contract frequency (sector companies only)
+            Stage D: Fundamental gate
 
         Args:
             max_companies: Maximum number of companies in the final watchlist.
@@ -619,37 +782,67 @@ class WatchlistGenerator:
         # Clear existing watchlist flags
         self.cache.clear_watchlist_flags()
 
-        # Stage A: Sector sweep
-        candidates = self.stage_a_sector_sweep()
-        if not candidates:
-            logger.error("No candidates after Stage A. Aborting.")
+        # Stage A1: Sector sweep
+        sector_candidates = self.stage_a_sector_sweep()
+        logger.info(
+            f"Stage A1 produced {len(sector_candidates)} sector candidates"
+        )
+
+        # Stage A2: Donor match (reuse NSE data from Stage A1)
+        existing_isins = {c["isin"] for c in sector_candidates if c.get("isin")}
+        nse_df = getattr(self, "_nse_df", pd.DataFrame())
+        donor_candidates = []
+        if not nse_df.empty:
+            donor_candidates = self.stage_a2_donor_match(nse_df, existing_isins)
+        else:
+            logger.warning("No NSE data available for Stage A2")
+
+        # Union both entry paths
+        all_candidates = sector_candidates + donor_candidates
+        logger.info(
+            f"Combined: {len(all_candidates)} total candidates "
+            f"({len(sector_candidates)} sector + {len(donor_candidates)} donor)"
+        )
+
+        if not all_candidates:
+            logger.error("No candidates after Stage A1+A2. Aborting.")
             return []
 
-        # Stage B: Market cap filter
-        candidates = self.stage_b_market_cap_filter(candidates)
-        if not candidates:
+        # Stage B: Market cap filter (applied to ALL candidates)
+        all_candidates = self.stage_b_market_cap_filter(all_candidates)
+        if not all_candidates:
             logger.error("No candidates after Stage B. Aborting.")
             return []
 
         # Stage C: Contract frequency scoring
-        candidates = self.stage_c_contract_frequency(candidates)
-        if not candidates:
+        # Only applied to SECTOR candidates; donor-matched pass through
+        sector_only = [c for c in all_candidates if c.get("source") == "sector"]
+        donor_only = [
+            c for c in all_candidates if c.get("source") == "donor_match"
+        ]
+
+        if sector_only:
+            sector_scored = self.stage_c_contract_frequency(sector_only)
+        else:
+            sector_scored = []
+
+        # Donor-matched companies skip Stage C entirely
+        logger.info(
+            f"Stage C: {len(sector_scored)} sector companies passed, "
+            f"{len(donor_only)} donor-matched companies bypassed"
+        )
+
+        # Reunite
+        candidates_for_d = sector_scored + donor_only
+
+        if not candidates_for_d:
             logger.warning(
-                "No candidates after Stage C. "
-                "Lowering contract frequency threshold."
+                "No candidates after Stage C. Using all market-cap-filtered."
             )
-            # Retry with lower threshold
-            candidates = [
-                c for c in self.stage_b_market_cap_filter(
-                    self.stage_a_sector_sweep()
-                )
-                if self.cache.get_contract_announcement_count(
-                    c["scrip_code"]
-                ) >= 1
-            ]
+            candidates_for_d = all_candidates
 
         # Stage D: Fundamental gate
-        watchlist = self.stage_d_fundamental_gate(candidates)
+        watchlist = self.stage_d_fundamental_gate(candidates_for_d)
 
         # Cap the watchlist size
         if len(watchlist) > max_companies:
@@ -670,11 +863,17 @@ class WatchlistGenerator:
 
         logger.info("=" * 60)
         logger.info(f"WATCHLIST GENERATION COMPLETE: {len(watchlist)} companies")
+        source_counts = {}
+        for c in watchlist:
+            src = c.get("source", "unknown")
+            source_counts[src] = source_counts.get(src, 0) + 1
+        logger.info(f"  By source: {source_counts}")
         logger.info("=" * 60)
 
         self.cache.log_event(
             "watchlist_generator", "generation_complete",
-            f"Generated watchlist with {len(watchlist)} companies"
+            f"Generated watchlist with {len(watchlist)} companies "
+            f"(sources: {source_counts})"
         )
 
         return watchlist
