@@ -49,7 +49,7 @@ class FundamentalResult:
             return "[!] Data unavailable"
         de_str = f"{self.de_ratio:.1f}" if self.de_ratio is not None else "N/A"
         ocf_str = (
-            f"₹{self.operating_cashflow / 1e7:.1f} Cr"
+            f"Rs.{self.operating_cashflow / 1e7:.1f} Cr"
             if self.operating_cashflow is not None else "N/A"
         )
         pledge_str = (
@@ -217,7 +217,7 @@ class FinancialScreener:
         # Rule 2: Operating Cash Flow
         if ocf is not None and ocf < MIN_OPERATING_CASHFLOW:
             reasons.append(
-                f"Operating CF ₹{ocf/1e7:.1f} Cr is negative"
+                f"Operating CF Rs.{ocf/1e7:.1f} Cr is negative"
             )
 
         passes = len(reasons) == 0

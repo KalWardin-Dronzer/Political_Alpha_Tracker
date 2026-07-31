@@ -102,12 +102,12 @@ class GraphManager:
             sector=sector, market_cap=market_cap,
         )
 
-    def add_director(self, din: str, name: str):
+    def add_director(self, din: str, name: str, is_bureaucrat: int = 0):
         """Add a Director node."""
         self._add_node(
             f"director:{din}",
             node_type="Director",
-            din=din, name=name,
+            din=din, name=name, is_bureaucrat=is_bureaucrat
         )
 
     def add_donor_company(self, cin: str, name: str):
@@ -211,7 +211,7 @@ class GraphManager:
                 # Add directors for this company
                 directors = self.cache.get_directors_for_company(cin)
                 for d in directors:
-                    self.add_director(d["din"], d["name"])
+                    self.add_director(d["din"], d["name"], is_bureaucrat=d.get("is_bureaucrat", 0))
                     self.link_director_to_company(d["din"], cin)
 
         # 2. Add all donors
@@ -434,16 +434,55 @@ class GraphManager:
         else:
             magnitude_score = 0.1
 
+        party_name = ""
+        if trust_node:
+            if trust_node[1].get("node_type") == "PoliticalParty":
+                party_name = trust_node[1].get("name", "")
+            else: # ElectoralTrust
+                # Find successor party
+                for _, target in self.G.out_edges(trust_node[0]):
+                    if self.G.nodes[target].get("node_type") == "PoliticalParty":
+                        party_name = self.G.nodes[target].get("name", "")
+                        break
+                        
+        # Phase 5: Election Cycle Weighting
+        election_multiplier = 1.0
+        if party_name:
+            from src.config import STATE_PARTY_MAPPING, UPCOMING_ELECTIONS, ELECTION_MULTIPLIER
+            from datetime import datetime
+            party_lower = party_name.lower()
+            current_date = datetime.now()
+            
+            # Find the state(s) this party operates in
+            matched_states = []
+            for state, parties in STATE_PARTY_MAPPING.items():
+                if any(p in party_lower for p in parties):
+                    matched_states.append(state)
+                    
+            for state in matched_states:
+                if state in UPCOMING_ELECTIONS:
+                    e_year, e_month = UPCOMING_ELECTIONS[state]
+                    e_date = datetime(e_year, e_month, 1)
+                    # If election is within 12 months (future) or just happened (past 1-2 months)
+                    months_diff = (e_date.year - current_date.year) * 12 + (e_date.month - current_date.month)
+                    if -2 <= months_diff <= 12:
+                        election_multiplier = ELECTION_MULTIPLIER
+                        break
+
+        # Phase 5: Deep State Bureaucrat Weighting
+        bureaucrat_multiplier = 1.0
+        if director_node[1].get("is_bureaucrat"):
+            bureaucrat_multiplier = 1.5
+
         # Weighted alpha score
         alpha_score = (
             ALPHA_WEIGHT_EXCLUSIVITY * exclusivity_score
             + ALPHA_WEIGHT_PROXIMITY * proximity_score
             + ALPHA_WEIGHT_MAGNITUDE * magnitude_score
-        )
+        ) * election_multiplier * bureaucrat_multiplier
 
         # Get company details from the path
         company_node = path_nodes[0]
-
         return {
             "company_name": company_node[1].get("name", "Unknown"),
             "company_cin": company_node[1].get("cin", ""),
@@ -453,6 +492,7 @@ class GraphManager:
             "donor_company_name": donor_node[1].get("name", "Unknown"),
             "donor_cin": donor_node[1].get("cin", ""),
             "trust_name": trust_node[1].get("name", "") if trust_node else "",
+            "party_name": party_name,
             "max_donation": max_donation,
             "donation_year": max(
                 d.get("year", 0) for d in recent_donations
@@ -462,6 +502,9 @@ class GraphManager:
             "exclusivity_score": round(exclusivity_score, 3),
             "proximity_score": round(proximity_score, 3),
             "magnitude_score": round(magnitude_score, 3),
+            "election_multiplier": election_multiplier,
+            "bureaucrat_multiplier": bureaucrat_multiplier,
+            "is_bureaucrat": bool(director_node[1].get("is_bureaucrat")),
             "alpha_score": round(alpha_score, 3),
             "path": [
                 f"{self.G.nodes[n].get('node_type', '?')}:"

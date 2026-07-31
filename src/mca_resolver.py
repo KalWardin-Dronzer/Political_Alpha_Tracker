@@ -8,7 +8,8 @@ canonical graph join key for mapping political connections.
 Data Source Strategy:
     1. Check SQLite cache (90-day TTL)
     2. Scrape MCA V3 portal's public company master page
-    3. Fallback: data.gov.in API (if available)
+    3. Fallback: Zaubacorp.com (free MCA data aggregator)
+    4. Fallback: data.gov.in API (if available)
 """
 
 import re
@@ -22,6 +23,7 @@ from bs4 import BeautifulSoup
 from src.config import (
     MCA_COMPANY_SEARCH_URL, MCA_HEADERS, MCA_REQUEST_DELAY,
     MCA_CACHE_TTL_DAYS,
+    ZAUBACORP_BASE_URL, ZAUBACORP_HEADERS, ZAUBACORP_REQUEST_DELAY,
 )
 from dataclasses import dataclass
 
@@ -82,53 +84,43 @@ class MCAResolver:
                     for d in cached
                 ]
 
-        # --- MOCK FALLBACK TO BYPASS CLOUDFLARE FOR NBCC ---
-        if cin == "L74899DL1960GOI003335":
-            logger.info("Using mock directors for NBCC to bypass MCA block.")
-            mock_directors = [
-                DirectorRecord(
-                    din="01234567",
-                    name="K. P. Mahadevaswamy",
-                    designation="CMD",
-                    cin=cin
-                ),
-                DirectorRecord(
-                    din="09876543",
-                    name="Rajesh Kumar",
-                    designation="Director",
-                    cin=cin
-                )
-            ]
-            self.cache.upsert_directors(cin, [
-                {"din": d.din, "name": d.name, "designation": d.designation}
-                for d in mock_directors
-            ])
-            # Also insert for Jindal Steel to mock a political connection!
-            self.cache.upsert_directors("L27105HR1979PLC009913", [
-                {"din": "01234567", "name": "K. P. Mahadevaswamy", "designation": "Independent Director"}
-            ])
-            return mock_directors
-        # --------------------------------------------------
-
         # Step 2: Scrape MCA V3 portal
         logger.info(f"Fetching directors from MCA for CIN: {cin}")
         directors = self._scrape_mca_portal(cin)
 
         if not directors:
-            # Step 3: Fallback to data.gov.in API
-            logger.info(f"MCA portal failed, trying data.gov.in for {cin}")
+            # Step 3: Fallback to Zaubacorp.com
+            logger.info(f"MCA portal failed, trying Zaubacorp for {cin}")
+            directors = self._scrape_zaubacorp(cin)
+
+        if not directors:
+            # Step 4: Fallback to data.gov.in API
+            logger.info(f"Zaubacorp failed, trying data.gov.in for {cin}")
             directors = self._query_data_gov_api(cin)
 
         if directors:
-            # Cache the results
-            self.cache.upsert_directors(cin, [
+            # Phase 5: Resolve Deep State Bureaucrats
+            company_name = "Company"
+            company = self.cache.get_company_by_cin(cin)
+            if company:
+                company_name = company.get("name", "Company")
+            
+            from src.bureaucrat_resolver import BureaucratResolver
+            resolver = BureaucratResolver()
+            
+            directors_dicts = [
                 {
                     "din": d.din,
                     "name": d.name,
                     "designation": d.designation,
                 }
                 for d in directors
-            ])
+            ]
+            
+            directors_dicts = resolver.check_bureaucrats(company_name, directors_dicts)
+
+            # Cache the results
+            self.cache.upsert_directors(cin, directors_dicts)
             logger.info(f"Resolved {len(directors)} directors for {cin}")
         else:
             logger.warning(f"Could not resolve directors for CIN: {cin}")
@@ -262,6 +254,109 @@ class MCAResolver:
             logger.error(f"MCA portal request failed for {cin}: {e}")
         except Exception as e:
             logger.error(f"Error parsing MCA portal response for {cin}: {e}")
+
+        return directors
+
+    def _scrape_zaubacorp(self, cin: str) -> list[DirectorRecord]:
+        """
+        Scrape director data from Zaubacorp.com, a free MCA data aggregator.
+
+        Zaubacorp exposes structured tables with DIN, Name, Designation,
+        End Date, and Appointment Date for all current and past directors.
+        We filter to only current directors (End Date == '-').
+        """
+        directors = []
+
+        try:
+            # Build the URL: /company/<COMPANY-NAME-SLUG>/<CIN>
+            # The company name slug is optional; Zaubacorp redirects by CIN.
+            url = f"{ZAUBACORP_BASE_URL}/-/{cin}"
+
+            resp = requests.get(
+                url,
+                headers=ZAUBACORP_HEADERS,
+                timeout=20,
+                allow_redirects=True,
+            )
+            resp.raise_for_status()
+            time.sleep(ZAUBACORP_REQUEST_DELAY)
+
+            soup = BeautifulSoup(resp.text, "html.parser")
+
+            # Find the directors table: it has headers with "DIN" column
+            all_tables = soup.find_all("table")
+            for table in all_tables:
+                headers = [
+                    th.get_text(strip=True).upper()
+                    for th in table.find_all("th")
+                ]
+
+                # The director table has columns:
+                # DIN | Name | Designation | End Date | Appointment Date
+                if "DIN" not in headers:
+                    continue
+
+                din_idx = next(i for i, h in enumerate(headers) if h == "DIN")
+                name_idx = next(
+                    (i for i, h in enumerate(headers)
+                     if "NAME" in h),
+                    din_idx + 1
+                )
+                desig_idx = next(
+                    (i for i, h in enumerate(headers)
+                     if "DESIGNATION" in h),
+                    None
+                )
+                end_date_idx = next(
+                    (i for i, h in enumerate(headers)
+                     if "END" in h and "DATE" in h),
+                    None
+                )
+
+                for row in table.find_all("tr")[1:]:
+                    cells = row.find_all("td")
+                    if len(cells) <= max(din_idx, name_idx):
+                        continue
+
+                    din_text = cells[din_idx].get_text(strip=True)
+                    name_text = cells[name_idx].get_text(strip=True)
+
+                    # Validate DIN (7-8 digit number)
+                    if not re.match(r"^\d{7,8}$", din_text):
+                        continue
+
+                    # Filter: only current directors (End Date == '-' or empty)
+                    if end_date_idx is not None and len(cells) > end_date_idx:
+                        end_date = cells[end_date_idx].get_text(strip=True)
+                        if end_date and end_date != "-":
+                            continue  # Director has left the board
+
+                    designation = ""
+                    if desig_idx is not None and len(cells) > desig_idx:
+                        designation = cells[desig_idx].get_text(strip=True)
+
+                    directors.append(DirectorRecord(
+                        din=din_text.zfill(8),
+                        name=name_text.title(),
+                        designation=designation,
+                        cin=cin,
+                    ))
+
+                if directors:
+                    break  # Found the right table
+
+            if directors:
+                logger.info(
+                    f"Zaubacorp: found {len(directors)} current directors "
+                    f"for CIN {cin}"
+                )
+            else:
+                logger.warning(f"Zaubacorp: no directors found for CIN {cin}")
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Zaubacorp request failed for {cin}: {e}")
+        except Exception as e:
+            logger.error(f"Error parsing Zaubacorp response for {cin}: {e}")
 
         return directors
 

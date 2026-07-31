@@ -21,8 +21,10 @@ from src.config import (
     BSE_ANNOUNCEMENTS_URL, BSE_HEADERS, BSE_REQUEST_DELAY,
     CONTRACT_KEYWORDS_PATTERN, BOARD_CHANGE_PATTERN,
     CONTRACT_EXCLUSION_PATTERN, ANNOUNCEMENT_LOOKBACK_DAYS,
+    DATA_DIR
 )
 from src.cache_manager import CacheManager
+from src.alpha_engine import AlphaEngine
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,7 @@ class BSEMonitor:
 
     def __init__(self, cache: CacheManager):
         self.cache = cache
+        self.alpha_engine = AlphaEngine(cache)
         self.session = requests.Session()
         self.session.headers.update(BSE_HEADERS)
 
@@ -130,6 +133,30 @@ class BSEMonitor:
 
         return None
 
+    def _download_pdf(self, attachment_name: str) -> Optional[str]:
+        """Download BSE announcement PDF."""
+        if not attachment_name:
+            return None
+            
+        url = f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/{attachment_name}"
+        pdf_dir = DATA_DIR / "pdfs"
+        pdf_dir.mkdir(parents=True, exist_ok=True)
+        pdf_path = pdf_dir / attachment_name
+        
+        if pdf_path.exists():
+            return str(pdf_path)
+            
+        try:
+            resp = self.session.get(url, timeout=30)
+            if resp.status_code == 200:
+                with open(pdf_path, 'wb') as f:
+                    f.write(resp.content)
+                return str(pdf_path)
+        except Exception as e:
+            logger.error(f"Failed to download PDF {url}: {e}")
+            
+        return None
+
     def scan_scrip(self, scrip_code: str,
                    lookback_days: int = 1) -> list[AnnouncementEvent]:
         """
@@ -207,7 +234,7 @@ class BSEMonitor:
                 events.append(event)
 
                 # Cache the announcement
-                self.cache.insert_announcement(
+                ann_id = self.cache.insert_announcement(
                     scrip_code=scrip_code,
                     title=title,
                     date=normalized_date,
@@ -215,6 +242,16 @@ class BSEMonitor:
                     is_contract=(event_type == "contract"),
                     is_board_change=(event_type == "board_change"),
                 )
+
+                if event_type == "contract" and ann_id:
+                    attachment_name = ann.get("ATTACHMENTNAME")
+                    if attachment_name:
+                        pdf_path = self._download_pdf(attachment_name)
+                        if pdf_path:
+                            mat = self.alpha_engine.evaluate_materiality(ann_id, pdf_path, scrip_code)
+                            logger.info(f"Materiality for {scrip_code}: {mat}")
+                            # Store in event for notifier
+                            event.raw_data['materiality'] = mat
 
         return events
 

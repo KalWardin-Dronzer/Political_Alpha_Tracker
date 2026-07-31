@@ -159,12 +159,6 @@ class EntityResolver:
 
         normalized = self.normalize_company_name(donor_name)
 
-        # --- MOCK FALLBACK TO BYPASS CLOUDFLARE ---
-        if "jindal steel" in normalized:
-            logger.info("Using mock CIN for JINDAL STEEL AND POWER LIMITED")
-            return "L27105HR1979PLC009913"
-        # ------------------------------------------
-
         # Tier 1: Exact match
         if normalized in self._company_name_index:
             cin = self._company_name_index[normalized]["cin"]

@@ -33,6 +33,9 @@ from src.entity_resolver import EntityResolver
 from src.graph_manager import GraphManager
 from src.notifier import Notifier
 from src.watchlist_generator import WatchlistGenerator
+from src.tender_monitor import TenderMonitor
+from src.state_budget_monitor import StateBudgetMonitor
+from src.pledge_monitor import PledgeMonitor
 
 # Configure logging
 logging.basicConfig(
@@ -73,6 +76,9 @@ def run_daily_pipeline(dry_run: bool = False):
     graph = GraphManager(cache)
     notifier = Notifier(cache)
     watchlist_gen = WatchlistGenerator(cache)
+    tender_monitor = TenderMonitor(cache, notifier, graph)
+    state_budget_monitor = StateBudgetMonitor(cache, notifier, graph)
+    pledge_monitor = PledgeMonitor(cache, notifier, graph)
 
     # Ensure data directory exists
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -127,6 +133,35 @@ def run_daily_pipeline(dry_run: bool = False):
                     f"refreshing directors"
                 )
                 mca.resolve_directors(company["cin"], force_refresh=True)
+
+    # ── Step 4.5: Check for L1 Bids (Alternative Data) ──
+    logger.info("Step 4.5: Checking eProcure L1 bids (Alternative Data front-running)...")
+    from src.eprocure_monitor import EprocureMonitor
+    l1_monitor = EprocureMonitor(cache)
+    l1_bids = l1_monitor.fetch_l1_bids_for_watchlist()
+    
+    if l1_bids:
+        for bid in l1_bids:
+            logger.info(
+                f"\n{'=' * 40}\n"
+                f"🚨 EARLY ALPHA SIGNAL DETECTED 🚨\n"
+                f"L1 Bidder: {bid['contractor_name']} ({bid['scrip_code']})\n"
+                f"Tender: {bid['title']}\n"
+                f"Amount: Rs. {bid['bid_amount_cr']} Cr\n"
+                f"{'=' * 40}"
+            )
+            # We treat this as an event so the downstream logic alerts on it
+            from src.bse_monitor import CorporateEvent
+            l1_event = CorporateEvent(
+                scrip_code=bid['scrip_code'],
+                company_name=bid['contractor_name'],
+                title=f"[L1 BID] {bid['title']} (Rs. {bid['bid_amount_cr']} Cr)",
+                date=bid['date'],
+                category="Alternative Data (L1 Bidder)",
+                event_type="contract",
+                raw_data={"materiality": {"is_material": True, "materiality_pct": 100, "issuing_authority_state": bid['issuing_authority_state']}}
+            )
+            contracts.append(l1_event)
 
     # ── Step 5: Process contract events ──
     alerts_fired = 0
@@ -187,7 +222,36 @@ def run_daily_pipeline(dry_run: bool = False):
             )
 
             if score >= ALPHA_SCORE_THRESHOLD:
-                logger.info(f"  🚨 Score {score:.2f} >= threshold. ALERTING!")
+                # Materiality Check
+                materiality = event.raw_data.get("materiality")
+                is_material = True
+                
+                if materiality:
+                    is_material = materiality.get("is_material", True)
+                    mat_pct = materiality.get("materiality_pct", 0)
+                    logger.info(f"  Materiality: {mat_pct:.2f}% (Material: {is_material})")
+                    
+                    if not is_material:
+                        logger.info("  🚨 Contract not material (<5% of Market Cap). Skipping alert.")
+                        continue
+                        
+                    # Phase 2: Regional Match
+                    from src.config import STATE_PARTY_MAPPING
+                    issuing_state = materiality.get("issuing_authority_state", "unknown")
+                    party_name = top_connection.get("party_name", "")
+                    
+                    if issuing_state != "unknown" and party_name:
+                        expected_parties = STATE_PARTY_MAPPING.get(issuing_state, [])
+                        if expected_parties:
+                            is_regional_match = any(ep in party_lower for ep in expected_parties for party_lower in [party_name.lower()])
+                            materiality["is_regional_match"] = is_regional_match
+                            if not is_regional_match:
+                                logger.info(f"  🚨 Regional Mismatch: State is {issuing_state} but connected party is {party_name}. Skipping alert.")
+                                continue
+                            else:
+                                materiality["regional_reason"] = f"Match: {issuing_state.title()} contract mapped to {party_name}"
+
+                logger.info(f"  🚨 Score {score:.2f} >= threshold and Material. ALERTING!")
 
                 # Add tender to graph
                 tender_id = graph.add_tender(
@@ -197,6 +261,46 @@ def run_daily_pipeline(dry_run: bool = False):
                 )
                 graph.link_company_to_tender(cin, tender_id)
 
+                # Phase 4: Pair Trading (Short Competitors)
+                from src.alpha_engine import AlphaEngine
+                alpha_engine = AlphaEngine(cache)
+                competitors = alpha_engine.find_competitors(company_name=event.company_name, contract_details=event.title)
+                
+                unconnected_competitors = []
+                for comp in competitors:
+                    comp_cin = None
+                    if comp.get('scrip_code'):
+                        c_info = cache.get_company(comp['scrip_code'])
+                        if c_info:
+                            comp_cin = c_info.get('cin')
+                    
+                    comp_score = 0
+                    if comp_cin:
+                        c_connections = graph.alpha_query(comp_cin)
+                        if c_connections:
+                            comp_score = c_connections[0]["alpha_score"]
+                            
+                    if comp_score < ALPHA_SCORE_THRESHOLD:
+                        unconnected_competitors.append(comp)
+
+                # V2 Phase 1: Insider Trading (Cluster Buy) check
+                from src.insider_tracker import InsiderTracker
+                insider_tracker = InsiderTracker(cache)
+                cluster_buy = insider_tracker.detect_cluster_buy(event.scrip_code)
+                if cluster_buy:
+                    logger.info(f"  🚨 MASSIVE INSIDER BUYING DETECTED for {event.scrip_code}")
+
+                # V3 Phase 3: Dynamic Position Sizing (Kelly Criterion)
+                from src.portfolio_manager import PortfolioManager
+                pm = PortfolioManager(max_position_cap_pct=5.0, kelly_fraction=0.5)
+                # In production, these stats would come from the backtest cache for this specific party/region
+                # Mocking historical win rate and payoff for demonstration
+                recommended_allocation = pm.calculate_position_size(
+                    win_rate=0.65,      # 65% win rate
+                    avg_win_pct=0.25,   # 25% avg win
+                    avg_loss_pct=0.12   # 12% avg loss
+                )
+
                 if not dry_run:
                     notifier.send_alpha_alert(
                         connection=top_connection,
@@ -204,6 +308,10 @@ def run_daily_pipeline(dry_run: bool = False):
                         announcement={
                             "title": event.title,
                             "date": event.date,
+                            "materiality": materiality,
+                            "competitors": unconnected_competitors,
+                            "cluster_buy": cluster_buy,
+                            "recommended_allocation": recommended_allocation,
                         },
                     )
                     alerts_fired += 1
@@ -217,6 +325,70 @@ def run_daily_pipeline(dry_run: bool = False):
                 )
     else:
         logger.info("Step 5: No contract events to process")
+
+    # ── Step 5.5: Policy Monitoring (V4 Macro Alpha) ──
+    logger.info("Step 5.5: Scanning for Macro-Policy Shifts (PIB)...")
+    from src.policy_monitor import PolicyMonitor
+    from src.alpha_engine import AlphaEngine
+    
+    alpha_engine = AlphaEngine(cache)
+    policy_monitor = PolicyMonitor(cache, alpha_engine)
+    policies = policy_monitor.fetch_latest_policies()
+    
+    if policies:
+        for policy in policies:
+            impacted_sector = policy["impacted_sector"].lower()
+            logger.info(f"  🏛️ Found Policy Tailwind for sector: {impacted_sector}")
+            
+            # Find watchlist companies matching this niche
+            for company in watchlist:
+                cin = company.get("cin")
+                scrip_code = company.get("scrip_code")
+                niche = (company.get("micro_niche") or "").lower()
+                
+                if not cin or not niche or niche == "unknown":
+                    continue
+                    
+                # Loose keyword matching for sector
+                # E.g., if policy says "ethanol blending", it matches niche "ethanol production"
+                policy_words = set(impacted_sector.split())
+                niche_words = set(niche.split())
+                
+                # Check intersection or substring
+                if policy_words.intersection(niche_words) or impacted_sector in niche or niche in impacted_sector:
+                    # Check political connection
+                    connections = graph.alpha_query(cin)
+                    if connections:
+                        top_conn = connections[0]
+                        if top_conn["alpha_score"] >= ALPHA_SCORE_THRESHOLD:
+                            logger.info(f"  🚨 MACRO POLICY ALPHA DETECTED for {scrip_code} ({company['name']})")
+                            if not dry_run:
+                                notifier.send_policy_alert(
+                                    company=company,
+                                    connection=top_conn,
+                                    policy=policy
+                                )
+                                alerts_fired += 1
+                            else:
+                                logger.info("  [DRY RUN] Would have sent policy alert")
+
+    # ── Step 5.6: Advanced Alpha Scans (V6) ──
+    logger.info("Step 5.6: Scanning Advanced Alpha Sources (Tenders, Budgets, Pledges)...")
+    
+    if not dry_run:
+        try:
+            logger.info("  -> Running GeM/CPPP Tender Monitor")
+            tender_monitor.scan_for_tenders()
+            
+            logger.info("  -> Running State Budget Monitor")
+            state_budget_monitor.scan_budgets()
+            
+            logger.info("  -> Running Promoter Pledge Monitor")
+            pledge_monitor.scan_pledges()
+        except Exception as e:
+            logger.error(f"  ❌ Error in Advanced Scans: {e}")
+    else:
+        logger.info("  [DRY RUN] Skipping Advanced Alpha Scans")
 
     # ── Step 6: Save graph and send summary ──
     logger.info("Step 6: Saving graph and sending summary...")
@@ -249,6 +421,69 @@ def run_daily_pipeline(dry_run: bool = False):
     )
 
 
+def run_volume_scan(dry_run: bool = False):
+    """
+    Phase 3: Smart Money Front-Running
+    Runs a daily volume scan on highly connected watchlist companies.
+    """
+    start_time = datetime.now()
+    logger.info("Starting Daily Volume Scan (Phase 3)...")
+    
+    cache = CacheManager()
+    graph = GraphManager(cache)
+    screener = FinancialScreener(cache)
+    notifier = Notifier(cache)
+    from src.volume_tracker import VolumeTracker
+    volume_tracker = VolumeTracker(cache)
+    
+    # 1. Fetch watchlist
+    watchlist = cache.get_watchlist()
+    scrip_codes = [c["scrip_code"] for c in watchlist if c.get("scrip_code")]
+    logger.info(f"Scanning volume for {len(scrip_codes)} companies...")
+    
+    spikes_found = 0
+    
+    for company in watchlist:
+        cin = company.get("cin")
+        scrip_code = company.get("scrip_code")
+        company_name = company.get("name")
+        nse_symbol = company.get("nse_symbol")
+        
+        if not cin or not scrip_code:
+            continue
+            
+        # 2. Check graph connections
+        connections = graph.alpha_query(cin)
+        if not connections:
+            continue
+            
+        top_connection = connections[0]
+        score = top_connection["alpha_score"]
+        
+        # Only track heavily connected companies
+        if score >= ALPHA_SCORE_THRESHOLD:
+            # 3. Check fundamentals (briefly, to ensure we don't track garbage)
+            # Actually, volume tracker just checks yfinance.
+            res = volume_tracker.check_volume_spike(scrip_code, company_name, nse_symbol=nse_symbol)
+            if res.is_spike:
+                spikes_found += 1
+                if not dry_run:
+                    notifier.send_volume_spike_alert(
+                        company_name=company_name,
+                        scrip_code=scrip_code,
+                        connection=top_connection,
+                        z_score=res.z_score,
+                        reason=res.reason
+                    )
+                else:
+                    logger.info("  [DRY RUN] Would have sent volume spike alert")
+                    
+    elapsed = (datetime.now() - start_time).total_seconds()
+    logger.info("=" * 60)
+    logger.info(f"VOLUME SCAN COMPLETE — {elapsed:.1f}s elapsed, {spikes_found} spikes found")
+    logger.info("=" * 60)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Political Alpha Tracker — Daily Pipeline"
@@ -258,10 +493,18 @@ if __name__ == "__main__":
         action="store_true",
         help="Run without sending alerts or writing to graph",
     )
+    parser.add_argument(
+        "--scan-volume",
+        action="store_true",
+        help="Run the Phase 3 Volume Tracker instead of the regular pipeline",
+    )
     args = parser.parse_args()
 
     try:
-        run_daily_pipeline(dry_run=args.dry_run)
+        if args.scan_volume:
+            run_volume_scan(dry_run=args.dry_run)
+        else:
+            run_daily_pipeline(dry_run=args.dry_run)
     except Exception as e:
         logger.exception(f"Pipeline failed with error: {e}")
         # Try to send error alert

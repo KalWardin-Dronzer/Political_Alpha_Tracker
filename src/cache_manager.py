@@ -60,6 +60,7 @@ class CacheManager:
                     cin         TEXT,
                     sector      TEXT,
                     industry    TEXT,
+                    micro_niche TEXT,
                     market_cap  REAL,
                     face_value  REAL,
                     in_watchlist INTEGER DEFAULT 0,
@@ -71,6 +72,7 @@ class CacheManager:
                     cin         TEXT NOT NULL,
                     name        TEXT NOT NULL,
                     designation TEXT,
+                    is_bureaucrat INTEGER DEFAULT 0,
                     last_updated TEXT NOT NULL,
                     PRIMARY KEY (din, cin)
                 );
@@ -96,26 +98,65 @@ class CacheManager:
                     is_contract INTEGER DEFAULT 0,
                     is_board_change INTEGER DEFAULT 0,
                     processed   INTEGER DEFAULT 0,
+                    contract_value_cr REAL,
+                    issuing_authority_state TEXT,
                     created_at  TEXT NOT NULL
                 );
 
                 CREATE TABLE IF NOT EXISTS held_positions (
                     scrip_code  TEXT PRIMARY KEY,
                     name        TEXT NOT NULL,
-                    alert_date  TEXT NOT NULL,
-                    alpha_score REAL,
+                    alpha_score REAL NOT NULL,
+                    entered_at  TEXT NOT NULL,
                     expires_at  TEXT NOT NULL
                 );
 
                 CREATE TABLE IF NOT EXISTS system_log (
                     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp   TEXT NOT NULL,
                     module      TEXT NOT NULL,
-                    event       TEXT NOT NULL,
+                    action      TEXT NOT NULL,
                     details     TEXT,
-                    level       TEXT DEFAULT 'INFO'
+                    timestamp   TEXT NOT NULL
+                );
+                
+                CREATE TABLE IF NOT EXISTS tenders (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tender_id   TEXT UNIQUE NOT NULL,
+                    title       TEXT NOT NULL,
+                    winner_cin  TEXT NOT NULL,
+                    winner_name TEXT NOT NULL,
+                    value_cr    REAL,
+                    date        TEXT NOT NULL,
+                    processed   INTEGER DEFAULT 0,
+                    created_at  TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS pledges (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scrip_code  TEXT NOT NULL,
+                    promoter_name TEXT NOT NULL,
+                    action_type TEXT NOT NULL,  -- 'Pledged', 'Released', 'Invoked'
+                    pct_change  REAL NOT NULL,
+                    total_pledged_pct REAL,
+                    date        TEXT NOT NULL,
+                    processed   INTEGER DEFAULT 0,
+                    created_at  TEXT NOT NULL
+                );
+            """)
+
+            # Migration for V4
+            try:
+                conn.execute("ALTER TABLE companies ADD COLUMN micro_niche TEXT")
+            except sqlite3.OperationalError:
+                pass  # Column already exists
+
+            # Migration for V5 Deep State
+            try:
+                conn.execute("ALTER TABLE directors ADD COLUMN is_bureaucrat INTEGER DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass
+
+            conn.executescript("""
                 CREATE INDEX IF NOT EXISTS idx_announcements_scrip
                     ON announcements(scrip_code, date);
                 CREATE INDEX IF NOT EXISTS idx_directors_cin
@@ -124,6 +165,10 @@ class CacheManager:
                     ON donors(donor_cin);
                 CREATE INDEX IF NOT EXISTS idx_donors_year
                     ON donors(year);
+                CREATE INDEX IF NOT EXISTS idx_tenders_cin
+                    ON tenders(winner_cin);
+                CREATE INDEX IF NOT EXISTS idx_pledges_scrip
+                    ON pledges(scrip_code);
             """)
 
     # ──────────────────────────────────────────
@@ -131,26 +176,27 @@ class CacheManager:
     # ──────────────────────────────────────────
     def upsert_company(self, scrip_code: str, name: str, isin: str = None,
                        cin: str = None, sector: str = None, industry: str = None,
-                       market_cap: float = None, face_value: float = None,
-                       in_watchlist: int = 0):
+                       micro_niche: str = None, market_cap: float = None, 
+                       face_value: float = None, in_watchlist: int = 0):
         """Insert or update a company record."""
         with self._connect() as conn:
             conn.execute("""
                 INSERT INTO companies
-                    (scrip_code, name, isin, cin, sector, industry,
+                    (scrip_code, name, isin, cin, sector, industry, micro_niche,
                      market_cap, face_value, in_watchlist, last_updated)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(scrip_code) DO UPDATE SET
                     name = excluded.name,
                     isin = COALESCE(excluded.isin, companies.isin),
                     cin = COALESCE(excluded.cin, companies.cin),
                     sector = COALESCE(excluded.sector, companies.sector),
                     industry = COALESCE(excluded.industry, companies.industry),
+                    micro_niche = COALESCE(excluded.micro_niche, companies.micro_niche),
                     market_cap = COALESCE(excluded.market_cap, companies.market_cap),
                     face_value = COALESCE(excluded.face_value, companies.face_value),
                     in_watchlist = excluded.in_watchlist,
                     last_updated = excluded.last_updated
-            """, (scrip_code, name, isin, cin, sector, industry,
+            """, (scrip_code, name, isin, cin, sector, industry, micro_niche,
                   market_cap, face_value, in_watchlist,
                   datetime.now().isoformat()))
 
@@ -196,19 +242,29 @@ class CacheManager:
     def upsert_directors(self, cin: str, directors: list[dict]):
         """
         Bulk upsert directors for a company.
-        Each dict should have keys: din, name, designation (optional).
+        Each dict should have keys: din, name, designation (optional), is_bureaucrat (optional).
         """
         now = datetime.now().isoformat()
         with self._connect() as conn:
             for d in directors:
+                din = d.get("din")
+                if not din:
+                    continue
                 conn.execute("""
-                    INSERT INTO directors (din, cin, name, designation, last_updated)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO directors (din, cin, name, designation, is_bureaucrat, last_updated)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT(din, cin) DO UPDATE SET
-                        name = excluded.name,
-                        designation = COALESCE(excluded.designation, directors.designation),
-                        last_updated = excluded.last_updated
-                """, (d["din"], cin, d["name"], d.get("designation"), now))
+                        name=excluded.name,
+                        designation=excluded.designation,
+                        is_bureaucrat=excluded.is_bureaucrat,
+                        last_updated=excluded.last_updated
+                """, (
+                    str(din), str(cin),
+                    d.get("name", "Unknown"),
+                    d.get("designation", ""),
+                    1 if d.get("is_bureaucrat") else 0,
+                    now
+                ))
 
     def get_directors_for_company(self, cin: str) -> list[dict]:
         """Get all directors for a company by CIN."""
@@ -301,22 +357,25 @@ class CacheManager:
     # ──────────────────────────────────────────
     def insert_announcement(self, scrip_code: str, title: str, date: str,
                             category: str = None, is_contract: bool = False,
-                            is_board_change: bool = False):
-        """Insert a new announcement (skip duplicates by title+date+scrip)."""
+                            is_board_change: bool = False) -> int:
+        """Insert a new announcement and return its ID."""
         with self._connect() as conn:
             existing = conn.execute("""
                 SELECT id FROM announcements
                 WHERE scrip_code = ? AND title = ? AND date = ?
             """, (scrip_code, title, date)).fetchone()
-            if not existing:
-                conn.execute("""
-                    INSERT INTO announcements
-                        (scrip_code, title, date, category, is_contract,
-                         is_board_change, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (scrip_code, title, date, category,
-                      int(is_contract), int(is_board_change),
-                      datetime.now().isoformat()))
+            if existing:
+                return existing["id"]
+            
+            cursor = conn.execute("""
+                INSERT INTO announcements
+                    (scrip_code, title, date, category, is_contract,
+                     is_board_change, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (scrip_code, title, date, category,
+                  int(is_contract), int(is_board_change),
+                  datetime.now().isoformat()))
+            return cursor.lastrowid
 
     def get_contract_announcement_count(self, scrip_code: str,
                                          lookback_days: int = 365) -> int:

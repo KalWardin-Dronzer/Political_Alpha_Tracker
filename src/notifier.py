@@ -130,6 +130,36 @@ class Notifier:
             lines.append(
                 f"📅 <b>Date:</b> {announcement.get('date', 'N/A')}"
             )
+            
+            materiality = announcement.get('materiality')
+            if materiality and materiality.get('contract_value_cr'):
+                cv = materiality['contract_value_cr']
+                mpct = materiality.get('materiality_pct', 0)
+                lines.append(f"💰 <b>Contract Value:</b> ₹{cv:,.1f} Cr ({mpct:.1f}% of Market Cap)")
+                if 'regional_reason' in materiality:
+                    lines.append(f"🗺️ <b>Regional Match:</b> {materiality['regional_reason']}")
+
+            competitors = announcement.get('competitors')
+            if competitors:
+                lines.append("")
+                lines.append("📉 <b>Suggested Short Pairs (Unconnected Losers):</b>")
+                for comp in competitors:
+                    code_str = f" ({comp['scrip_code']})" if comp.get('scrip_code') else ""
+                    lines.append(f"• <b>{comp['name']}</b>{code_str}: <i>{comp.get('reason', '')}</i>")
+
+            cluster = announcement.get('cluster_buy')
+            if cluster:
+                lines.append("")
+                lines.append("🔥 <b>ULTIMATE INSIDER SIGNAL DETECTED</b> 🔥")
+                lines.append(f"• <b>Net Shares Accumulated:</b> {cluster['total_shares']:,}")
+                lines.append(f"• <b>Distinct Insider Buyers:</b> {cluster['buyers_count']}")
+                lines.append("• <b>Top Buyers:</b> " + ", ".join(b['name'] for b in cluster['top_buyers']))
+                lines.append("<i>Multiple directors aggressively bought shares in the open market just before this contract was awarded!</i>")
+                
+            allocation = announcement.get('recommended_allocation')
+            if allocation:
+                lines.append("")
+                lines.append(f"🎯 <b>Recommended Position Sizing (Half-Kelly):</b> {allocation:.2f}% of Portfolio")
 
         lines.extend([
             "",
@@ -145,6 +175,15 @@ class Notifier:
                 "",
                 f"📈 <b>Fundamentals:</b> {fundamental.summary()}",
             ])
+
+        if connection.get('is_bureaucrat'):
+            lines.append("")
+            lines.append("🕴️ <b>DEEP STATE SIGNAL:</b>")
+            lines.append(f"<i>{director} is a former high-ranking bureaucrat (IAS/IPS/IRS) with immense regulatory influence.</i>")
+
+        if connection.get('election_multiplier', 1.0) > 1.0:
+            lines.append("")
+            lines.append(f"⚡ <b>Election Cycle Boost:</b> x{connection['election_multiplier']:.1f} (Imminent Election in Party Stronghold)")
 
         lines.extend([
             "",
@@ -167,6 +206,81 @@ class Notifier:
             "notifier", "alpha_alert_sent",
             f"Alert for {company} ({scrip}), score: {score:.2f}"
         )
+
+    def send_volume_spike_alert(self, company_name: str, scrip_code: str, connection: dict, z_score: float, reason: str):
+        """Send an alert for pre-announcement volume accumulation (Phase 3)."""
+        lines = [
+            "🚨 <b>PRE-ANNOUNCEMENT ACCUMULATION DETECTED</b> 🚨",
+            f"<b>Company:</b> {company_name} ({scrip_code})",
+            "",
+            "📊 <b>Volume Spike Details:</b>",
+            f"• <b>Z-Score:</b> +{z_score:.1f}σ (Highly Abnormal)",
+            f"• <b>Details:</b> {reason}",
+            "",
+            "🕸️ <b>Why this matters (Political Alpha):</b>",
+            f"• Top Connection Score: {connection['alpha_score']:.2f}",
+            f"• Director: {connection['director_name']}",
+            f"• Donor: {connection['donor_company_name']}",
+            f"• Funded Party: {connection.get('party_name', 'Unknown')} (via {connection.get('trust_name', 'Unknown')})"
+        ]
+
+        if connection.get('is_bureaucrat'):
+            lines.append("")
+            lines.append("🕴️ <b>DEEP STATE SIGNAL:</b>")
+            lines.append(f"<i>{connection['director_name']} is a former high-ranking bureaucrat (IAS/IPS/IRS).</i>")
+
+        if connection.get('election_multiplier', 1.0) > 1.0:
+            lines.append("")
+            lines.append(f"⚡ <b>Election Cycle Boost:</b> x{connection['election_multiplier']:.1f} (Imminent Election in Party Stronghold)")
+
+        lines.extend([
+            "",
+            "<i>Smart money front-running detected. A major contract announcement may be imminent.</i>"
+        ])
+        
+        self._send_message("\n".join(lines))
+
+    def send_policy_alert(self, company: dict, connection: dict, policy: dict):
+        """Send an alert for Macro Policy shifts favoring a connected company (Phase 4)."""
+        scrip = company.get("scrip_code", "")
+        company_name = company.get("name", "Unknown")
+        score = connection.get("alpha_score", 0)
+        
+        lines = [
+            "🏛️ <b>MACRO POLICY ALPHA DETECTED</b> 🏛️",
+            "",
+            f"<b>Company:</b> {company_name} (BSE: {scrip})",
+            f"<b>Micro-Niche:</b> {company.get('micro_niche', 'Unknown').title()}",
+            "",
+            "📜 <b>Government Policy Shift (PIB):</b>",
+            f"• <b>Title:</b> {policy.get('title')}",
+            f"• <b>Impacted Sector:</b> {policy.get('impacted_sector')}",
+            f"• <b>Intent:</b> {policy.get('policy_intent')}",
+            f"• <b>Materiality:</b> {policy.get('materiality')}",
+            f"• <b>Summary:</b> {policy.get('summary')}",
+            f"• <a href='{policy.get('link')}'>Read Official Source</a>",
+            "",
+            "🕸️ <b>Political Connection:</b>",
+            f"• Top Connection Score: {score:.2f}",
+            f"• Director: {connection['director_name']}",
+            f"• Donor: {connection['donor_company_name']}",
+        ]
+        
+        if connection.get('is_bureaucrat'):
+            lines.append("")
+            lines.append("🕴️ <b>DEEP STATE SIGNAL:</b>")
+            lines.append(f"<i>{connection['director_name']} is a former high-ranking bureaucrat (IAS/IPS/IRS).</i>")
+
+        if connection.get('election_multiplier', 1.0) > 1.0:
+            lines.append("")
+            lines.append(f"⚡ <b>Election Cycle Boost:</b> x{connection['election_multiplier']:.1f}")
+
+        lines.extend([
+            "",
+            "<i>A major macro-economic tailwind was just announced in the exact micro-niche of this politically connected company.</i>"
+        ])
+        
+        self._send_message("\n".join(lines))
 
     def send_system_alert(self, title: str, details: str,
                            level: str = "INFO"):
