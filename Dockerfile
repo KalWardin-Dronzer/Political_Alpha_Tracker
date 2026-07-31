@@ -19,8 +19,8 @@ COPY . .
 # Set environment variables for production
 ENV ENVIRONMENT=production
 # In production, proxy credentials would be passed via Secrets Manager
-ENV HTTP_PROXY="http://proxy-user:proxy-pass@residential-proxy-network.com:8000"
-ENV HTTPS_PROXY="http://proxy-user:proxy-pass@residential-proxy-network.com:8000"
+ENV HTTP_PROXY=""
+ENV HTTPS_PROXY=""
 
 # Command to run the alpha pipeline continuously (e.g., using a scheduler or loop inside main.py)
 CMD ["python", "main.py"]
