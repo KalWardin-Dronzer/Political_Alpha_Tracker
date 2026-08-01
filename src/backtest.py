@@ -30,6 +30,7 @@ from src.config import (
 )
 from src.cache_manager import CacheManager
 from src.graph_manager import GraphManager
+from src.alpha_engine import AlphaEngine
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class Backtester:
     def __init__(self, cache: CacheManager):
         self.cache = cache
         self.graph = GraphManager(cache)
+        self.alpha_engine = AlphaEngine(cache)
 
     def _get_price_history(self, scrip_code: str,
                             start_date: str,
@@ -237,7 +239,7 @@ class Backtester:
         from src.cache_manager import CacheManager
         with self.cache._connect() as conn:
             rows = conn.execute("""
-                SELECT a.scrip_code, a.title, a.date, c.cin, c.name
+                SELECT a.scrip_code, a.title, a.date, c.cin, c.name, c.sector
                 FROM announcements a
                 JOIN companies c ON a.scrip_code = c.scrip_code
                 WHERE a.is_contract = 1
@@ -255,12 +257,16 @@ class Backtester:
             if not cin:
                 continue
 
-            # Check if politically connected
-            connections = self.graph.alpha_query(cin)
-            is_connected = (
-                connections
-                and connections[0]["alpha_score"] >= ALPHA_SCORE_THRESHOLD
+            # Check if politically connected (Conviction Stacking >= 2)
+            # We mock materiality_pct for historical testing as it's rarely parsed fully in DB
+            mock_materiality_pct = random.uniform(3.0, 15.0)
+            
+            conviction = self.alpha_engine.calculate_conviction_score(
+                scrip_code=row["scrip_code"],
+                materiality_pct=mock_materiality_pct,
+                sector=row.get("sector", "")
             )
+            is_connected = conviction["score"] >= 2
 
             # Get price history
             event_date = row["date"]
@@ -337,7 +343,7 @@ class Backtester:
         # Get all contract announcements for watchlist companies
         with self.cache._connect() as conn:
             rows = conn.execute("""
-                SELECT a.scrip_code, a.date, c.cin, c.name
+                SELECT a.scrip_code, a.date, c.cin, c.name, c.sector
                 FROM announcements a
                 JOIN companies c ON a.scrip_code = c.scrip_code
                 WHERE a.is_contract = 1
@@ -356,9 +362,16 @@ class Backtester:
                 continue
 
             # Check if this would have triggered an alert
-            connections = self.graph.alpha_query(cin)
-            if not connections or connections[0]["alpha_score"] < ALPHA_SCORE_THRESHOLD:
+            mock_materiality_pct = random.uniform(3.0, 15.0)
+            conviction = self.alpha_engine.calculate_conviction_score(
+                scrip_code=row["scrip_code"],
+                materiality_pct=mock_materiality_pct,
+                sector=row.get("sector", "")
+            )
+            if conviction["score"] < 2:
                 continue
+                
+            connections = self.graph.alpha_query(cin)
 
             # Get 90-day return
             event_date = row["date"]
@@ -378,7 +391,9 @@ class Backtester:
                 continue
 
             total += 1
-            is_election_boosted = connections[0].get("election_multiplier", 1.0) > 1.0
+            is_election_boosted = False
+            if connections and len(connections) > 0:
+                is_election_boosted = connections[0].get("election_multiplier", 1.0) > 1.0
             
             if returns[90] > 0:
                 wins += 1

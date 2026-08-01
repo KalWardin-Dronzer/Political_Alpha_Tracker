@@ -12,6 +12,7 @@ import logging
 from typing import Optional
 from google import genai
 from pypdf import PdfReader
+import yfinance as yf
 
 from src.cache_manager import CacheManager
 
@@ -26,6 +27,19 @@ class AlphaEngine:
         else:
             logger.warning("GEMINI_API_KEY not found. Using fallback regex parser.")
             self.client = None
+
+    def get_vix_regime(self) -> dict:
+        """Fetch current India VIX to determine if the market is in a high fear regime."""
+        try:
+            ticker = yf.Ticker("^INDIAVIX")
+            hist = ticker.history(period="1d")
+            if not hist.empty:
+                vix_close = hist["Close"].iloc[-1]
+                is_high_fear = vix_close > 22.0
+                return {"vix": vix_close, "is_high_fear": is_high_fear}
+        except Exception as e:
+            logger.warning(f"Failed to fetch India VIX: {e}")
+        return {"vix": 15.0, "is_high_fear": False}  # Default safe regime
 
     def extract_text_from_pdf(self, pdf_path: str) -> str:
         """Extract text from downloaded BSE PDF announcement."""
@@ -174,6 +188,86 @@ class AlphaEngine:
             "market_cap_cr": market_cap_cr,
             "materiality_pct": materiality_pct,
             "reason": f"Contract value is {materiality_pct:.2f}% of Market Cap"
+        }
+
+    def calculate_conviction_score(self, scrip_code: str, materiality_pct: float, sector: str) -> dict:
+        """
+        Calculates the Conviction Score (0-5) based on multiple Quantamental factors.
+        """
+        score = 0
+        breakdown = []
+        
+        # 1. Materiality Factor (with Sector Weighting)
+        if materiality_pct >= 5.0:
+            heavy_sectors = ["defence", "railway", "power", "infrastructure", "construction", "capital goods"]
+            sector_lower = sector.lower() if sector else ""
+            if any(s in sector_lower for s in heavy_sectors):
+                score += 2
+                breakdown.append("+2 Materiality (Heavy Industry)")
+            else:
+                score += 1
+                breakdown.append("+1 Materiality")
+        
+        # 2. Political Connection Factor (Non-connected is better)
+        try:
+            from src.graph_manager import GraphManager
+            graph = GraphManager(self.cache)
+            company = self.cache.get_company(scrip_code)
+            cin = company.get("cin") if company else None
+            is_connected = False
+            if cin:
+                conns = graph.alpha_query(cin)
+                if conns and conns[0]["alpha_score"] > 0:
+                    is_connected = True
+            
+            if not is_connected:
+                score += 1
+                breakdown.append("+1 Non-Connected (Merit Win)")
+            else:
+                breakdown.append("0 Connected Firm (High decay risk)")
+        except Exception as e:
+            logger.warning(f"Failed to check political connection for {scrip_code}: {e}")
+            
+        # 3. Insider Buying Factor
+        try:
+            from src.insider_tracker import InsiderTracker
+            tracker = InsiderTracker(self.cache)
+            cluster = tracker.detect_cluster_buy(scrip_code)
+            if cluster:
+                score += 1
+                breakdown.append("+1 Insider Buying Cluster Detected")
+        except Exception as e:
+            logger.warning(f"Failed to check insider buying for {scrip_code}: {e}")
+            
+        # 4. Promoter Pledge Risk
+        try:
+            with self.cache._connect() as conn:
+                # Check for pledges table exists first
+                table_exists = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='pledges'").fetchone()
+                if table_exists:
+                    pledge = conn.execute(
+                        "SELECT total_pledged_pct FROM pledges WHERE scrip_code = ? ORDER BY date DESC LIMIT 1",
+                        (scrip_code,)
+                    ).fetchone()
+                    if pledge:
+                        if pledge[0] < 25.0:
+                            score += 1
+                            breakdown.append(f"+1 Low Pledge Risk ({pledge[0]}%)")
+                        else:
+                            score -= 1
+                            breakdown.append(f"-1 High Pledge Risk ({pledge[0]}%)")
+                    else:
+                        score += 1
+                        breakdown.append("+1 Low Pledge Risk (No pledges found)")
+                else:
+                    score += 1
+                    breakdown.append("+1 Low Pledge Risk (No pledges found)")
+        except Exception as e:
+            logger.warning(f"Failed to check pledge risk for {scrip_code}: {e}")
+            
+        return {
+            "score": score,
+            "breakdown": breakdown
         }
 
     def find_competitors(self, company_name: str, contract_details: str = "") -> list[dict]:

@@ -67,7 +67,6 @@ This compares the stock returns of politically-connected companies vs. unconnect
 ## Phase 1: Materiality Threshold Implemented
 
 The system now incorporates a **Materiality Threshold** using an LLM-powered Alpha Engine (src/alpha_engine.py).
-
 - **PDF Scraping:** The BSEMonitor now downloads the physical PDF attachments for all contract announcements.
 - **LLM Extraction:** The AlphaEngine uses Gemini (or a regex fallback) to read the PDF and extract the exact monetary value of the awarded contract in Crores (Cr).
 - **Materiality Calculation:** The system calculates Materiality % = (Contract Value / Market Cap).
@@ -77,7 +76,6 @@ The system now incorporates a **Materiality Threshold** using an LLM-powered Alp
 ## Phase 2: State vs. Central Mapping Implemented
 
 The system now enforces **Regional Precision** for political connections.
-
 - **LLM State Extraction:** The AlphaEngine now extracts the issuing_authority_state from the PDF.
 - **Graph Party Mapping:** The GraphManager extracts the exact PoliticalParty name that the donor funded.
 - **Regional Cross-Reference:** The pipeline cross-references the issuing state against a predefined STATE_PARTY_MAPPING matrix in config.py.
@@ -86,7 +84,6 @@ The system now enforces **Regional Precision** for political connections.
 ## Phase 3: Smart Money Front-Running Implemented
 
 The system now detects insider accumulation **before** a contract is announced.
-
 - **Volume Tracker (src/volume_tracker.py):** Pulls daily delivery volume from Yahoo Finance (.BO / .NS).
 - **Z-Score Anomaly Detection:** Computes a 14-day rolling mean and standard deviation. If the current day's volume spikes more than **+3.0 standard deviations** above the mean, it triggers a spike alert.
 - **Continuous Scanning:** A new pipeline entry point (python main.py --scan-volume) runs this scan for all highly connected watchlist companies. This can be scheduled as an end-of-day cron job.
@@ -95,7 +92,6 @@ The system now detects insider accumulation **before** a contract is announced.
 ## Phase 4: Pair Trading (Shorting Unconnected Losers)
 
 The system now actively recommends market-neutral pair trades when an insider contract is awarded.
-
 - **Competitor Extraction:** The AlphaEngine queries the Gemini LLM to identify the top 2-3 publicly listed Indian competitors in the specific sector who likely lost the bid.
 - **Graph Verification:** The pipeline queries the GraphManager to verify that these competitors are **unconnected** (alpha score < threshold). If a competitor is also politically connected, they are discarded to avoid shorting another insider.
 - **Telegram Integration:** Safe short pairs are appended directly to the Telegram alert under 📉 Suggested Short Pairs (Unconnected Losers), allowing you to go long on the connected winner and short the unconnected losers to neutralize market risk.
@@ -103,7 +99,15 @@ The system now actively recommends market-neutral pair trades when an insider co
 ## Phase 5: Election Cycle Weighting
 
 The system now actively tracks macro-election timelines to dynamically weight insider threat levels.
-
 - **Election Calendar:** config.py now stores an UPCOMING_ELECTIONS calendar containing the dates for upcoming state and central elections.
 - **Dynamic Alpha Multipliers:** When GraphManager calculates an Alpha Score, it checks if the political party being funded is based in a state facing an election within the next 12 months. If so, a 1.5x ELECTION_MULTIPLIER is applied to the Alpha Score.
 - **Telegram Alerts:** Alerts now explicitly display a ⚡ Election Cycle Boost warning when a high score is driven by an imminent election, highlighting the extreme urgency and probability of the alpha signal.
+
+## Phase 6: Virtual Paper Trading Engine Implemented
+
+The system now features a fully automated **Virtual Portfolio Manager** that mathematically replicates Indian market frictions. This allows for live forward-testing without risking real capital.
+
+- **Realistic Frictions:** The `PaperTrader` exacts the real-world Indian Equity Delivery fee structure (0.1% STT, 0.015% Stamp Duty, NSE Txn Charges, 18% GST, and ₹15.93 DP Charges) on every virtual trade.
+- **Slippage Penalty:** A hardcoded 0.5% slippage penalty is applied to every execution (buys are 0.5% higher, sells 0.5% lower) to mimic the bid/ask spread realities of illiquid micro-caps.
+- **Kelly Sizing Logic:** The engine dynamically weights position sizes (10%, 15%, 25%) based on the severity of the Conviction Score (2, 3, 4+).
+- **Auto-Execution:** Integrated seamlessly into `main.py`, the engine automatically "buys" stocks when the Conviction Engine flags a signal, tracks the P&L in SQLite, and automatically "sells" the position when the 90-day hold period expires.

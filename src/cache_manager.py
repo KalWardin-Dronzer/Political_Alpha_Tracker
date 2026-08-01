@@ -67,6 +67,37 @@ class CacheManager:
                     last_updated TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS alpha_graph (
+                    din         TEXT NOT NULL,
+                    cin         TEXT NOT NULL,
+                    score       REAL NOT NULL,
+                    PRIMARY KEY (din, cin)
+                );
+                
+                CREATE TABLE IF NOT EXISTS virtual_portfolio (
+                    scrip_code  TEXT PRIMARY KEY,
+                    buy_date    TEXT NOT NULL,
+                    buy_price   REAL NOT NULL,
+                    quantity    INTEGER NOT NULL,
+                    invested_amount REAL NOT NULL,
+                    conviction_score REAL NOT NULL
+                );
+                
+                CREATE TABLE IF NOT EXISTS trade_history (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scrip_code  TEXT NOT NULL,
+                    buy_date    TEXT NOT NULL,
+                    sell_date   TEXT NOT NULL,
+                    buy_price   REAL NOT NULL,
+                    sell_price  REAL NOT NULL,
+                    quantity    INTEGER NOT NULL,
+                    stt         REAL NOT NULL,
+                    stamp_duty  REAL NOT NULL,
+                    txn_charges REAL NOT NULL,
+                    dp_charges  REAL NOT NULL,
+                    net_pnl     REAL NOT NULL
+                );
+
                 CREATE TABLE IF NOT EXISTS directors (
                     din         TEXT NOT NULL,
                     cin         TEXT NOT NULL,

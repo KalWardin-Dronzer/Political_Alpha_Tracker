@@ -1,0 +1,13 @@
+# AWS EC2 Crontab Setup
+
+# Open your crontab editor on the EC2 instance by running:
+# crontab -e
+
+# Paste the following line at the bottom of the file.
+# Note: AWS servers default to UTC time. 5:00 PM IST is exactly 11:30 AM UTC.
+# This runs the Docker container automatically at 11:30 UTC every weekday (Monday to Friday).
+
+30 11 * * 1-5 docker run --rm --env-file /home/ubuntu/Insider-trading/.env -v /home/ubuntu/Insider-trading/data:/app/data alpha-tracker python main.py >> /home/ubuntu/Insider-trading/data/cron.log 2>&1
+
+# Save and exit (if using nano, press Ctrl+O, Enter, Ctrl+X).
+# The bot will now scan the market and run the paper trader automatically every day!
