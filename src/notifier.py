@@ -161,9 +161,22 @@ class Notifier:
                 lines.append("")
                 lines.append(f"🎯 <b>Recommended Position Sizing (Half-Kelly):</b> {allocation:.2f}% of Portfolio")
 
+        conviction = None
+        if announcement:
+            conviction = announcement.get('conviction')
+            
+        if conviction:
+            c_score = conviction.get("score", 0)
+            lines.append("")
+            lines.append(f"🔥 <b>CONVICTION SCORE: {c_score}/5</b> 🔥")
+            if conviction.get("regime_warning"):
+                lines.append("⚠️ <b>WARNING: High Fear Regime (VIX > 22). Consider HALTING Longs.</b>")
+            for brk in conviction.get("breakdown", []):
+                lines.append(f"  {brk}")
+
         lines.extend([
             "",
-            f"🔗 <b>Political Connection (Score: {score:.2f}):</b>",
+            f"🔗 <b>Political Connection (Graph Score: {score:.2f}):</b>",
             f"   Director: {director} (DIN: {din})",
             f"   Also on board of: {donor}",
             f"   Which donated: {donation_str} → {trust}",

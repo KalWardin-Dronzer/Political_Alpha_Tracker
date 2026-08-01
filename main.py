@@ -22,6 +22,10 @@ import logging
 import argparse
 from datetime import datetime
 
+# Fix Windows console emoji printing
+if sys.stdout.encoding != 'utf-8' and hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 from src.config import (
     ALPHA_SCORE_THRESHOLD, DATA_DIR, MCA_CACHE_TTL_DAYS,
 )
@@ -33,9 +37,11 @@ from src.entity_resolver import EntityResolver
 from src.graph_manager import GraphManager
 from src.notifier import Notifier
 from src.watchlist_generator import WatchlistGenerator
+from src.universe_manager import UniverseManager
 from src.tender_monitor import TenderMonitor
 from src.state_budget_monitor import StateBudgetMonitor
 from src.pledge_monitor import PledgeMonitor
+from src.portfolio_manager import PaperTrader
 
 # Configure logging
 logging.basicConfig(
@@ -79,6 +85,7 @@ def run_daily_pipeline(dry_run: bool = False):
     tender_monitor = TenderMonitor(cache, notifier, graph)
     state_budget_monitor = StateBudgetMonitor(cache, notifier, graph)
     pledge_monitor = PledgeMonitor(cache, notifier, graph)
+    paper_trader = PaperTrader(cache)
 
     # Ensure data directory exists
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -93,11 +100,17 @@ def run_daily_pipeline(dry_run: bool = False):
         logger.info("  [DRY RUN] Skipping Telegram poll")
 
     # ── Step 2: Get monitoring list ──
-    logger.info("Step 2: Building monitoring list...")
-    scrip_codes = watchlist_gen.get_monitoring_scrip_codes()
+    logger.info("Step 2: Building full universe monitoring list...")
+    universe_manager = UniverseManager(cache)
+    
+    # Normally we'd update_universe() here, but we will run it via a separate cron/script 
+    # to prevent daily pipeline delays, or we can just call it (it limits to 50 missing anyway).
+    universe_manager.update_universe()
+    
+    scrip_codes = universe_manager.get_full_universe_scrip_codes()
 
     if not scrip_codes:
-        logger.warning("No scrip codes to monitor. Is the watchlist empty?")
+        logger.warning("No scrip codes to monitor. Is the universe empty?")
         logger.warning("Run 'python refresh.py --mode quarterly' to generate watchlist.")
 
         if not dry_run:
@@ -121,6 +134,11 @@ def run_daily_pipeline(dry_run: bool = False):
         f"Found {len(contracts)} contract events, "
         f"{len(board_changes)} board changes"
     )
+
+    # ── Step 3.5: Execute Virtual Sells ──
+    if not dry_run:
+        logger.info("Step 3.5: Checking virtual portfolio for 90-day sells...")
+        paper_trader.execute_sells(max_hold_days=90)
 
     # ── Step 4: Process board changes (trigger MCA refresh) ──
     if board_changes:
@@ -168,6 +186,10 @@ def run_daily_pipeline(dry_run: bool = False):
 
     if contracts:
         logger.info("Step 5: Processing contract events...")
+        from src.alpha_engine import AlphaEngine
+        alpha_engine = AlphaEngine(cache)
+        regime = alpha_engine.get_vix_regime()
+        logger.info(f"  VIX Regime: {regime['vix']:.2f} (High Fear: {regime['is_high_fear']})")
 
         for event in contracts:
             logger.info(
@@ -221,38 +243,33 @@ def run_daily_pipeline(dry_run: bool = False):
                 f"donor={top_connection['donor_company_name']}"
             )
 
-            if score >= ALPHA_SCORE_THRESHOLD:
-                # Materiality Check
-                materiality = event.raw_data.get("materiality")
-                is_material = True
+            # Calculate Conviction Score
+            materiality = event.raw_data.get("materiality", {})
+            mat_pct = materiality.get("materiality_pct", 0) if materiality else 0
+            
+            conviction = alpha_engine.calculate_conviction_score(
+                scrip_code=event.scrip_code, 
+                materiality_pct=mat_pct, 
+                sector=company.get("sector", "")
+            )
+            c_score = conviction["score"]
+            c_breakdown = conviction["breakdown"]
+            
+            logger.info(f"  Conviction Score: {c_score}/5")
+            for b in c_breakdown:
+                logger.info(f"    {b}")
                 
-                if materiality:
-                    is_material = materiality.get("is_material", True)
-                    mat_pct = materiality.get("materiality_pct", 0)
-                    logger.info(f"  Materiality: {mat_pct:.2f}% (Material: {is_material})")
+            if c_score >= 2:
+                if regime["is_high_fear"]:
+                    logger.warning("  🚨 High Conviction, but VIX is > 22 (High Fear). HALTING LONG TRADE.")
+                    conviction["regime_warning"] = True
+                else:
+                    conviction["regime_warning"] = False
+                    if not dry_run:
+                        paper_trader.execute_buy(event.scrip_code, c_score)
                     
-                    if not is_material:
-                        logger.info("  🚨 Contract not material (<5% of Market Cap). Skipping alert.")
-                        continue
-                        
-                    # Phase 2: Regional Match
-                    from src.config import STATE_PARTY_MAPPING
-                    issuing_state = materiality.get("issuing_authority_state", "unknown")
-                    party_name = top_connection.get("party_name", "")
-                    
-                    if issuing_state != "unknown" and party_name:
-                        expected_parties = STATE_PARTY_MAPPING.get(issuing_state, [])
-                        if expected_parties:
-                            is_regional_match = any(ep in party_lower for ep in expected_parties for party_lower in [party_name.lower()])
-                            materiality["is_regional_match"] = is_regional_match
-                            if not is_regional_match:
-                                logger.info(f"  🚨 Regional Mismatch: State is {issuing_state} but connected party is {party_name}. Skipping alert.")
-                                continue
-                            else:
-                                materiality["regional_reason"] = f"Match: {issuing_state.title()} contract mapped to {party_name}"
-
-                logger.info(f"  🚨 Score {score:.2f} >= threshold and Material. ALERTING!")
-
+                logger.info(f"  🚨 Conviction >= 2. ALERTING!")
+                
                 # Add tender to graph
                 tender_id = graph.add_tender(
                     title=event.title,
@@ -260,10 +277,8 @@ def run_daily_pipeline(dry_run: bool = False):
                     scrip_code=event.scrip_code,
                 )
                 graph.link_company_to_tender(cin, tender_id)
-
-                # Phase 4: Pair Trading (Short Competitors)
-                from src.alpha_engine import AlphaEngine
-                alpha_engine = AlphaEngine(cache)
+                
+                # Pair Trading (Short Competitors)
                 competitors = alpha_engine.find_competitors(company_name=event.company_name, contract_details=event.title)
                 
                 unconnected_competitors = []
@@ -283,24 +298,6 @@ def run_daily_pipeline(dry_run: bool = False):
                     if comp_score < ALPHA_SCORE_THRESHOLD:
                         unconnected_competitors.append(comp)
 
-                # V2 Phase 1: Insider Trading (Cluster Buy) check
-                from src.insider_tracker import InsiderTracker
-                insider_tracker = InsiderTracker(cache)
-                cluster_buy = insider_tracker.detect_cluster_buy(event.scrip_code)
-                if cluster_buy:
-                    logger.info(f"  🚨 MASSIVE INSIDER BUYING DETECTED for {event.scrip_code}")
-
-                # V3 Phase 3: Dynamic Position Sizing (Kelly Criterion)
-                from src.portfolio_manager import PortfolioManager
-                pm = PortfolioManager(max_position_cap_pct=5.0, kelly_fraction=0.5)
-                # In production, these stats would come from the backtest cache for this specific party/region
-                # Mocking historical win rate and payoff for demonstration
-                recommended_allocation = pm.calculate_position_size(
-                    win_rate=0.65,      # 65% win rate
-                    avg_win_pct=0.25,   # 25% avg win
-                    avg_loss_pct=0.12   # 12% avg loss
-                )
-
                 if not dry_run:
                     notifier.send_alpha_alert(
                         connection=top_connection,
@@ -310,8 +307,7 @@ def run_daily_pipeline(dry_run: bool = False):
                             "date": event.date,
                             "materiality": materiality,
                             "competitors": unconnected_competitors,
-                            "cluster_buy": cluster_buy,
-                            "recommended_allocation": recommended_allocation,
+                            "conviction": conviction,
                         },
                     )
                     alerts_fired += 1
@@ -319,10 +315,7 @@ def run_daily_pipeline(dry_run: bool = False):
                     logger.info("  [DRY RUN] Would have sent alert")
                     alerts_fired += 1
             else:
-                logger.info(
-                    f"  Score {score:.2f} < threshold "
-                    f"{ALPHA_SCORE_THRESHOLD}. No alert."
-                )
+                logger.info(f"  Conviction Score {c_score} < 2. No alert.")
     else:
         logger.info("Step 5: No contract events to process")
 

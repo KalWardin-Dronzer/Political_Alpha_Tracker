@@ -27,7 +27,7 @@ tmp/
 Thumbs.db
 
 # Data files (cached, not source-controlled except graph.json)
-# data/cache.sqlite  (Now tracked for GitHub Actions)
+data/cache.sqlite
 data/cache.sqlite-wal
 data/cache.sqlite-shm
 data/pipeline.log
