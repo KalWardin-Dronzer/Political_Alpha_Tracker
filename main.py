@@ -139,6 +139,19 @@ def run_daily_pipeline(dry_run: bool = False):
     if not dry_run:
         logger.info("Step 3.5: Checking virtual portfolio for 90-day sells...")
         paper_trader.execute_sells(max_hold_days=90)
+        
+    # ── Step 3.6: Scan Bulk & Block Deals ──
+    logger.info("Step 3.6: Scanning Bulk & Block Deals...")
+    try:
+        from src.bulk_deal_monitor import BulkDealMonitor
+        bdm = BulkDealMonitor(cache)
+        tracked_buys = bdm.scan_today_deals()
+        if tracked_buys:
+            logger.info(f"  Found {len(tracked_buys)} tracked smart money buys today.")
+            for tb in tracked_buys:
+                logger.info(f"    {tb['client_name']} bought {tb['scrip_code']}")
+    except Exception as e:
+        logger.warning(f"Failed to scan bulk deals: {e}")
 
     # ── Step 4: Process board changes (trigger MCA refresh) ──
     if board_changes:
@@ -246,29 +259,29 @@ def run_daily_pipeline(dry_run: bool = False):
             # Calculate Conviction Score
             materiality = event.raw_data.get("materiality", {})
             mat_pct = materiality.get("materiality_pct", 0) if materiality else 0
+            is_regional_match = materiality.get("is_regional_match", True) if materiality else True
+            buyback_mat_pct = 0.0  # Currently we only process contract events here
             
             conviction = alpha_engine.calculate_conviction_score(
                 scrip_code=event.scrip_code, 
-                materiality_pct=mat_pct, 
-                sector=company.get("sector", "")
+                materiality_pct=mat_pct,
+                is_regional_match=is_regional_match,
+                buyback_materiality_pct=buyback_mat_pct,
+                vix=regime["vix"]
             )
             c_score = conviction["score"]
             c_breakdown = conviction["breakdown"]
             
-            logger.info(f"  Conviction Score: {c_score}/5")
+            logger.info(f"  Conviction Score: {c_score}/11")
             for b in c_breakdown:
                 logger.info(f"    {b}")
                 
-            if c_score >= 2:
-                if regime["is_high_fear"]:
-                    logger.warning("  🚨 High Conviction, but VIX is > 22 (High Fear). HALTING LONG TRADE.")
-                    conviction["regime_warning"] = True
-                else:
-                    conviction["regime_warning"] = False
-                    if not dry_run:
-                        paper_trader.execute_buy(event.scrip_code, c_score)
+            # Changed threshold to 4.0 as per Phase 8 (Quarter Kelly minimum)
+            if c_score >= 4.0:
+                if not dry_run:
+                    paper_trader.execute_buy(event.scrip_code, c_score)
                     
-                logger.info(f"  🚨 Conviction >= 2. ALERTING!")
+                logger.info(f"  🚨 Conviction >= 4.0. ALERTING!")
                 
                 # Add tender to graph
                 tender_id = graph.add_tender(

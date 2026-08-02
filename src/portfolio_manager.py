@@ -114,13 +114,13 @@ class PaperTrader:
 
         available_cash = self.get_available_capital()
         
-        # Position Sizing Logic (derived from Kelly max caps)
-        if conviction_score >= 4:
-            allocation_pct = 0.25
-        elif conviction_score >= 3:
-            allocation_pct = 0.15
-        elif conviction_score >= 2:
-            allocation_pct = 0.10
+        # Position Sizing Logic (Kelly Tiers based on Phase 8)
+        if conviction_score >= 8.0:
+            allocation_pct = 0.25  # Full Kelly cap
+        elif conviction_score >= 6.0:
+            allocation_pct = 0.15  # Half Kelly cap
+        elif conviction_score >= 4.0:
+            allocation_pct = 0.05  # Quarter Kelly cap
         else:
             return False
             
