@@ -131,9 +131,9 @@ class BulkDealMonitor:
                     
                 # Insert raw deal into DB
                 conn.execute('''
-                    INSERT INTO bulk_deals (scrip_code, deal_date, client_name, buy_sell, quantity, price)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (scrip_code, date_str, client_name, buy_sell, quantity, price))
+                    INSERT INTO bulk_deals (scrip_code, deal_date, client_name, buy_sell, quantity, price, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (scrip_code, date_str, client_name, buy_sell, quantity, price, datetime.now().isoformat()))
                 
                 # Check if it's a tracked entity
                 if self._is_tracked_entity(client_name, donors):
