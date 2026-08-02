@@ -140,3 +140,44 @@ class InsiderTracker:
             }
             
         return None
+
+    def detect_sast_external_acquirer(self, scrip_code: str, lookback_days: int = 30) -> bool:
+        """
+        Detects if a non-promoter (external entity) has crossed the 5% threshold 
+        (triggering a SAST filing) via Open Market purchases.
+        """
+        disclosures = self._fetch_disclosures(scrip_code, lookback_days)
+        if not disclosures:
+            return False
+            
+        for d in disclosures:
+            mode = d.get("ModeOfAcquisition", d.get("Mode", "")).upper()
+            buy_sell = d.get("BuySell", d.get("TransactionType", "")).upper()
+            category = d.get("Category", d.get("PersonCategory", "")).upper()
+            
+            # Must be an acquisition via Open Market
+            if "B" not in buy_sell and "ACQUISITION" not in buy_sell:
+                continue
+            if "OPEN MARKET" not in mode and "MARKET PURCHASE" not in mode:
+                continue
+                
+            # Ignore Promoters
+            if "PROMOTER" in category:
+                continue
+                
+            # If it's SAST and they are not a promoter acquiring from open market,
+            # they are an external acquirer (likely crossing 5%)
+            # We can also check 'TotalHoldingAfter' if available, but the SAST 
+            # filing itself is the trigger.
+            if d.get("TotalHoldingAfter"):
+                try:
+                    pct = float(str(d.get("TotalHoldingAfter")).replace('%',''))
+                    if pct >= 5.0:
+                        return True
+                except ValueError:
+                    # If we can't parse it, still return True since they made a SAST filing
+                    return True
+            else:
+                return True
+                
+        return False

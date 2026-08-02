@@ -121,6 +121,16 @@ DONOR_MIN_AMOUNT_CR = 10  # Rs.10 Crore minimum donation to qualify for watchlis
 DONOR_MATCH_SCORE = 75  # Fuzzy match threshold for donor-company name matching
 
 # ──────────────────────────────────────────────
+# Smart Money Tracking
+# ──────────────────────────────────────────────
+TRACKED_SUPERSTARS = [
+    "ASHISH KACHOLIA", "DOLLY KHANNA", "VIJAY KEDIA", "REKHA JHUNJHUNWALA",
+    "MADHUSUDAN KELA", "SUNIL SINGHANIA", "PORINJU VELIYATH", "ANIL KUMAR GOEL",
+    "MUKUL AGRAWAL", "SUMEET NAGAR"
+]
+BUYBACK_MATERIALITY_THRESHOLD = 2.0  # Minimum 2% of market cap for buyback
+
+# ──────────────────────────────────────────────
 # BSE API Configuration
 # ──────────────────────────────────────────────
 BSE_BASE_URL = "https://api.bseindia.com/BseIndiaAPI/api"

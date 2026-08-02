@@ -173,6 +173,29 @@ class CacheManager:
                     processed   INTEGER DEFAULT 0,
                     created_at  TEXT NOT NULL
                 );
+                
+                CREATE TABLE IF NOT EXISTS superstar_holdings (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scrip_code  TEXT NOT NULL,
+                    investor_name TEXT NOT NULL,
+                    holding_pct REAL NOT NULL,
+                    quarter_date TEXT NOT NULL,
+                    is_new_entry INTEGER DEFAULT 0,
+                    processed   INTEGER DEFAULT 0,
+                    created_at  TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS bulk_deals (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    scrip_code  TEXT NOT NULL,
+                    deal_date   TEXT NOT NULL,
+                    client_name TEXT NOT NULL,
+                    buy_sell    TEXT NOT NULL,
+                    quantity    INTEGER NOT NULL,
+                    price       REAL NOT NULL,
+                    processed   INTEGER DEFAULT 0,
+                    created_at  TEXT NOT NULL
+                );
             """)
 
             # Migration for V4

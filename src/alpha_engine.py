@@ -190,80 +190,96 @@ class AlphaEngine:
             "reason": f"Contract value is {materiality_pct:.2f}% of Market Cap"
         }
 
-    def calculate_conviction_score(self, scrip_code: str, materiality_pct: float, sector: str) -> dict:
+    def calculate_conviction_score(self, scrip_code: str, materiality_pct: float = 0.0, 
+                                   is_regional_match: bool = True, buyback_materiality_pct: float = 0.0,
+                                   vix: float = 15.0) -> dict:
         """
-        Calculates the Conviction Score (0-5) based on multiple Quantamental factors.
+        Calculates the Conviction Score (0-11) based on Phase 8 Quantamental factors.
+        Applies Hard Filters before scoring.
         """
-        score = 0
         breakdown = []
         
-        # 1. Materiality Factor (with Sector Weighting)
-        if materiality_pct >= 5.0:
-            heavy_sectors = ["defence", "railway", "power", "infrastructure", "construction", "capital goods"]
-            sector_lower = sector.lower() if sector else ""
-            if any(s in sector_lower for s in heavy_sectors):
-                score += 2
-                breakdown.append("+2 Materiality (Heavy Industry)")
-            else:
-                score += 1
-                breakdown.append("+1 Materiality")
-        
-        # 2. Political Connection Factor (Non-connected is better)
-        try:
-            from src.graph_manager import GraphManager
-            graph = GraphManager(self.cache)
-            company = self.cache.get_company(scrip_code)
-            cin = company.get("cin") if company else None
-            is_connected = False
-            if cin:
-                conns = graph.alpha_query(cin)
-                if conns and conns[0]["alpha_score"] > 0:
-                    is_connected = True
+        # --- HARD FILTERS (If any fail, return score 0 immediately) ---
+        if not is_regional_match:
+            return {"score": 0.0, "breakdown": ["FAILED HARD FILTER: Regional Party Mismatch"]}
             
-            if not is_connected:
-                score += 1
-                breakdown.append("+1 Non-Connected (Merit Win)")
-            else:
-                breakdown.append("0 Connected Firm (High decay risk)")
-        except Exception as e:
-            logger.warning(f"Failed to check political connection for {scrip_code}: {e}")
+        if vix > 22.0:
+            return {"score": 0.0, "breakdown": [f"FAILED HARD FILTER: Market VIX Too High ({vix:.2f})"]}
             
-        # 3. Insider Buying Factor
-        try:
-            from src.insider_tracker import InsiderTracker
-            tracker = InsiderTracker(self.cache)
-            cluster = tracker.detect_cluster_buy(scrip_code)
-            if cluster:
-                score += 1
-                breakdown.append("+1 Insider Buying Cluster Detected")
-        except Exception as e:
-            logger.warning(f"Failed to check insider buying for {scrip_code}: {e}")
-            
-        # 4. Promoter Pledge Risk
         try:
             with self.cache._connect() as conn:
-                # Check for pledges table exists first
                 table_exists = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='pledges'").fetchone()
                 if table_exists:
                     pledge = conn.execute(
                         "SELECT total_pledged_pct FROM pledges WHERE scrip_code = ? ORDER BY date DESC LIMIT 1",
                         (scrip_code,)
                     ).fetchone()
-                    if pledge:
-                        if pledge[0] < 25.0:
-                            score += 1
-                            breakdown.append(f"+1 Low Pledge Risk ({pledge[0]}%)")
-                        else:
-                            score -= 1
-                            breakdown.append(f"-1 High Pledge Risk ({pledge[0]}%)")
-                    else:
-                        score += 1
-                        breakdown.append("+1 Low Pledge Risk (No pledges found)")
-                else:
-                    score += 1
-                    breakdown.append("+1 Low Pledge Risk (No pledges found)")
+                    if pledge and pledge[0] >= 25.0:
+                        return {"score": 0.0, "breakdown": [f"FAILED HARD FILTER: Promoter Pledge High ({pledge[0]}%)"]}
         except Exception as e:
             logger.warning(f"Failed to check pledge risk for {scrip_code}: {e}")
+            
+        # --- SCORING ---
+        score = 0.0
+        
+        # 1. Contract Win (Materiality)
+        if materiality_pct >= 5.0:
+            score += 2.0
+            breakdown.append(f"+2.0 Contract Win Materiality ({materiality_pct:.1f}%)")
+            
+        # 2. Corporate Buyback
+        if buyback_materiality_pct >= 2.0:
+            score += 1.5
+            breakdown.append(f"+1.5 Corporate Buyback ({buyback_materiality_pct:.1f}%)")
+            
+        # 3. Political Connection
+        try:
+            from src.graph_manager import GraphManager
+            graph = GraphManager(self.cache)
+            company = self.cache.get_company(scrip_code)
+            cin = company.get("cin") if company else None
+            if cin:
+                conns = graph.alpha_query(cin)
+                if conns and conns[0]["alpha_score"] > 0:
+                    score += 0.5
+                    breakdown.append("+0.5 Political Network Connection")
+        except Exception as e:
+            logger.warning(f"Failed to check political connection for {scrip_code}: {e}")
+            
+        # 4 & 5. Insider Buying & SAST External Acquirer
+        try:
+            from src.insider_tracker import InsiderTracker
+            tracker = InsiderTracker(self.cache)
+            cluster = tracker.detect_cluster_buy(scrip_code)
+            if cluster:
+                score += 2.0
+                breakdown.append("+2.0 Insider Buying Cluster")
+                
+            if tracker.detect_sast_external_acquirer(scrip_code):
+                score += 2.0
+                breakdown.append("+2.0 SAST External Acquirer (Hostile / Whale Entry)")
+        except Exception as e:
+            logger.warning(f"Failed to check insider buying for {scrip_code}: {e}")
+            
+        # 6. Bulk/Block Deal (Smart Money)
+        try:
+            from src.bulk_deal_monitor import BulkDealMonitor
+            bdm = BulkDealMonitor(self.cache)
+            if bdm.has_recent_tracked_buy(scrip_code):
+                score += 1.5
+                breakdown.append("+1.5 Smart Money Bulk/Block Deal")
+        except Exception as e:
+            logger.warning(f"Failed to check bulk deals for {scrip_code}: {e}")
+            
+        # 7. Superstar New Entry
+        try:
+            from src.superstar_tracker import SuperstarTracker
+            sst = SuperstarTracker(self.cache)
+            if sst.check_superstar_entry(scrip_code):
+                score += 1.0
+                breakdown.append("+1.0 Superstar New Entry")
+        except Exception as e:
+            logger.warning(f"Failed to check superstar tracker for {scrip_code}: {e}")
             
         return {
             "score": score,
