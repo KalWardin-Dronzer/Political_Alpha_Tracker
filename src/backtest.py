@@ -264,7 +264,7 @@ class Backtester:
             conviction = self.alpha_engine.calculate_conviction_score(
                 scrip_code=row["scrip_code"],
                 materiality_pct=mock_materiality_pct,
-                sector=row.get("sector", "")
+                is_regional_match=True
             )
             is_connected = conviction["score"] >= 2
 
@@ -366,7 +366,7 @@ class Backtester:
             conviction = self.alpha_engine.calculate_conviction_score(
                 scrip_code=row["scrip_code"],
                 materiality_pct=mock_materiality_pct,
-                sector=row.get("sector", "")
+                is_regional_match=True
             )
             if conviction["score"] < 2:
                 continue
