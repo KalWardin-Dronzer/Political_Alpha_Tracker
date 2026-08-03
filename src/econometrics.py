@@ -47,7 +47,7 @@ def run_ols_regression(cache: CacheManager, backtester: Backtester, forward_wind
         conviction = backtester.alpha_engine.calculate_conviction_score(
             scrip_code=scrip_code,
             materiality_pct=mock_materiality_pct,
-            sector=row[3] # name... wait row has name in [3] and sector... no, let's just use empty sector or fetch it
+            is_regional_match=True
         )
         
         c_score = conviction["score"]

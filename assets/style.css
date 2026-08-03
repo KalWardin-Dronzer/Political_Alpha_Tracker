@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+html, body, [class*="css"]  {
+    font-family: 'DM Sans', sans-serif;
+}
+
+/* Use JetBrains Mono for data tables and metrics */
+[data-testid="stMetricValue"], [data-testid="stMetricDelta"], table, .stDataFrame {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Style the cards / containers */
+[data-testid="stMetric"] {
+    background-color: #18181b;
+    border: 1px solid #27272a;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Minimal Chrome - hide standard Streamlit header/footer */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
