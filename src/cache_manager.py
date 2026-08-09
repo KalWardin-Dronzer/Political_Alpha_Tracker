@@ -139,7 +139,7 @@ class CacheManager:
                     scrip_code  TEXT PRIMARY KEY,
                     name        TEXT NOT NULL,
                     alpha_score REAL NOT NULL,
-                    entered_at  TEXT NOT NULL,
+                    alert_date  TEXT NOT NULL,
                     expires_at  TEXT NOT NULL
                 );
 

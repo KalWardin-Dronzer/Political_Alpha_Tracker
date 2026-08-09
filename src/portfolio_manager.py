@@ -167,18 +167,44 @@ class PaperTrader:
         return True
 
     def execute_sells(self, max_hold_days: int = 90):
-        """Review portfolio and sell anything older than max_hold_days."""
+        """Review portfolio and sell anything that hits the ATR stop-loss or exceeds max_hold_days."""
         today = datetime.now()
         
         with self.cache._connect() as conn:
             positions = conn.execute("SELECT scrip_code, buy_date, buy_price, quantity, invested_amount FROM virtual_portfolio").fetchall()
             
+        if not positions:
+            return
+            
+        from src.technical_analyzer import TechnicalAnalyzer
+        ta = TechnicalAnalyzer(self.cache)
+            
         for pos in positions:
             scrip_code, buy_date_str, buy_price, quantity, invested_amount = pos
             buy_date = datetime.strptime(buy_date_str, "%Y-%m-%d")
-            
             days_held = (today - buy_date).days
-            if days_held >= max_hold_days:
+            
+            # Fetch technicals for stop-loss
+            ta_result = ta.analyze(scrip_code)
+            raw_price = ta_result.current_price
+            atr_stop = ta_result.atr_stop_loss
+            
+            if not raw_price:
+                # Fallback to simple lookup if TA engine fails
+                raw_price = self._get_live_price(scrip_code)
+                
+            if raw_price <= 0:
+                logger.warning(f"Could not fetch price for {scrip_code} during sell check.")
+                continue
+
+            # 1. Stop-Loss Trigger (Price drops below 2x ATR trailing stop)
+            if atr_stop and raw_price < atr_stop:
+                logger.info(f"🛑 STOP-LOSS HIT for {scrip_code}: Price (₹{raw_price:.2f}) < ATR Stop (₹{atr_stop:.2f})")
+                self.sell_position(scrip_code, buy_date_str, buy_price, quantity, invested_amount)
+                
+            # 2. Time-Stop Trigger (Held too long without materializing)
+            elif days_held >= max_hold_days:
+                logger.info(f"⏱️ TIME-STOP HIT for {scrip_code}: Held for {days_held} days.")
                 self.sell_position(scrip_code, buy_date_str, buy_price, quantity, invested_amount)
 
     def sell_position(self, scrip_code: str, buy_date: str, buy_price: float, quantity: int, invested_amount: float):
