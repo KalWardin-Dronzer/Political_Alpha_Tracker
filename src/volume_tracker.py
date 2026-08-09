@@ -39,15 +39,26 @@ class VolumeTracker:
         Check if the latest daily volume is an anomaly (> 3 standard deviations).
         Uses a 14-day moving average.
         """
-        ticker_symbol = f"{scrip_code}.BO"
-        
+        # Auto-lookup NSE symbol from DB if not provided
+        if not nse_symbol:
+            company = self.cache.get_company(scrip_code)
+            if company:
+                nse_symbol = company.get("nse_symbol")
+                
         try:
-            ticker = yf.Ticker(ticker_symbol)
-            # Fetch 30 days to have enough data for a 14-day window + std deviation
-            hist = ticker.history(period="1mo")
-            
-            if hist.empty and nse_symbol:
+            # Try NSE first since .BO is dead
+            if nse_symbol:
                 ticker_symbol = f"{nse_symbol}.NS"
+                ticker = yf.Ticker(ticker_symbol)
+                hist = ticker.history(period="1mo")
+                if hist.empty:
+                    # Fallback to BSE
+                    ticker_symbol = f"{scrip_code}.BO"
+                    ticker = yf.Ticker(ticker_symbol)
+                    hist = ticker.history(period="1mo")
+            else:
+                # Fallback to BSE
+                ticker_symbol = f"{scrip_code}.BO"
                 ticker = yf.Ticker(ticker_symbol)
                 hist = ticker.history(period="1mo")
                 

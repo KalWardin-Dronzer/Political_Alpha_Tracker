@@ -17,8 +17,8 @@ class BureaucratResolver:
         self.api_key = os.getenv("GEMINI_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)
-            # Use gemini-1.5-pro for better world knowledge about Indian bureaucrats
-            self.model = genai.GenerativeModel("gemini-2.5-pro")
+            # Use gemini-flash-lite-latest for better world knowledge about Indian bureaucrats
+            self.model = genai.GenerativeModel("gemini-flash-lite-latest")
         else:
             logger.warning("GEMINI_API_KEY not found. Bureaucrat resolver disabled.")
             self.model = None

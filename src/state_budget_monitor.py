@@ -67,7 +67,7 @@ class StateBudgetMonitor:
             if not self.client:
                 return []
             response = self.client.models.generate_content(
-                model="gemini-1.5-pro-latest",
+                model="gemini-flash-lite-latest",
                 contents=prompt,
                 config=genai.types.GenerateContentConfig(
                     response_mime_type="application/json",

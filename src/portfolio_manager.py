@@ -61,14 +61,23 @@ class PaperTrader:
     def _get_live_price(self, scrip_code: str) -> float:
         """Fetch real-time closing/last price from Yahoo Finance."""
         try:
+            # Look up NSE symbol from DB for reliable data
+            company = self.cache.get_company(scrip_code)
+            nse_symbol = company.get("nse_symbol") if company else None
+            
+            # Try NSE first (more reliable on Yahoo Finance)
+            if nse_symbol:
+                ticker = yf.Ticker(f"{nse_symbol}.NS")
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    return hist["Close"].iloc[-1]
+            
+            # Fallback to BSE
             ticker = yf.Ticker(f"{scrip_code}.BO")
             hist = ticker.history(period="1d")
-            if hist.empty:
-                ticker = yf.Ticker(f"{scrip_code}.NS")
-                hist = ticker.history(period="1d")
-            
             if not hist.empty:
                 return hist["Close"].iloc[-1]
+            
             return 0.0
         except Exception as e:
             logger.error(f"Failed to fetch price for {scrip_code}: {e}")

@@ -73,7 +73,7 @@ class AlphaEngine:
             )
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash", 
+                    model="gemini-flash-lite-latest", 
                     contents=prompt
                 )
                 res_text = response.text.strip()
@@ -192,7 +192,7 @@ class AlphaEngine:
 
     def calculate_conviction_score(self, scrip_code: str, materiality_pct: float = 0.0, 
                                    is_regional_match: bool = True, buyback_materiality_pct: float = 0.0,
-                                   vix: float = 15.0) -> dict:
+                                   vix: float = 15.0, event_date: str = None) -> dict:
         """
         Calculates the Conviction Score (0-11) based on Phase 8 Quantamental factors.
         Applies Hard Filters before scoring.
@@ -281,6 +281,19 @@ class AlphaEngine:
         except Exception as e:
             logger.warning(f"Failed to check superstar tracker for {scrip_code}: {e}")
             
+        # 8. Technical Analysis (Entry Timing)
+        try:
+            from src.technical_analyzer import TechnicalAnalyzer
+            ta = TechnicalAnalyzer(self.cache)
+            ta_result = ta.analyze(scrip_code, end_date=event_date)
+            adj = ta_result.conviction_adjustment
+            if adj != 0:
+                sign = "+" if adj > 0 else ""
+                score += adj
+                breakdown.append(f"{sign}{adj:.1f} Technical Analysis: {ta_result.signal} ({ta_result.score}/10)")
+        except Exception as e:
+            logger.warning(f"Failed to check technical analysis for {scrip_code}: {e}")
+            
         return {
             "score": score,
             "breakdown": breakdown
@@ -292,7 +305,7 @@ class AlphaEngine:
         for pair trading (shorting the losers).
         Returns a list of dicts: [{'name': 'Competitor A', 'scrip_code': '123456', 'reason': '...'}, ...]
         """
-        if not self.model:
+        if not self.client:
             return []
             
         prompt = (
@@ -305,7 +318,7 @@ class AlphaEngine:
         )
         
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt)
             res_text = response.text.strip()
             if res_text.startswith("```json"):
                 res_text = res_text[7:-3].strip()
@@ -325,7 +338,7 @@ class AlphaEngine:
         Uses Gemini LLM to generate a specific 'micro-niche' for a company,
         enabling precise macro-policy matching.
         """
-        if not self.model:
+        if not self.client:
             return industry or "unknown"
 
         prompt = (
@@ -339,7 +352,7 @@ class AlphaEngine:
         )
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt)
             niche = response.text.strip().replace('"', '').replace("'", "")
             return niche
         except Exception as e:
@@ -351,7 +364,7 @@ class AlphaEngine:
         Uses Gemini LLM to parse a government press release (PIB/Gazette) 
         and extract the impacted sector, policy intent, and materiality.
         """
-        if not self.model:
+        if not self.client:
             return {}
 
         prompt = (
@@ -367,7 +380,7 @@ class AlphaEngine:
         )
 
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(model="gemini-flash-lite-latest", contents=prompt)
             res_text = response.text.strip()
             if res_text.startswith("```json"):
                 res_text = res_text[7:-3].strip()
@@ -379,3 +392,65 @@ class AlphaEngine:
         except Exception as e:
             logger.error(f"Gemini policy analysis failed: {e}")
             return {}
+
+    def analyze_macro_event(self, text: str) -> dict:
+        """
+        Uses Gemini LLM to parse a generic macro-economic or geopolitical news event
+        and extract structural details.
+        """
+        if not self.client:
+            return {}
+
+        prompt = (
+            "You are a hedge fund analyst identifying Macro-Event Alpha.\n"
+            "Read the following global news/macro event and extract the key economic tailwinds and headwinds.\n"
+            "Return a JSON object with the following keys:\n"
+            "- 'event_type': The category of event (e.g., 'Geopolitical Conflict', 'Trade War', 'Pandemic', 'Monetary Policy').\n"
+            "- 'catalyst': A brief 2-5 word description of the specific catalyst.\n"
+            "- 'impacted_sectors_positive': An array of strings representing the specific micro-niche sectors that benefit.\n"
+            "- 'impacted_sectors_negative': An array of strings representing the specific micro-niche sectors that suffer.\n"
+            "- 'magnitude': How large is the economic impact? Choose 'High', 'Medium', or 'Low'.\n"
+            "- 'summary': A 1-sentence summary of the catalyst.\n"
+            "Return ONLY raw JSON without markdown wrappers.\n"
+            f"TEXT:\n{text[:6000]}"
+        )
+
+        try:
+            response = self.client.models.generate_content(model='gemini-flash-lite-latest', contents=prompt)
+            res_text = response.text.strip()
+            if res_text.startswith("```json"):
+                res_text = res_text[7:-3].strip()
+            elif res_text.startswith("```"):
+                res_text = res_text[3:-3].strip()
+
+            data = json.loads(res_text)
+            return data
+        except Exception as e:
+            logger.error(f"Gemini macro event analysis failed: {e}")
+            return {}
+
+    def check_company_macro_benefit(self, company_name: str, company_niche: str, event_summary: str) -> bool:
+        """
+        Directly queries the LLM to determine if a specific company benefits from a macro event.
+        Returns True if it's a clear beneficiary.
+        """
+        if not self.client:
+            return False
+
+        prompt = (
+            "You are a hedge fund analyst.\n"
+            f"A major macro event has occurred: {event_summary}\n"
+            f"We are evaluating a company named '{company_name}' operating in the niche: '{company_niche}'.\n"
+            "Does this company directly and clearly benefit economically from this macro event? "
+            "Answer ONLY with a boolean 'true' or 'false'. Return raw JSON.\n"
+            "Example output:\n"
+            "true"
+        )
+        
+        try:
+            response = self.client.models.generate_content(model='gemini-flash-lite-latest', contents=prompt)
+            res_text = response.text.strip().lower()
+            return 'true' in res_text
+        except Exception as e:
+            logger.error(f"Gemini company benefit check failed: {e}")
+            return False
