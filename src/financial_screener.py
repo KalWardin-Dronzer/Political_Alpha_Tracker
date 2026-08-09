@@ -176,6 +176,12 @@ class FinancialScreener:
         """
         logger.info(f"Screening fundamentals for {company_name} ({scrip_code})")
 
+        # Auto-lookup NSE symbol from DB if not provided
+        if not nse_symbol:
+            company = self.cache.get_company(scrip_code)
+            if company:
+                nse_symbol = company.get("nse_symbol")
+
         data = self._get_yfinance_data(scrip_code, nse_symbol=nse_symbol)
         time.sleep(YFINANCE_REQUEST_DELAY)
 

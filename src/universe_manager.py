@@ -40,6 +40,7 @@ class UniverseManager:
         """
         Downloads the latest NSE equity list and adds missing companies
         to our database by resolving their BSE scrip codes.
+        Also backfills NSE symbols and sector data for existing companies.
         """
         logger.info("Updating stock universe...")
         
@@ -63,17 +64,31 @@ class UniverseManager:
         except Exception as e:
             logger.error(f"Failed to fetch NSE equity listing: {e}")
             return
+        
+        # Build ISIN -> NSE data lookup for backfilling
+        nse_lookup = {}
+        for _, row in df.iterrows():
+            isin = row.get("ISIN NUMBER", "")
+            if isin:
+                nse_lookup[isin] = {
+                    "nse_symbol": row.get("SYMBOL", ""),
+                    "sector": row.get("SECTOR", "") if "SECTOR" in df.columns else "",
+                    "industry": row.get("INDUSTRY", "") if "INDUSTRY" in df.columns else "",
+                }
+        
+        # 2. Backfill NSE symbols for existing companies that don't have one
+        self._backfill_nse_symbols(nse_lookup)
             
-        # 2. Get existing ISINs in DB
+        # 3. Get existing ISINs in DB
         with self.cache._connect() as conn:
             existing_isins = {r[0] for r in conn.execute("SELECT isin FROM companies WHERE isin IS NOT NULL").fetchall()}
             
-        # 3. Find missing companies
+        # 4. Find missing companies
         missing_df = df[~df["ISIN NUMBER"].isin(existing_isins)]
         logger.info(f"Found {len(missing_df)} new companies not in database. Resolving BSE scrips...")
         
-        # 4. Resolve BSE scrip codes for missing companies
-        MAX_RESOLVE_PER_RUN = 50
+        # 5. Resolve BSE scrip codes for missing companies
+        MAX_RESOLVE_PER_RUN = 200
         resolved_count = 0
         
         for _, row in missing_df.head(MAX_RESOLVE_PER_RUN).iterrows():
@@ -81,6 +96,8 @@ class UniverseManager:
             name = row["NAME OF COMPANY"]
             isin = row["ISIN NUMBER"]
             face_value = row["FACE VALUE"]
+            sector = row.get("SECTOR", "") if "SECTOR" in df.columns else ""
+            industry = row.get("INDUSTRY", "") if "INDUSTRY" in df.columns else ""
             
             bse_scrip = self._resolve_bse_scrip(nse_symbol)
             if bse_scrip:
@@ -89,8 +106,10 @@ class UniverseManager:
                     name=name,
                     isin=isin,
                     cin="",
-                    sector="",
-                    industry="",
+                    nse_symbol=nse_symbol,
+                    sector=sector or "",
+                    industry=industry or "",
+                    micro_niche=industry or sector or "",
                     face_value=face_value,
                 )
                 with self.cache._connect() as conn:
@@ -100,6 +119,39 @@ class UniverseManager:
             time.sleep(0.3)
             
         logger.info(f"Resolved and added {resolved_count} new companies to the universe.")
+    
+    def _backfill_nse_symbols(self, nse_lookup: dict):
+        """Backfill NSE symbols and sector data for existing companies."""
+        with self.cache._connect() as conn:
+            rows = conn.execute(
+                "SELECT scrip_code, isin FROM companies WHERE (nse_symbol IS NULL OR nse_symbol = '') AND isin IS NOT NULL"
+            ).fetchall()
+        
+        if not rows:
+            return
+            
+        backfilled = 0
+        for row in rows:
+            scrip_code = row[0]
+            isin = row[1]
+            nse_data = nse_lookup.get(isin)
+            if nse_data and nse_data["nse_symbol"]:
+                with self.cache._connect() as conn:
+                    conn.execute(
+                        "UPDATE companies SET nse_symbol=?, sector=COALESCE(NULLIF(sector,''), ?), "
+                        "industry=COALESCE(NULLIF(industry,''), ?), "
+                        "micro_niche=COALESCE(NULLIF(micro_niche,''), ?) "
+                        "WHERE scrip_code=?",
+                        (nse_data["nse_symbol"], 
+                         nse_data.get("sector", ""), 
+                         nse_data.get("industry", ""),
+                         nse_data.get("industry") or nse_data.get("sector", ""),
+                         scrip_code)
+                    )
+                backfilled += 1
+        
+        if backfilled:
+            logger.info(f"Backfilled NSE symbols for {backfilled} existing companies.")
         
     def _resolve_bse_scrip(self, nse_symbol: str) -> str:
         """Search BSE for the NSE symbol and return the scrip code."""
@@ -108,11 +160,10 @@ class UniverseManager:
             resp = self.session.get(search_url, timeout=10)
             
             if resp.status_code == 200 and resp.text:
-                parts = resp.text.split("<li>")
-                if len(parts) >= 2:
-                    scrip_code = parts[1].strip()
-                    if scrip_code.isdigit():
-                        return scrip_code
+                import re
+                match = re.search(r"href='[^']*?/(\d{6})/'", resp.text)
+                if match:
+                    return match.group(1)
         except Exception as e:
             logger.debug(f"BSE scrip resolve failed for {nse_symbol}: {e}")
             

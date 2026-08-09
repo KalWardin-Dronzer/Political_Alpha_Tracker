@@ -174,6 +174,33 @@ class Notifier:
             for brk in conviction.get("breakdown", []):
                 lines.append(f"  {brk}")
 
+        # Technical Analysis section
+        technical = None
+        if announcement:
+            technical = announcement.get('technical')
+            
+        if technical:
+            ta_signal = technical.get("signal", "N/A")
+            ta_score = technical.get("score", 0)
+            ta_rsi = technical.get("rsi")
+            ta_macd = technical.get("macd_bullish")
+            ta_gc = technical.get("golden_cross")
+            ta_obv = technical.get("obv_up")
+            ta_atr_stop = technical.get("atr_stop")
+            ta_price = technical.get("current_price")
+            
+            signal_emoji = {"STRONG_BUY": "🟢", "BUY": "🔵", "NEUTRAL": "🟡", "AVOID": "🔴"}.get(ta_signal, "⚪")
+            lines.extend([
+                "",
+                f"📊 <b>Technical Analysis: {signal_emoji} {ta_signal} ({ta_score}/10)</b>",
+                f"   RSI: {ta_rsi:.1f}" if ta_rsi is not None else "   RSI: N/A",
+                f"   MACD: {'Bullish ✅' if ta_macd else 'Bearish ❌'}",
+                f"   Trend: {'Golden Cross ✅' if ta_gc else 'Death Cross ❌'}",
+                f"   OBV: {'Accumulating ✅' if ta_obv else 'Distributing ❌'}",
+            ])
+            if ta_atr_stop is not None and ta_price is not None:
+                lines.append(f"   🛡️ ATR Stop-Loss: ₹{ta_atr_stop:.2f} (CMP: ₹{ta_price:.2f})")
+
         lines.extend([
             "",
             f"🔗 <b>Political Connection (Graph Score: {score:.2f}):</b>",
@@ -291,6 +318,44 @@ class Notifier:
         lines.extend([
             "",
             "<i>A major macro-economic tailwind was just announced in the exact micro-niche of this politically connected company.</i>"
+        ])
+        
+        self._send_message("\n".join(lines))
+
+    
+    def send_macro_event_alert(self, company: dict, connection: dict, event: dict):
+        """Send an alert for a Generalized Macro Event benefiting a connected company."""
+        scrip = company.get("scrip_code", "")
+        company_name = company.get("name", "Unknown")
+        score = connection.get("alpha_score", 0)
+        
+        lines = [
+            "🌍 <b>GLOBAL MACRO-EVENT TAILWIND DETECTED</b> 🌍",
+            "",
+            f"<b>Company:</b> {company_name} (BSE: {scrip})",
+            f"<b>Micro-Niche:</b> {company.get('micro_niche', 'Unknown').title()}",
+            "",
+            "📰 <b>Global Macro Catalyst:</b>",
+            f"• <b>Event Type:</b> {event.get('event_type')}",
+            f"• <b>Catalyst:</b> {event.get('catalyst')}",
+            f"• <b>Magnitude:</b> {event.get('magnitude')}",
+            f"• <b>Summary:</b> {event.get('summary')}",
+            f"• <a href='{event.get('link')}'>Read Official Source</a>",
+            "",
+            "🕸️ <b>Political Connection:</b>",
+            f"• Top Connection Score: {score:.2f}",
+            f"• Director: {connection['director_name']}",
+            f"• Donor: {connection['donor_company_name']}",
+        ]
+        
+        if connection.get('is_bureaucrat'):
+            lines.append("")
+            lines.append("🕴️ <b>DEEP STATE SIGNAL:</b>")
+            lines.append(f"<i>{connection['director_name']} is a former high-ranking bureaucrat (IAS/IPS/IRS).</i>")
+
+        lines.extend([
+            "",
+            "<i>A generalized global macro event is creating massive tailwinds for this company's specific niche.</i>"
         ])
         
         self._send_message("\n".join(lines))

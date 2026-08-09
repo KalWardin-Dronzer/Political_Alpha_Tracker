@@ -58,6 +58,7 @@ class CacheManager:
                     name        TEXT NOT NULL,
                     isin        TEXT,
                     cin         TEXT,
+                    nse_symbol  TEXT,
                     sector      TEXT,
                     industry    TEXT,
                     micro_niche TEXT,
@@ -229,20 +230,22 @@ class CacheManager:
     # Company Operations
     # ──────────────────────────────────────────
     def upsert_company(self, scrip_code: str, name: str, isin: str = None,
-                       cin: str = None, sector: str = None, industry: str = None,
+                       cin: str = None, nse_symbol: str = None,
+                       sector: str = None, industry: str = None,
                        micro_niche: str = None, market_cap: float = None, 
                        face_value: float = None, in_watchlist: int = 0):
         """Insert or update a company record."""
         with self._connect() as conn:
             conn.execute("""
                 INSERT INTO companies
-                    (scrip_code, name, isin, cin, sector, industry, micro_niche,
+                    (scrip_code, name, isin, cin, nse_symbol, sector, industry, micro_niche,
                      market_cap, face_value, in_watchlist, last_updated)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(scrip_code) DO UPDATE SET
                     name = excluded.name,
                     isin = COALESCE(excluded.isin, companies.isin),
                     cin = COALESCE(excluded.cin, companies.cin),
+                    nse_symbol = COALESCE(excluded.nse_symbol, companies.nse_symbol),
                     sector = COALESCE(excluded.sector, companies.sector),
                     industry = COALESCE(excluded.industry, companies.industry),
                     micro_niche = COALESCE(excluded.micro_niche, companies.micro_niche),
@@ -250,7 +253,7 @@ class CacheManager:
                     face_value = COALESCE(excluded.face_value, companies.face_value),
                     in_watchlist = excluded.in_watchlist,
                     last_updated = excluded.last_updated
-            """, (scrip_code, name, isin, cin, sector, industry, micro_niche,
+            """, (scrip_code, name, isin, cin, nse_symbol, sector, industry, micro_niche,
                   market_cap, face_value, in_watchlist,
                   datetime.now().isoformat()))
 

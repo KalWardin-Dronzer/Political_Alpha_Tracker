@@ -357,48 +357,56 @@
       "node_type": "Director",
       "din": "00008457",
       "name": "PRANAV VINOD ADANI",
+      "is_bureaucrat": 0,
       "id": "director:00008457"
     },
     {
       "node_type": "Director",
       "din": "03634648",
       "name": "VINAY  PRAKASH",
+      "is_bureaucrat": 0,
       "id": "director:03634648"
     },
     {
       "node_type": "Director",
       "din": "00006322",
       "name": "RAJESH SHANTILAL ADANI",
+      "is_bureaucrat": 0,
       "id": "director:00006322"
     },
     {
       "node_type": "Director",
       "din": "00006273",
       "name": "GAUTAM SHANTILAL ADANI",
+      "is_bureaucrat": 0,
       "id": "director:00006273"
     },
     {
       "node_type": "Director",
       "din": "00032055",
       "name": "VIJAY LAXMI JOSHI",
+      "is_bureaucrat": 0,
       "id": "director:00032055"
     },
     {
       "node_type": "Director",
       "din": "00265887",
       "name": "HEMANT NERURKAR MADHUSUDAN",
+      "is_bureaucrat": 0,
       "id": "director:00265887"
     },
     {
       "node_type": "Director",
       "din": "00357727",
       "name": "VENKATARAMAN SUBRAMANIAN",
+      "is_bureaucrat": 0,
       "id": "director:00357727"
     },
     {
       "node_type": "Director",
       "din": "00004258",
       "name": "OMKAR GOSWAMI",
+      "is_bureaucrat": 0,
       "id": "director:00004258"
     },
     {
@@ -459,372 +467,434 @@
       "node_type": "Director",
       "din": "09137323",
       "name": "MADHURIMA SINGH",
+      "is_bureaucrat": 0,
       "id": "director:09137323"
     },
     {
       "node_type": "Director",
       "din": "06920906",
       "name": "SANGEETA KAPIL JIT SINGH",
+      "is_bureaucrat": 0,
       "id": "director:06920906"
     },
     {
       "node_type": "Director",
       "din": "00026383",
       "name": "ARUN KUMAR PURWAR",
+      "is_bureaucrat": 0,
       "id": "director:00026383"
     },
     {
       "node_type": "Director",
       "din": "00124302",
       "name": "NARENDRA ANEJA",
+      "is_bureaucrat": 0,
       "id": "director:00124302"
     },
     {
       "node_type": "Director",
       "din": "00760310",
       "name": "BASUDEO NARAYAN SINGH",
+      "is_bureaucrat": 0,
       "id": "director:00760310"
     },
     {
       "node_type": "Director",
       "din": "00881412",
       "name": "MRITUNJAY KUMAR SINGH",
+      "is_bureaucrat": 0,
       "id": "director:00881412"
     },
     {
       "node_type": "Director",
       "din": "06744441",
       "name": "SRINIVAS BALMIKI PRASAD SINGH",
+      "is_bureaucrat": 0,
       "id": "director:06744441"
     },
     {
       "node_type": "Director",
       "din": "01277984",
       "name": "SANDEEP SINGH",
+      "is_bureaucrat": 0,
       "id": "director:01277984"
     },
     {
       "node_type": "Director",
       "din": "01278229",
       "name": "SARVESH SINGH",
+      "is_bureaucrat": 0,
       "id": "director:01278229"
     },
     {
       "node_type": "Director",
       "din": "01756539",
       "name": "SUJJAIN SURESH TALWAR",
+      "is_bureaucrat": 0,
       "id": "director:01756539"
     },
     {
       "node_type": "Director",
       "din": "06764496",
       "name": "SUDHA RAVI",
+      "is_bureaucrat": 0,
       "id": "director:06764496"
     },
     {
       "node_type": "Director",
       "din": "00135258",
       "name": "YASHWANT SHANKARRAO PATIL THORAT",
+      "is_bureaucrat": 0,
       "id": "director:00135258"
     },
     {
       "node_type": "Director",
       "din": "05220857",
       "name": "NATARAJAN VENKATARAMAN",
+      "is_bureaucrat": 0,
       "id": "director:05220857"
     },
     {
       "node_type": "Director",
       "din": "05208062",
       "name": "VARUN BERRY",
+      "is_bureaucrat": 0,
       "id": "director:05208062"
     },
     {
       "node_type": "Director",
       "din": "00015731",
       "name": "NUSLI NEVILLE WADIA",
+      "is_bureaucrat": 0,
       "id": "director:00015731"
     },
     {
       "node_type": "Director",
       "din": "09743554",
       "name": "RAJNEET SINGH KOHLI",
+      "is_bureaucrat": 0,
       "id": "director:09743554"
     },
     {
       "node_type": "Director",
       "din": "00026028",
       "name": "TANYA ARVIND DUBASH",
+      "is_bureaucrat": 0,
       "id": "director:00026028"
     },
     {
       "node_type": "Director",
       "din": "00036049",
       "name": "NESS NUSLI WADIA",
+      "is_bureaucrat": 0,
       "id": "director:00036049"
     },
     {
       "node_type": "Director",
       "din": "00047233",
       "name": "AVIJIT DEB",
+      "is_bureaucrat": 0,
       "id": "director:00047233"
     },
     {
       "node_type": "Director",
       "din": "01141239",
       "name": "AJAY SHAH NAROTTAM",
+      "is_bureaucrat": 0,
       "id": "director:01141239"
     },
     {
       "node_type": "Director",
       "din": "02631587",
       "name": "AJAI PURI",
+      "is_bureaucrat": 0,
       "id": "director:02631587"
     },
     {
       "node_type": "Director",
       "din": "00003940",
       "name": "KEKI MANCHERSHA ELAVIA",
+      "is_bureaucrat": 0,
       "id": "director:00003940"
     },
     {
       "node_type": "Director",
       "din": "10481393",
       "name": "DEVENDRA RAO SUREDDY",
+      "is_bureaucrat": 0,
       "id": "director:10481393"
     },
     {
       "node_type": "Director",
       "din": "00006503",
       "name": "SATCHANDRA KIRAN DIVI",
+      "is_bureaucrat": 0,
       "id": "director:00006503"
     },
     {
       "node_type": "Director",
       "din": "00895990",
       "name": "RAJENDRA KUMAR PREMCHAND",
+      "is_bureaucrat": 0,
       "id": "director:00895990"
     },
     {
       "node_type": "Director",
       "din": "06388001",
       "name": "NILIMA PRASAD DIVI",
+      "is_bureaucrat": 0,
       "id": "director:06388001"
     },
     {
       "node_type": "Director",
       "din": "07854042",
       "name": "RAMESHBABU VENKATA NIMMAGADDA",
+      "is_bureaucrat": 0,
       "id": "director:07854042"
     },
     {
       "node_type": "Director",
       "din": "08397250",
       "name": "SUNAINA SINGH",
+      "is_bureaucrat": 0,
       "id": "director:08397250"
     },
     {
       "node_type": "Director",
       "din": "07872766",
       "name": "GANAPATY SERU",
+      "is_bureaucrat": 0,
       "id": "director:07872766"
     },
     {
       "node_type": "Director",
       "din": "00005031",
       "name": "NIMMAGADDA VENKATA RAMANA",
+      "is_bureaucrat": 0,
       "id": "director:00005031"
     },
     {
       "node_type": "Director",
       "din": "00005040",
       "name": "MURALI KRISHNA PRASAD DIVI",
+      "is_bureaucrat": 0,
       "id": "director:00005040"
     },
     {
       "node_type": "Director",
       "din": "08485334",
       "name": "VEERAYYA CHOWDARY KOSARAJU",
+      "is_bureaucrat": 0,
       "id": "director:08485334"
     },
     {
       "node_type": "Director",
       "din": "00209461",
       "name": "MANJU DESHBANDHU GUPTA",
+      "is_bureaucrat": 0,
       "id": "director:00209461"
     },
     {
       "node_type": "Director",
       "din": "01734642",
       "name": "NILESH DESHBANDHU GUPTA",
+      "is_bureaucrat": 0,
       "id": "director:01734642"
     },
     {
       "node_type": "Director",
       "din": "03518282",
       "name": "KANWAR BIR SINGH ANAND",
+      "is_bureaucrat": 0,
       "id": "director:03518282"
     },
     {
       "node_type": "Director",
       "din": "05229262",
       "name": "PUNITA KUMAR SINHA",
+      "is_bureaucrat": 0,
       "id": "director:05229262"
     },
     {
       "node_type": "Director",
       "din": "00058631",
       "name": "VINITA DESHBANDHU GUPTA",
+      "is_bureaucrat": 0,
       "id": "director:00058631"
     },
     {
       "node_type": "Director",
       "din": "09037255",
       "name": "MARK DANIEL MC DADE",
+      "is_bureaucrat": 0,
       "id": "director:09037255"
     },
     {
       "node_type": "Director",
       "din": "01833346",
       "name": "RAMESH SWAMINATHAN",
+      "is_bureaucrat": 0,
       "id": "director:01833346"
     },
     {
       "node_type": "Director",
       "din": "07325356",
       "name": "JEAN LUC MARIE MARTIAL BELINGARD",
+      "is_bureaucrat": 0,
       "id": "director:07325356"
     },
     {
       "node_type": "Director",
       "din": "00121156",
       "name": "SURENDRA LUNIA",
+      "is_bureaucrat": 0,
       "id": "director:00121156"
     },
     {
       "node_type": "Director",
       "din": "00283399",
       "name": "RAMESH JUNEJA",
+      "is_bureaucrat": 0,
       "id": "director:00283399"
     },
     {
       "node_type": "Director",
       "din": "00821268",
       "name": "TILOKCHAND PUNAMCHAND OSTWAL",
+      "is_bureaucrat": 0,
       "id": "director:00821268"
     },
     {
       "node_type": "Director",
       "din": "02806475",
       "name": "BHARAT ANAND",
+      "is_bureaucrat": 0,
       "id": "director:02806475"
     },
     {
       "node_type": "Director",
       "din": "00283481",
       "name": "RAJEEV JUNEJA",
+      "is_bureaucrat": 0,
       "id": "director:00283481"
     },
     {
       "node_type": "Director",
       "din": "00426240",
       "name": "VIVEK KALRA",
+      "is_bureaucrat": 0,
       "id": "director:00426240"
     },
     {
       "node_type": "Director",
       "din": "07615602",
       "name": "SATISH KUMAR SHARMA",
+      "is_bureaucrat": 0,
       "id": "director:07615602"
     },
     {
       "node_type": "Director",
       "din": "00641110",
       "name": "VIJAYA SAMPATH",
+      "is_bureaucrat": 0,
       "id": "director:00641110"
     },
     {
       "node_type": "Director",
       "din": "00704292",
       "name": "SHEETAL ARORA",
+      "is_bureaucrat": 0,
       "id": "director:00704292"
     },
     {
       "node_type": "Director",
       "din": "00049067",
       "name": "KINJI SAITO",
+      "is_bureaucrat": 0,
       "id": "director:00049067"
     },
     {
       "node_type": "Director",
       "din": "00114636",
       "name": "LIRA GOSWAMI",
+      "is_bureaucrat": 0,
       "id": "director:00114636"
     },
     {
       "node_type": "Director",
       "din": "07806180",
       "name": "HISASHI TAKEUCHI",
+      "is_bureaucrat": 0,
       "id": "director:07806180"
     },
     {
       "node_type": "Director",
       "din": "02943155",
       "name": "RAJINDER PAL SINGH",
+      "is_bureaucrat": 0,
       "id": "director:02943155"
     },
     {
       "node_type": "Director",
       "din": "06709846",
       "name": "TOSHIHIRO SUZUKI",
+      "is_bureaucrat": 0,
       "id": "director:06709846"
     },
     {
       "node_type": "Director",
       "din": "07961388",
       "name": "KAZUNARI YAMAGUCHI",
+      "is_bureaucrat": 0,
       "id": "director:07961388"
     },
     {
       "node_type": "Director",
       "din": "08619076",
       "name": "KENICHIRO TOYOFUKU",
+      "is_bureaucrat": 0,
       "id": "director:08619076"
     },
     {
       "node_type": "Director",
       "din": "00207746",
       "name": "ANJALI BANSAL",
+      "is_bureaucrat": 0,
       "id": "director:00207746"
     },
     {
       "node_type": "Director",
       "din": "00034051",
       "name": "MAHESWAR SAHU",
+      "is_bureaucrat": 0,
       "id": "director:00034051"
     },
     {
       "node_type": "Director",
       "din": "00007620",
       "name": "RAVINDRA CHANDRA BHARGAVA",
+      "is_bureaucrat": 0,
       "id": "director:00007620"
     },
     {
       "node_type": "Director",
       "din": "00680073",
       "name": "OSAMU SUZUKI",
+      "is_bureaucrat": 0,
       "id": "director:00680073"
     },
     {
       "node_type": "Director",
       "din": "02262755",
       "name": "KENICHI AYUKAWA",
+      "is_bureaucrat": 0,
       "id": "director:02262755"
     },
     {
       "node_type": "Director",
       "din": "00068502",
       "name": "DAVINDER SINGH BRAR",
+      "is_bureaucrat": 0,
       "id": "director:00068502"
     },
     {
