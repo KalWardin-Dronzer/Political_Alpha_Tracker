@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+0. [Prerequisites — What You Need to Know](#0-prerequisites--what-you-need-to-know)
 1. [The Core Thesis](#1-the-core-thesis)
 2. [Theoretical Foundation](#2-theoretical-foundation)
 3. [System Architecture](#3-system-architecture)
@@ -21,6 +22,203 @@
 13. [Deployment Architecture](#13-deployment-architecture)
 14. [Configuration Reference](#14-configuration-reference)
 15. [Backtest Results](#15-backtest-results)
+
+---
+
+## 0. Prerequisites — What You Need to Know
+
+If you want to build this project from scratch, here is everything you need — the domain knowledge, the technical skills, the accounts, and the data sources. Think of this as the "syllabus" behind the system.
+
+---
+
+### 0.1 Domain Knowledge (The "Why")
+
+You don't need to be an expert in all of these, but you need to understand the basics of each area. These are the intellectual building blocks behind every design decision in the system.
+
+#### Indian Capital Markets
+
+| Topic | What to Learn | Why It Matters |
+|---|---|---|
+| **How BSE/NSE work** | Scrip codes, ISIN, corporate announcements, trading hours, settlement cycles | The entire data pipeline starts with BSE announcements |
+| **Market Cap categories** | Large-cap (>₹20K Cr), Mid-cap (₹5K-20K Cr), Small-cap (<₹5K Cr), Micro-cap (<₹500 Cr) | Our alpha signal is strongest in small/micro-caps where analyst coverage is low |
+| **Corporate Actions** | Board meetings, contract wins, buybacks, pledges, bulk/block deals, SAST disclosures | Each of these is a signal in our conviction scoring engine |
+| **India VIX** | Volatility index derived from NIFTY options, measures market fear | We use VIX > 22 as a hard filter to avoid buying in panic markets |
+| **Transaction Costs** | STT, stamp duty, GST, DP charges, SEBI turnover charges | Required for realistic paper trading simulation |
+
+**Recommended Reading**: Zerodha Varsity modules on [Indian Stock Markets](https://zerodha.com/varsity/), particularly the modules on fundamental analysis and trading.
+
+#### Indian Political Economy
+
+| Topic | What to Learn | Why It Matters |
+|---|---|---|
+| **Electoral Bonds** | How they worked (2018-2024), SBI disclosure, Supreme Court ruling of Feb 2024 | The single most important dataset — maps companies to political parties |
+| **Electoral Trusts** | Prudent Electoral Trust, Satya Electoral Trust, BJP Electoral Trust, etc. | The "middlemen" between donor companies and political parties |
+| **Government Procurement** | GeM (Government e-Marketplace), CPPP, state tenders, L1 bidding process | Understanding how government contracts are awarded |
+| **State vs Central Politics** | Which party rules which state, coalition dynamics | Required for the Regional Party Matching filter |
+| **MCA / ROC Filings** | CIN (Corporate Identity Number), DIN (Director Identification Number), how company directors are registered | The mechanism for linking companies through shared directors |
+
+**Recommended Reading**: 
+- The SBI Electoral Bond disclosure dataset (available on the Election Commission of India website)
+- ADR (Association for Democratic Reforms) reports on political funding
+- Any good Indian political economy textbook or podcast (e.g., "The Seen and the Unseen")
+
+#### Quantitative Finance
+
+| Topic | What to Learn | Why It Matters |
+|---|---|---|
+| **Event Study Methodology** | CAR (Cumulative Abnormal Returns), event windows, benchmark comparison | Used in our backtester to measure if the signal produces excess returns |
+| **Kelly Criterion** | Optimal bet sizing formula: `f* = p - q/b`, fractional Kelly | Used for position sizing in the paper trading module |
+| **Technical Analysis** | RSI, MACD, SMA crossovers, OBV, ATR, VWAP | The entry-timing layer of the quantamental engine |
+| **Walk-Forward Optimization** | TimeSeriesSplit, preventing overfitting in financial ML | Used in the XGBoost ML backtest to avoid data snooping |
+| **Factor Models** | Multi-factor scoring, composite signals, hard filters vs soft scoring | The architecture of our conviction scoring engine |
+
+**Recommended Reading**:
+- *Quantitative Trading* by Ernest Chan (the Kelly Criterion and backtesting chapters)
+- *Advances in Financial Machine Learning* by Marcos López de Prado (walk-forward optimization, feature importance)
+- Investopedia articles on RSI, MACD, OBV, ATR
+
+#### Graph Theory / Network Science
+
+| Topic | What to Learn | Why It Matters |
+|---|---|---|
+| **Directed Graphs** | Nodes, edges, adjacency, path traversal | The knowledge graph is a NetworkX DiGraph |
+| **Graph Centrality** | Degree centrality, betweenness centrality | Conceptual basis for our "exclusivity" scoring weight |
+| **Knowledge Graphs** | Entity-Relationship modeling, node types, edge types | Our graph has 6 node types and 4 edge types |
+
+**Recommended Reading**: NetworkX documentation tutorials, any graph theory primer.
+
+---
+
+### 0.2 Technical Skills (The "How")
+
+#### Programming Languages & Libraries
+
+| Skill | Level Needed | Used For |
+|---|---|---|
+| **Python 3.10+** | Intermediate-Advanced | The entire system is Python |
+| **SQL (SQLite)** | Intermediate | All data storage, dashboard queries, caching |
+| **pandas** | Intermediate | Data manipulation, CSV/Excel parsing, financial data wrangling |
+| **numpy** | Basic | Numerical computations in technical analysis |
+| **NetworkX** | Intermediate | Building and querying the knowledge graph |
+| **requests + BeautifulSoup** | Intermediate | Web scraping BSE, MCA, Zaubacorp, PIB, GeM |
+| **Regular Expressions (regex)** | Intermediate | Pattern matching on BSE announcement titles |
+| **yfinance** | Basic | Fetching historical price data, financial statements |
+| **Plotly** | Basic | Interactive charting in the Streamlit dashboard |
+| **Streamlit** | Basic-Intermediate | Building the web dashboard |
+| **XGBoost + scikit-learn** | Basic | ML optimization layer in the backtester |
+
+#### APIs & Services
+
+| Service | What You Need | How to Get It |
+|---|---|---|
+| **Google Gemini API** | API key for the Gemini LLM | Sign up at [ai.google.dev](https://ai.google.dev), free tier is sufficient |
+| **Telegram Bot API** | Bot token + Chat ID | Create a bot via [@BotFather](https://t.me/BotFather) on Telegram |
+| **BSE India API** | No key needed (public, unofficial) | Reverse-engineered REST endpoints, no registration required |
+| **yfinance** | No key needed | Uses Yahoo Finance's public API under the hood |
+
+#### DevOps & Deployment
+
+| Skill | Level Needed | Used For |
+|---|---|---|
+| **Git / GitHub** | Basic | Version control, pushing code to remote |
+| **Docker** | Basic | Containerizing the application |
+| **Linux CLI** | Basic | Server deployment, cron jobs, systemd services |
+| **AWS EC2 (or any VPS)** | Basic | Running the pipeline 24/7 in the cloud |
+| **cron** | Basic | Scheduling the daily pipeline runs |
+
+---
+
+### 0.3 Accounts & API Keys You Need
+
+Before writing a single line of code, you need to set up the following:
+
+1. **Google Gemini API Key** — Free tier at [ai.google.dev](https://ai.google.dev). Used for NLP contract value extraction and competitor identification.
+2. **Telegram Bot** — Create via [@BotFather](https://t.me/BotFather). You'll get a Bot Token. Then message the bot and use the `/getUpdates` API to find your Chat ID.
+3. **GitHub Account** — For version control and CI/CD (optional but recommended).
+4. **AWS Free Tier Account** (or any VPS) — For 24/7 cloud deployment. A `t2.micro` instance is sufficient.
+
+These go into your `.env` file:
+```
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+---
+
+### 0.4 Data Sources You Need to Acquire
+
+| Data Source | Format | How to Get It | Used By |
+|---|---|---|---|
+| **Electoral Bond Purchase Data** | CSV | Download from ECI website (SBI disclosure) | `donor_ingester.py` |
+| **Electoral Bond Encashment Data** | CSV | Download from ECI website (SBI disclosure) | `donor_ingester.py` |
+| **NSE Industry Mapping** | CSV | Download from NSE India website (Nifty 500 classification) | `watchlist_generator.py` |
+| **BSE Corporate Announcements** | JSON API | Live via BSE India API (no download needed) | `bse_monitor.py` |
+| **Company Director Data** | HTML Scrape | Live via MCA / Zaubacorp (no download needed) | `mca_resolver.py` |
+| **Stock Price Data** | API | Live via yfinance (no download needed) | `financial_screener.py`, `technical_analyzer.py` |
+| **India VIX** | API | Live via yfinance ticker `^INDIAVIX` | `alpha_engine.py` |
+
+The two Electoral Bond CSV files are the **critical seed data** — without them, there is no donor→party mapping, and the entire graph collapses.
+
+---
+
+### 0.5 Development Environment Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/KalWardin-Dronzer/Political_Alpha_Tracker.git
+cd Political_Alpha_Tracker
+
+# 2. Create a virtual environment
+python -m venv .venv
+
+# 3. Activate it
+# Windows:
+.venv\Scripts\activate
+# Linux/Mac:
+source .venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Create your .env file (copy the example and fill in your keys)
+cp .env.example .env
+# Edit .env with your Telegram and Gemini API keys
+
+# 6. Place your Electoral Bond CSVs in the data/ directory
+# data/PurchaseData.csv
+# data/EncashmentData.csv
+
+# 7. Run the initial data refresh (builds the watchlist + graph)
+python refresh.py
+
+# 8. Run the daily pipeline (dry run first to verify)
+python main.py --dry-run
+
+# 9. Launch the dashboard
+streamlit run app.py
+```
+
+---
+
+### 0.6 Recommended Learning Path
+
+If you're starting completely from scratch, here's the order I'd recommend:
+
+| Step | What to Learn | Time Estimate |
+|---|---|---|
+| 1 | Python fundamentals + pandas + SQL | 2-4 weeks |
+| 2 | How Indian stock markets work (Zerodha Varsity) | 1 week |
+| 3 | Web scraping with requests + BeautifulSoup | 3-5 days |
+| 4 | Graph theory basics + NetworkX | 3-5 days |
+| 5 | Read the Electoral Bond disclosure data, understand the structure | 1-2 days |
+| 6 | Technical Analysis basics (RSI, MACD, SMA) | 3-5 days |
+| 7 | Event Study methodology + backtesting concepts | 3-5 days |
+| 8 | Streamlit dashboard building | 2-3 days |
+| 9 | Docker + AWS deployment basics | 2-3 days |
+| 10 | Build the system module by module | 2-4 weeks |
+
+**Total estimated time**: 2-3 months for someone with basic Python knowledge.
 
 ---
 
