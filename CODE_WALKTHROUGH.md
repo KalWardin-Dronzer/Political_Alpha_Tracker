@@ -1,200 +1,162 @@
-# Political Alpha Tracker — Code Walkthrough & Implementation Details
+# Deep Dive: Code Implementation Reference
 
-This document provides a deep dive into the actual code structure, algorithms, and technical implementation of the Political Alpha Tracker. While the `PROJECT_DOCUMENTATION.md` covers the theory and architecture, this guide is for developers who want to understand *how* the code works under the hood.
+This document is a personal reference guide for the internal mechanics of the Political Alpha Tracker. It breaks down the exact logic, algorithms, and data structures implemented across the core files.
 
 ---
 
-## 1. Directory Structure
+## 1. `src/config.py` — The System Brain
+This file holds all the tunable hyperparameters and thresholds that govern the system's behavior. 
 
-```text
-Political_Alpha_Tracker/
-├── main.py                     # The main entry point (CLI script)
-├── app.py                      # The Streamlit dashboard
-├── src/                        # Core application logic
-│   ├── config.py               # Global settings & constants
-│   ├── pipeline_orchestrator.py# Glues all modules together
-│   ├── cache_manager.py        # SQLite Database operations
-│   ├── graph_manager.py        # NetworkX graph operations
-│   ├── bse_monitor.py          # BSE API scraper & regex parser
-│   ├── alpha_engine.py         # Gemini NLP & Conviction Scoring
-│   ├── technical_analyzer.py   # RSI, MACD, SMA, OBV calculations
-│   ├── portfolio_manager.py    # Paper trading logic (Kelly, SL, taxes)
-│   ├── financial_screener.py   # yfinance fundamental checks
-│   ├── donor_ingester.py       # Electoral bond CSV parsers
-│   ├── entity_resolver.py      # RapidFuzz string matching
-│   ├── backtest.py             # Event study & ML optimization
-│   └── ... (various other monitors and scrapers)
-└── data/                       # Local storage (SQLite, JSON, CSVs)
+**Key Sections:**
+*   **`THRESHOLDS`**: 
+    *   `MIN_CONVICTION_SCORE (4.0)`: The absolute floor. If an event scores below this, the system drops it immediately.
+    *   `MAX_VIX (22.0)`: The fear gauge filter. If India VIX > 22, the system halts all new buys to prevent catching falling knives in a market crash.
+    *   `MIN_CONTRACT_VALUE_CR (10.0)`: Micro-contracts are ignored to filter noise.
+*   **`SCORING_WEIGHTS`**: The weights used in the `alpha_query` math:
+    *   `exclusivity (0.4)`: High weight because a director on 50 boards (like a nominee director) provides weak signal compared to a director on 2 boards.
+    *   `proximity (0.3)`: How many hops away is the political party?
+    *   `magnitude (0.3)`: How big was the donation?
+*   **`PAPER_TRADING`**: 
+    *   `INITIAL_CAPITAL (100000)`: ₹1 Lakh starting capital.
+    *   `KELLY_FRACTION (0.5)`: We use a half-Kelly to prevent blowing up the account during drawdowns.
+
+---
+
+## 2. `src/pipeline_orchestrator.py` — The Main Loop
+The `PipelineOrchestrator` acts as the conductor. 
+
+**`run_daily_pipeline(self)`**
+This is the master loop executed by `main.py`.
+1.  **VIX Check**: It first checks `alpha_engine.fetch_current_vix()`. If VIX > 22, it logs a warning and aborts the buy-side of the pipeline.
+2.  **Sell Executions**: It calls `paper_trader.execute_sells()`. **Crucial detail**: Sells are processed *before* buys to free up capital for the day's opportunities.
+3.  **Watchlist Scan**: It fetches the active scrip codes from `CacheManager` and passes them to `bse_monitor.scan_watchlist()`.
+4.  **Event Processing**: Iterates through every detected event.
+
+**`process_event(self, event)`**
+The sequence of evaluation for a single event:
+1.  **Filter**: Only processes `contract` or `fund_raising` events.
+2.  **Fundamentals**: Calls `financial_screener.check_fundamentals()`. If the company has a negative Operating Cash Flow (OCF) or Debt/Equity > 2.0, it skips.
+3.  **Graph Traversal**: Calls `graph_manager.alpha_query(cin)`. If no political link is found in the graph, the base score is 0.
+4.  **Conviction Scoring**: Passes the event and graph links to `alpha_engine.calculate_conviction_score()`.
+5.  **Technical Adjustment**: Calls `technical_analyzer.analyze()`. If RSI > 70 (Overbought), it deducts points. If RSI < 30 (Oversold), it adds points.
+6.  **Execution**: If the final adjusted score > `MIN_CONVICTION_SCORE`, it fires the Telegram alert (`notifier`) and executes the trade (`paper_trader.execute_buy`).
+
+---
+
+## 3. `src/graph_manager.py` — The Knowledge Graph
+Built on `networkx`. This is where the "alpha" actually lives.
+
+**`build_graph(self)`**
+Rebuilds the graph from the SQLite database.
+*   **Nodes**: Adds companies (Listed/Donor), Directors, and Parties.
+*   **Edges**: 
+    *   `SITS_ON_BOARD`: Links Directors to Companies.
+    *   `DONATED_TO`: Links Donors to Parties (with `amount` as a weight).
+    *   `RECEIVED_CONTRACT`: Links Listed Companies to Government bodies.
+
+**`alpha_query(self, cin)`**
+The core pathfinding algorithm.
+1.  Finds all paths from the target `ListedCompany` to any `PoliticalParty` with `cutoff=4` (max 4 hops).
+2.  **Path scoring logic**:
+    *   *Exclusivity*: Looks at every Director node in the path. `score = 1.0 / nx.degree(G, director)`. A highly connected director dilutes the score.
+    *   *Proximity*: `score = 1.0 / len(path)`. Shorter paths = stronger alpha.
+    *   *Magnitude*: Normalizes the `DONATED_TO` edge weight against the max donation in the graph.
+3.  Calculates the weighted average based on `config.SCORING_WEIGHTS`.
+
+---
+
+## 4. `src/alpha_engine.py` — Conviction Scoring & LLM
+Handles unstructured text processing.
+
+**`calculate_conviction_score(self, event, graph_links)`**
+Calculates a score out of 13.5.
+*   **Base Score (0-5)**: Based on `graph_links`. If a direct link exists, base score is the `alpha_score` * 5.
+*   **Materiality (0-3)**: If it's a contract, what % of the company's market cap is this contract? `score = (contract_value / mcap) * weight`.
+*   **Political Alignment (0-2.5)**: Does the issuing state match the party the company donated to? (e.g., UP contract + BJP donation = +2.5).
+*   **Competitor Exclusivity (0-3)**: Did they win this on a single bid or against 10 competitors?
+
+**`parse_contract_details(self, text)`**
+Uses the Gemini LLM. 
+*   **Prompt Engineering**: The prompt strictly enforces a JSON output schema (`{"contract_value_cr": float, "issuing_authority_state": str}`).
+*   **Fallback**: If the LLM hits a rate limit or returns malformed JSON, it uses a regex fallback `r"Rs\.?\s*(\d+(?:\.\d+)?)\s*(?:cr|crore)"`.
+
+---
+
+## 5. `src/technical_analyzer.py` — Pure Math Indicators
+No external TA libraries used. Pure `pandas` / `numpy`.
+
+**`calculate_rsi(series, period=14)`**
+1. Calculates price differences `delta = series.diff()`.
+2. Separates into gains (positive) and losses (negative).
+3. Uses exponential moving averages (EMA) for the smoothing: `gains.ewm(com=period-1, min_periods=period).mean()`.
+4. `RS = EMA(gains) / EMA(losses)`.
+5. `RSI = 100 - (100 / (1 + RS))`.
+
+**`calculate_atr(high, low, close, period=14)`**
+Used strictly for dynamic stop-losses.
+1. Calculates True Range: `TR = max(high-low, abs(high-prev_close), abs(low-prev_close))`.
+2. Applies a simple moving average (SMA) over 14 periods to the TR.
+
+---
+
+## 6. `src/portfolio_manager.py` — The Paper Trader
+Simulates the real-world mechanics of the Indian stock market.
+
+**`execute_buy(self, symbol, conviction_score)`**
+1.  **Kelly Criterion**: Calculates position size. 
+    `f = p - (q / b)`
+    where `p` is win probability (derived from conviction score, e.g., score 8.0 = 65% win prob), `q` is 1-p, and `b` is the win/loss ratio (assumed 2.0).
+2.  **Slippage**: Assumes you get filled at `current_price * 1.005` (0.5% worse than current market price) due to illiquidity in small caps.
+3.  **Stop Loss**: Sets the hard stop at `buy_price - (2 * ATR)`.
+
+**`execute_sells(self)`**
+The exit logic.
+1.  Checks if `current_price <= stop_loss` OR `days_held >= 90` (time stop).
+2.  **Taxation Math**:
+    *   STT = 0.1% of sell value.
+    *   Exchange Txn Charge = 0.00325%.
+    *   GST = 18% on the Exchange Charge.
+    *   DP Charge = ₹15.93 (flat fee for debiting shares from Demat).
+3.  Deducts all taxes from gross PnL to get Net PnL, logs it to `trade_history`, and frees up `available_cash`.
+
+---
+
+## 7. `src/cache_manager.py` — Database & Concurrency
+Manages the `data/cache.sqlite` file.
+
+**The WAL Mode Solution**
+Because `app.py` (Streamlit) is constantly reading the DB to render the dashboard, and `main.py` (Cron) is writing to it, standard SQLite would throw `database is locked` errors.
+```sql
+PRAGMA journal_mode=WAL;
 ```
+Write-Ahead Logging allows simultaneous readers and writers.
+
+**Key Tables**:
+*   `virtual_portfolio`: Tracks active positions (`buy_price`, `quantity`, `stop_loss`).
+*   `trade_history`: Tracks closed positions with `net_pnl`.
+*   `alpha_graph`: Caches the heavily computed path queries so the Streamlit dashboard loads instantly without re-running `nx.all_simple_paths`.
 
 ---
 
-## 2. Core Execution Flow (`main.py` -> `PipelineOrchestrator`)
+## 8. `app.py` — The Streamlit Dashboard
+The presentation layer.
 
-When the cron job runs `python main.py`, the following sequence executes within `src/pipeline_orchestrator.py`:
+**`st.cache_data` Optimization**
+Functions that query large tables (like `load_portfolio_data()`) are wrapped in `@st.cache_data(ttl=300)`. This means if you refresh the page 10 times in 5 minutes, it only hits the SQLite DB once.
 
-1.  **Initialization**: `PipelineOrchestrator` initializes `CacheManager`, `BSEMonitor`, `AlphaEngine`, `PaperTrader`, etc.
-2.  **`run_daily_pipeline()`**: The main function coordinates the workflow.
-3.  **Universe Build**: It fetches the monitored scrip codes from `CacheManager`.
-4.  **Virtual Sells**: `self.paper_trader.execute_sells()` runs *first* to check if any existing positions have hit their ATR trailing stop-loss or 90-day time-stop.
-5.  **BSE Scan**: `self.bse_monitor.scan_watchlist(scrip_codes)` fetches the day's announcements.
-6.  **Event Processing loop**:
-    *   Iterates through detected `contract` events.
-    *   Calls `financial_screener` to verify the company's fundamentals (D/E, OCF).
-    *   Calls `graph_manager.alpha_query(cin)` to traverse the graph and find political links.
-    *   Calls `alpha_engine.calculate_conviction_score(...)` to get the final score (0-13.5).
-    *   Calls `technical_analyzer.analyze()` to get entry timing (+/- score adjustment).
-    *   If total score >= 4.0, it calls `notifier.send_alpha_alert()` and `paper_trader.execute_buy()`.
-7.  **Graph Save**: Finally, `graph_manager.save()` persists any new graph nodes to `data/graph.json`.
+**Gemini Chat Interface**
+The "Chat with Data" tab:
+1. Grabs the schema of the SQLite DB.
+2. Prompts Gemini: "Given this schema, the user asks: [Query]. Return ONLY a valid SQL statement."
+3. Executes the returned SQL via `pd.read_sql_query()` and renders the resulting DataFrame using `st.dataframe()`.
 
 ---
 
-## 3. Database Layer (`src/cache_manager.py`)
+## 9. `src/backtest.py` — ML Validation
+Validates the alpha thesis.
 
-The `CacheManager` class is a singleton-like interface to `data/cache.sqlite`.
-
-**Key Design Patterns:**
-*   **WAL Mode**: The database runs in Write-Ahead Logging mode (`PRAGMA journal_mode=WAL;`). This is critical because the Streamlit dashboard (`app.py`) reads from the DB concurrently while the background pipeline (`main.py`) writes to it. WAL mode prevents `database is locked` errors.
-*   **Context Managers**: Connections are always handled using `with self._connect() as conn:` to ensure they are closed properly.
-*   **Schema**:
-    *   `virtual_portfolio` stores open paper trades.
-    *   `trade_history` stores closed paper trades with calculated PnL.
-    *   `alpha_graph` stores pre-calculated alpha scores for fast dashboard rendering.
-
----
-
-## 4. The Knowledge Graph (`src/graph_manager.py`)
-
-The graph is built using `networkx.DiGraph()` (Directed Graph).
-
-**Node Types**: `ListedCompany`, `Director`, `DonorCompany`, `ElectoralTrust`, `PoliticalParty`.
-
-**The Alpha Query Algorithm (`alpha_query` method)**:
-This is the most computationally intensive part of the code. Given a starting company's CIN:
-
-```python
-def alpha_query(self, cin: str) -> list[dict]:
-    # 1. Find the listed company node
-    start_node = f"company:{cin}"
-    if start_node not in self.G: return []
-
-    connections = []
-    # 2. Find all political parties
-    parties = [n for n, d in self.G.nodes(data=True) if d.get('node_type') == 'PoliticalParty']
-
-    for party in parties:
-        # 3. Find all simple paths between the company and the party (max length 4 edges)
-        paths = list(nx.all_simple_paths(self.G, source=start_node, target=party, cutoff=4))
-        
-        for path in paths:
-            # 4. Calculate Exclusivity (based on Director node degrees)
-            # If a director sits on 50 boards, exclusivity is low. If 2, exclusivity is high.
-            # 5. Calculate Proximity (based on path length)
-            # 6. Calculate Magnitude (based on DONATED_TO edge weights)
-            
-            alpha_score = (0.4 * exclusivity) + (0.3 * proximity) + (0.3 * magnitude)
-            connections.append({"path": path, "alpha_score": alpha_score})
-
-    return sorted(connections, key=lambda x: x["alpha_score"], reverse=True)
-```
-
----
-
-## 5. NLP and LLM Integration (`src/alpha_engine.py`)
-
-The `AlphaEngine` handles unstructured text.
-
-**Parsing Contract Details (`parse_contract_details`)**:
-BSE announcements are often PDFs. The code:
-1. Downloads the PDF.
-2. Uses `pypdf` to extract the first 3 pages.
-3. Sends the text to the Google Gemini API using `google.genai` client.
-4. The prompt forces the LLM to return a strict JSON payload containing the `contract_value_cr` (in crores) and the `issuing_authority_state`.
-
-```python
-# The LLM prompt asks for exactly this format:
-# {"contract_value_cr": 500.5, "issuing_authority_state": "maharashtra"}
-```
-If the Gemini API fails, it falls back to a regex parser (`r"(?i)rs\.?\s*(\d+(?:\.\d+)?)\s*(?:cr|crore)"`).
-
----
-
-## 6. Technical Analysis Engine (`src/technical_analyzer.py`)
-
-Implemented purely using `numpy` and `pandas` (no heavy dependencies like `TA-Lib`).
-
-**Indicator Implementations:**
-*   **RSI (Relative Strength Index)**: Uses Wilder's smoothing (exponential moving average of gains/losses).
-*   **MACD (Moving Average Convergence Divergence)**: `EMA(12) - EMA(26)`. Signal line is `EMA(MACD, 9)`.
-*   **ATR (Average True Range)**: Calculates True Range (max of high-low, high-prev_close, prev_close-low), then applies a 14-period SMA.
-
-**The ATR Stop Loss Formula:**
-```python
-# Called when calculating the stop-loss for a new paper trade
-atr_stop = current_close_price - (2 * current_atr_14)
-```
-
----
-
-## 7. Paper Trading Logic (`src/portfolio_manager.py`)
-
-The `PaperTrader` handles the simulation logic realistically.
-
-**`execute_buy()`**:
-1. Calculates **Kelly Criterion** sizing based on the Conviction Score (e.g., Score >= 8.0 gets 25% allocation, Score >= 4.0 gets 5%).
-2. Applies a **0.5% Slippage** penalty (execution price = current price * 1.005).
-3. Deducts capital and inserts into `virtual_portfolio`.
-
-**`execute_sells()`**:
-1. Fetches all open positions.
-2. Checks current price via `yfinance`.
-3. If `current_price < atr_stop` OR `days_held >= 90`:
-4. Triggers sell.
-5. Calculates Taxes: STT (0.1%), Exchange Txn Chg (0.00325%), SEBI Chg, DP Chg (₹15.93 flat).
-6. Calculates net PnL and inserts into `trade_history`.
-7. Deletes from `virtual_portfolio`.
-
----
-
-## 8. Dashboard Implementation (`app.py`)
-
-Built with **Streamlit**.
-
-**Key Technical Details:**
-*   `st.cache_data`: Extensively used to cache heavy SQLite queries (like loading the full trade history) for 5-10 minutes to prevent DB lag.
-*   **Plotly**: Used in the "Technical Analysis" tab. It creates a 4-row sub-plot (Row 1: Candlesticks/SMA, Row 2: RSI, Row 3: MACD, Row 4: OBV).
-*   **Graph Rendering**: Uses `pyvis.network.Network` to convert NetworkX data into an interactive HTML canvas. Streamlit renders it using `st.components.v1.html()`.
-*   **GenAI Chat**: The "Chat with Data" tab uses the Gemini API. It sends the SQLite table schemas in the prompt, asks the LLM to generate a SQL query, executes the query via `pandas.read_sql`, and displays the resulting dataframe.
-
----
-
-## 9. Backtesting Engine (`src/backtest.py`)
-
-The backtesting framework validates the strategy using historical data.
-
-**Event Study (`_run_event_study`)**:
-For every historical contract announcement:
-1. Get the date `T0`.
-2. Fetch the stock's return at `T+30`, `T+60`, `T+90`, `T+180` days.
-3. Fetch the benchmark (Nifty Smallcap) return for the exact same date ranges.
-4. Excess Return (Alpha) = `Stock Return - Benchmark Return`.
-
-**ML Optimization (`run_ml_optimization`)**:
-Uses `xgboost.XGBClassifier`.
-*   **Target (`y`)**: 1 if the 90-day return was > 5%, else 0.
-*   **Features (`X`)**: Alpha Score, Materiality %, Volume Z-Score, Technical Score.
-*   **Validation**: Uses `sklearn.model_selection.TimeSeriesSplit` (Walk-Forward validation) to prevent look-ahead bias (testing data is strictly chronologically *after* training data).
-
----
-
-## 10. Entity Resolution (`src/entity_resolver.py`)
-
-The most difficult data engineering challenge: matching dirty company names from Electoral Bonds to clean BSE names.
-
-Uses the **RapidFuzz** library (`fuzz.token_set_ratio`).
-```python
-score = fuzz.token_set_ratio("MEGHA ENGINEERING LTD", "Megha Engineering & Infrastructures Limited")
-if score > 75:  # DONOR_MATCH_SCORE in config.py
-    # Match accepted
-```
-It cleans names first by aggressively stripping suffixes (LTD, LIMITED, PVT, PRIVATE, INC) and standardizing spacing to prevent false negatives.
+**`run_ml_optimization(self)`**
+Instead of simple if/else rules, it trains an `XGBClassifier`.
+*   **Target**: 1 if the stock beat the Nifty Smallcap index by >5% over 90 days.
+*   **Features**: `conviction_score`, `materiality_pct`, `volume_z_score`, `rsi`.
+*   **TimeSeriesSplit**: Standard K-Fold cross-validation leaks future data in finance. `TimeSeriesSplit` ensures the model only trains on past events to predict future events, proving the strategy's real-world viability.
