@@ -22,6 +22,8 @@
 13. [Deployment Architecture](#13-deployment-architecture)
 14. [Configuration Reference](#14-configuration-reference)
 15. [Backtest Results](#15-backtest-results)
+16. [Deep Dive: Entity Resolution & Fuzzy Matching](#16-deep-dive-entity-resolution--fuzzy-matching)
+17. [Deep Dive: NLP & Large Language Models](#17-deep-dive-nlp--large-language-models)
 
 ---
 
@@ -463,7 +465,7 @@ Builds the target watchlist through a **five-stage funnel**:
 
 ### `src/bse_monitor.py` — BSE Announcement Scanner
 Monitors the BSE India corporate announcements API. For each scrip code:
-1. Calls the BSE API endpoint with the scrip code and date range
+1. Calls the BSE India API endpoint with the scrip code and date range
 2. Parses the JSON response for announcement titles
 3. Applies regex pattern matching to classify each announcement as:
    - `contract` (order wins, LOAs, tenders)
@@ -1010,6 +1012,117 @@ Political_Alpha_Tracker/
 │
 └── tests/                     # Test scripts
 ```
+
+---
+
+## 16. Deep Dive: Entity Resolution & Fuzzy Matching
+
+**If you know nothing about data engineering, read this first.**
+
+Imagine you have two lists of people. 
+List A (from a school database) says: "John F. Kennedy"
+List B (from a hospital) says: "Kennedy, John F"
+
+A human knows these are the same person. But to a computer, the text string `"John F. Kennedy"` is completely different from `"Kennedy, John F"`. If a computer tries to join these two lists using an exact match (`ListA.Name == ListB.Name`), it will fail and say there is no match.
+
+This exact problem happens in our project, but with **Company Names**.
+We have data from two very different sources:
+1. **The Electoral Bond Data (SBI):** Names are messy, typed by bank clerks. Example: `MEGHA ENGINEERING LTD`
+2. **The Stock Market Data (BSE):** Names are official and formal. Example: `Megha Engineering & Infrastructures Limited`
+
+If we can't link these two names together, our entire Knowledge Graph breaks. We wouldn't know that the company trading on the stock market is the exact same company that bought the political bonds.
+
+### The Solution: Fuzzy Matching
+
+"Fuzzy matching" is a technique that calculates *how similar* two strings of text are, usually giving a score from 0 to 100.
+
+In this project, we use a Python library called **RapidFuzz**. RapidFuzz uses an algorithm called the *Levenshtein Distance*. 
+The Levenshtein Distance counts the minimum number of single-character edits (insertions, deletions, or substitutions) required to change one word into the other. 
+
+For example, to change "kitten" to "sitting":
+1. **s**itten (substitution of "s" for "k")
+2. sitt**i**n (substitution of "i" for "e")
+3. sittin**g** (insertion of "g" at the end)
+It took 3 edits.
+
+### How Our Code Does It (`src/entity_resolver.py`)
+
+We don't just throw raw names at the fuzzy matcher. If we compare `"Reliance Industries Limited"` with `"Reliance Industries"`, the word "Limited" will lower the similarity score, even though it's the exact same company.
+
+**Step 1: Aggressive Cleaning (Standardization)**
+Our code first runs the company names through a cleaner that strips away all corporate suffixes. It removes words like: `LTD`, `LIMITED`, `PVT`, `PRIVATE`, `INC`, `CORP`, `LLC`.
+It also removes all punctuation and makes everything uppercase.
+
+So:
+- `Reliance Industries Limited` -> `RELIANCE INDUSTRIES`
+- `Reliance Ind. Ltd.` -> `RELIANCE IND`
+
+**Step 2: Token Set Ratio**
+RapidFuzz has different ways of scoring. We use `fuzz.token_set_ratio`.
+Instead of comparing the whole string at once, this method breaks the string into individual words (tokens), sorts them alphabetically, and then compares them. 
+
+This is incredibly powerful because it ignores word order. 
+`fuzz.token_set_ratio("ENGINEERING MEGHA", "MEGHA ENGINEERING")` will return a perfect 100 score.
+
+**Step 3: Thresholding**
+If the RapidFuzz score is above our threshold (defined as `DONOR_MATCH_SCORE = 75` in our `config.py`), the system accepts it as a match and links the Electoral Bond donor to the BSE listed company in our database.
+
+---
+
+## 17. Deep Dive: NLP & Large Language Models
+
+**If you know nothing about AI/LLMs, read this first.**
+
+Every day, the Bombay Stock Exchange (BSE) publishes hundreds of corporate announcements. When a company wins a new government contract, they upload a PDF document announcing it. 
+
+These PDFs are written for humans, not computers. They contain paragraphs like:
+*"We are pleased to inform you that our company has emerged as the Lowest Bidder (L1) for a project awarded by the Maharashtra State Road Development Corporation. The total estimated value of the contract is Rs. 500.5 Crores."*
+
+Our trading system needs exactly two pieces of information from this text:
+1. How much is the contract worth? (`500.5`)
+2. Which state government gave the contract? (`Maharashtra`)
+
+We cannot use simple rules (like "find the number next to 'Rs'") because every company formats their PDFs differently. Some say `Rs. 500.5 Cr`, some say `INR 5,000,000,000`, some say `Five Hundred Crores`. 
+
+### The Solution: Large Language Models (LLMs)
+
+A Large Language Model (like OpenAI's ChatGPT or Google's Gemini) is an AI that has read the entire internet and understands human language. 
+
+Instead of writing complex rules to find the money value, we can literally just hand the text to the AI and ask it a question. 
+In this project, we use the **Google Gemini API** (via the `google.genai` library) in `src/alpha_engine.py`.
+
+### How Our Code Does It
+
+**Step 1: Extracting Text from PDFs**
+When the `bse_monitor.py` detects a "contract award" announcement, it downloads the PDF file. 
+Our code then uses a library called `pypdf` to read the actual text out of the first 3 pages of the PDF.
+
+**Step 2: The Prompt (Instructing the AI)**
+We send the extracted text to the Gemini API, along with a very strict set of instructions called a "Prompt".
+
+Our prompt looks something like this:
+*"You are a financial data extraction bot. Read the following corporate announcement. Find the total monetary value of the contract awarded, and convert it to Crores. Also find the name of the state government that awarded it. You must reply ONLY in JSON format, like this: {"contract_value_cr": 500.5, "issuing_authority_state": "maharashtra"} "*
+
+**Step 3: JSON Parsing**
+Because we instructed the AI to reply in JSON (JavaScript Object Notation), it gives us the data in a format that Python can easily read as a dictionary.
+```python
+data = {
+    "contract_value_cr": 500.5,
+    "issuing_authority_state": "maharashtra"
+}
+```
+Now, our Python code knows exactly how much the contract is worth. 
+
+### What if the AI fails? (The Fallback)
+APIs can sometimes go down, or you might run out of free credits. 
+Because this is a critical trading system, we built a **Regex Fallback**. 
+
+Regex (Regular Expressions) is a traditional way to search for patterns in text. 
+If the Gemini API fails, our code falls back to running this regex pattern:
+`r"(?i)rs\.?\s*(\d+(?:\.\d+)?)\s*(?:cr|crore)"`
+
+This pattern tells the computer: *Find the letters "rs", followed by optional spaces, then capture any numbers (including decimals), followed by the word "cr" or "crore".*
+It's not as smart as the AI, and it won't catch every edge case, but it ensures the pipeline doesn't completely crash if the AI is unavailable.
 
 ---
 
