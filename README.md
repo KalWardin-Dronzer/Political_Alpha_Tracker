@@ -2,7 +2,7 @@
 
 > An institutional-grade algorithmic pipeline that tracks political money, detects insider accumulation, and front-runs corporate announcements using alternative data.
 
-## 🚀 The System Architecture (V1 ➡️ V3 Evolution)
+## The System Architecture (V1 to V3 Evolution)
 
 This pipeline has evolved from a simple OSINT screener into a highly sophisticated quantitative trading system. It operates across multiple phases:
 
@@ -25,7 +25,7 @@ This pipeline has evolved from a simple OSINT screener into a highly sophisticat
 
 ---
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```text
 ├── main.py                 # Daily pipeline orchestrator
@@ -57,7 +57,7 @@ This pipeline has evolved from a simple OSINT screener into a highly sophisticat
 
 ---
 
-## 🛠️ Setup & Deployment
+##  Setup & Deployment
 
 You can run this locally on your laptop (SQLite) or deploy it to the cloud for 24/7 execution (Docker + PostgreSQL).
 
@@ -94,7 +94,7 @@ python main.py
 
 ---
 
-## 🤖 Telegram Bot Integration
+##  Telegram Bot Integration
 
 The system communicates entirely through a secure Telegram Bot.
 1. Talk to `@BotFather` on Telegram to create a bot and get a `TELEGRAM_BOT_TOKEN`.
@@ -102,13 +102,13 @@ The system communicates entirely through a secure Telegram Bot.
 3. Add these to your `.env` file.
 
 **Bot Features:**
-- `🔥 ULTIMATE INSIDER SIGNAL DETECTED 🔥` (Cluster Buy Warnings)
-- `🎯 Recommended Position Sizing` (Kelly Allocation)
+- ` ULTIMATE INSIDER SIGNAL DETECTED ` (Cluster Buy Warnings)
+- ` Recommended Position Sizing` (Kelly Allocation)
 - `/exit SCRIPCODE` (User command to clear a position)
 
 ---
 
-## 📊 Rigorous Backtesting
+##  Rigorous Backtesting
 
 We do not trust rules blindly. Validate the pipeline mathematically:
 
@@ -129,7 +129,7 @@ The backtester executes:
 
 ---
 
-## ⚙️ Configuration (`src/config.py`)
+##  Configuration (`src/config.py`)
 
 | Parameter | Default | Description |
 |---|---|---|
