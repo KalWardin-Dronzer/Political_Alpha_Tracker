@@ -457,16 +457,17 @@ class PipelineOrchestrator:
 
     def _step6_wrap_up(self, start_time, scrip_codes):
         logger.info("Step 6: Saving graph and sending summary...")
+        elapsed = (datetime.now() - start_time).total_seconds()
+
         if not self.dry_run:
             self.graph.save()
             self.notifier.send_daily_summary(
                 contracts_found=len(self.contracts_found),
                 alerts_fired=self.alerts_fired,
                 watchlist_size=len(scrip_codes),
-                graph_stats=self.graph.get_stats(),
+                elapsed_seconds=elapsed,
             )
 
-        elapsed = (datetime.now() - start_time).total_seconds()
         logger.info("=" * 60)
         logger.info(
             f"DAILY PIPELINE COMPLETE — "
