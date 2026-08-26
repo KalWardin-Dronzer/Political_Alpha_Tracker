@@ -388,26 +388,38 @@ class Notifier:
     def send_daily_summary(self, contracts_found: int,
                             alerts_fired: int,
                             watchlist_size: int,
+                            elapsed_seconds: float = 0,
                             graph_stats: dict = None):
         """Send end-of-day pipeline summary."""
         lines = [
             "📊 <b>Daily Pipeline Summary</b>",
             "",
-            f"📋 Watchlist size: {watchlist_size}",
             f"🔍 Contracts found: {contracts_found}",
             f"🚨 Alerts fired: {alerts_fired}",
+            f"📋 Watchlist: {watchlist_size} companies scanned",
         ]
 
-        if graph_stats:
-            lines.extend([
-                "",
-                f"🔗 Graph: {graph_stats.get('total_nodes', 0)} nodes, "
-                f"{graph_stats.get('total_edges', 0)} edges",
-            ])
+        if elapsed_seconds > 0:
+            mins = int(elapsed_seconds // 60)
+            secs = int(elapsed_seconds % 60)
+            lines.append(f"⏱️ Pipeline runtime: {mins}m {secs}s")
 
-        held = self.cache.get_held_positions()
-        if held:
-            lines.append(f"📌 Active positions: {len(held)}")
+        # Paper trading portfolio snapshot
+        try:
+            with self.cache._connect() as conn:
+                portfolio = conn.execute(
+                    "SELECT scrip_code, buy_price, conviction_score, buy_date "
+                    "FROM virtual_portfolio"
+                ).fetchall()
+            if portfolio:
+                lines.extend(["", "💼 <b>Paper Portfolio:</b>"])
+                for row in portfolio:
+                    lines.append(
+                        f"  • {row['scrip_code']} @ ₹{row['buy_price']:.0f} "
+                        f"(Score: {row['conviction_score']:.2f})"
+                    )
+        except Exception:
+            pass
 
         lines.append(
             f"\n🕐 {datetime.now().strftime('%Y-%m-%d %H:%M IST')}"
