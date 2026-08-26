@@ -103,8 +103,8 @@ class StateBudgetMonitor:
             niche = company.get("micro_niche", "").lower()
             sector = alloc['sector'].lower()
             
-            # Simple keyword match for demonstration
-            if sector in niche or niche in sector or any(w in niche for w in sector.split()):
+            # Strict matching: Avoid false positives like matching "development" to pharma.
+            if sector in niche or niche in sector:
                 cin = company.get("cin")
                 if not cin:
                     continue
