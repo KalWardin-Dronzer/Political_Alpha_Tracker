@@ -201,31 +201,11 @@ class PipelineOrchestrator:
                     self.mca.resolve_directors(company["cin"], force_refresh=True)
 
     def _step4_5_check_l1_bids(self):
-        logger.info("Step 4.5: Checking eProcure L1 bids (Alternative Data front-running)...")
-        contracts = []
-        l1_bids = self.eprocure_monitor.fetch_l1_bids_for_watchlist()
-        if l1_bids:
-            from src.bse_monitor import CorporateEvent
-            for bid in l1_bids:
-                logger.info(
-                    f"\\n{'=' * 40}\\n"
-                    f"🚨 EARLY ALPHA SIGNAL DETECTED 🚨\\n"
-                    f"L1 Bidder: {bid['contractor_name']} ({bid['scrip_code']})\\n"
-                    f"Tender: {bid['title']}\\n"
-                    f"Amount: Rs. {bid['bid_amount_cr']} Cr\\n"
-                    f"{'=' * 40}"
-                )
-                l1_event = CorporateEvent(
-                    scrip_code=bid['scrip_code'],
-                    company_name=bid['contractor_name'],
-                    title=f"[L1 BID] {bid['title']} (Rs. {bid['bid_amount_cr']} Cr)",
-                    date=bid['date'],
-                    category="Alternative Data (L1 Bidder)",
-                    event_type="contract",
-                    raw_data={"materiality": {"is_material": True, "materiality_pct": 100, "issuing_authority_state": bid['issuing_authority_state']}}
-                )
-                contracts.append(l1_event)
-        return contracts
+        # eProcure Monitor disabled — uses mock data (hardcoded NBCC/JINDAL
+        # name matching with random tender IDs and bid amounts).
+        # Re-enable when a real Tender247/TendersInfo API is integrated.
+        logger.info("Step 4.5: eProcure L1 bids [SKIPPED — uses mock data]")
+        return []
 
     def _step5_process_contract_events(self, contracts):
         if not contracts:
@@ -439,22 +419,20 @@ class PipelineOrchestrator:
             logger.error(f"  ❌ Error in Macro Event Scans: {e}")
 
     def _step5_6_advanced_scans(self):
-        logger.info("Step 5.6: Scanning Advanced Alpha Sources (Tenders, Budgets, Pledges)...")
+        logger.info("Step 5.6: Advanced Alpha Sources (currently disabled — all use mock data)...")
         if not self.dry_run:
-            try:
-                logger.info("  -> Running GeM/CPPP Tender Monitor")
-                self.tender_monitor.scan_for_tenders()
-                
-                # State Budget Monitor disabled — currently uses simulated/mock
-                # data (random.choice + hardcoded text). Re-enable when real
-                # state budget RSS feeds or API endpoints are integrated.
-                # logger.info("  -> Running State Budget Monitor")
-                # self.state_budget_monitor.scan_budgets()
-                
-                logger.info("  -> Running Promoter Pledge Monitor")
-                self.pledge_monitor.scan_pledges()
-            except Exception as e:
-                logger.error(f"  ❌ Error in Advanced Scans: {e}")
+            # ──────────────────────────────────────────────────────────────
+            # ALL THREE MONITORS BELOW USE SIMULATED/MOCK DATA:
+            #   - tender_monitor.py  → random.choice + random tender IDs
+            #   - state_budget_monitor.py → random.choice of states + hardcoded text
+            #   - pledge_monitor.py  → random.choice + random pledge percentages
+            #
+            # Re-enable each ONLY after replacing _fetch_* methods with
+            # real API/RSS data sources (e.g., GeM API, BSE pledge filings).
+            # ──────────────────────────────────────────────────────────────
+            logger.info("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
+            logger.info("  [SKIPPED] State Budget Monitor (uses mock data)")
+            logger.info("  [SKIPPED] Promoter Pledge Monitor (uses mock data)")
         else:
             logger.info("  [DRY RUN] Skipping Advanced Alpha Scans")
 
