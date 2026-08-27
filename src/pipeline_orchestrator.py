@@ -445,8 +445,11 @@ class PipelineOrchestrator:
                 logger.info("  -> Running GeM/CPPP Tender Monitor")
                 self.tender_monitor.scan_for_tenders()
                 
-                logger.info("  -> Running State Budget Monitor")
-                self.state_budget_monitor.scan_budgets()
+                # State Budget Monitor disabled — currently uses simulated/mock
+                # data (random.choice + hardcoded text). Re-enable when real
+                # state budget RSS feeds or API endpoints are integrated.
+                # logger.info("  -> Running State Budget Monitor")
+                # self.state_budget_monitor.scan_budgets()
                 
                 logger.info("  -> Running Promoter Pledge Monitor")
                 self.pledge_monitor.scan_pledges()
