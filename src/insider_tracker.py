@@ -19,6 +19,8 @@ import requests
 
 from src.config import BSE_HEADERS, BSE_REQUEST_DELAY
 from src.cache_manager import CacheManager
+from src.graph_manager import GraphManager
+from thefuzz import fuzz
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +29,9 @@ SAST_API_URL = "https://api.bseindia.com/BseIndiaAPI/api/SastData/w"
 PIT_API_URL = "https://api.bseindia.com/BseIndiaAPI/api/InsiderTradingNew/w"
 
 class InsiderTracker:
-    def __init__(self, cache: CacheManager):
+    def __init__(self, cache: CacheManager, graph: GraphManager = None):
         self.cache = cache
+        self.graph = graph
         self.session = requests.Session()
         self.session.headers.update(BSE_HEADERS)
         
@@ -130,13 +133,40 @@ class InsiderTracker:
         is_cluster = len(active_buyers) >= 2
         is_whale = total_shares_accumulated >= 100_000 # Configurable threshold for "massive"
         
-        if is_cluster or is_whale:
+        is_political_insider_buy = False
+        
+        # New Filter: Political Alpha override
+        if self.graph:
+            company = self.cache.get_company(scrip_code)
+            cin = company.get("cin") if company else None
+            if cin:
+                conns = self.graph.alpha_query(cin)
+                if conns:
+                    for buyer in active_buyers:
+                        buyer_name = buyer["name"].upper()
+                        for c in conns:
+                            donor = (c.get("donor_company_name") or "").upper()
+                            bureaucrat = (c.get("director_name") or "").upper()
+                            
+                            if donor and fuzz.token_set_ratio(donor, buyer_name) > 85:
+                                is_political_insider_buy = True
+                                logger.info(f"Political Insider Buy Detected! Donor {donor} matched {buyer_name}")
+                                break
+                            if bureaucrat and fuzz.token_set_ratio(bureaucrat, buyer_name) > 85:
+                                is_political_insider_buy = True
+                                logger.info(f"Political Insider Buy Detected! Bureaucrat {bureaucrat} matched {buyer_name}")
+                                break
+                        if is_political_insider_buy:
+                            break
+
+        if is_cluster or is_whale or is_political_insider_buy:
             return {
                 "buyers_count": len(active_buyers),
                 "total_shares": total_shares_accumulated,
                 "top_buyers": active_buyers[:3],
                 "is_cluster": is_cluster,
-                "is_whale": is_whale
+                "is_whale": is_whale,
+                "is_political_insider_buy": is_political_insider_buy
             }
             
         return None

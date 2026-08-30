@@ -104,6 +104,11 @@ CONTRACT_EXCLUSION_PATTERN = re.compile(
     r"(?i)\b(NCLT|NCLAT|SAT|SEBI\s*order|court\s*order|regulatory)\b"
 )
 
+# Pattern for Pledge / SAST disclosures
+PLEDGE_KEYWORDS_PATTERN = re.compile(
+    r"(?i)\b(pledge|encumbrance|regulation 31|sast)\b"
+)
+
 # ──────────────────────────────────────────────
 # Fundamental Thresholds (The Porinju Layer)
 # ──────────────────────────────────────────────

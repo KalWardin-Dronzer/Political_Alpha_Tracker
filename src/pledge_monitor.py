@@ -14,68 +14,72 @@ from datetime import datetime
 from src.cache_manager import CacheManager
 from src.notifier import Notifier
 from src.graph_manager import GraphManager
+from src.alpha_engine import AlphaEngine
 from src.config import ALPHA_SCORE_THRESHOLD
 
 logger = logging.getLogger(__name__)
 
 class PledgeMonitor:
-    def __init__(self, cache: CacheManager, notifier: Notifier, graph: GraphManager):
+    def __init__(self, cache: CacheManager, notifier: Notifier, graph: GraphManager, alpha_engine: AlphaEngine):
         self.cache = cache
         self.notifier = notifier
         self.graph = graph
+        self.alpha_engine = alpha_engine
 
-    def _fetch_recent_pledges(self) -> list:
-        """
-        Simulate fetching pledge disclosures from BSE API or screener.in.
-        """
-        watchlist = self.cache.get_watchlist()
-        if not watchlist:
-            return []
-            
-        import random
-        target = random.choice(watchlist)
-        scrip = target["scrip_code"]
+    def process_pledge_events(self, events: list):
+        """Main routine to process pledge events detected by BSE Monitor."""
+        logger.info(f"Processing {len(events)} Promoter Pledge events...")
         
-        # Simulate a sudden release of a huge chunk of shares
-        return [
-            {
-                "scrip_code": scrip,
-                "promoter_name": f"{target['name'].split()[0]} Promoter Group",
-                "action_type": "Released",
-                "pct_change": round(random.uniform(10.0, 45.0), 2),
-                "total_pledged_pct": round(random.uniform(0.0, 15.0), 2),
-                "date": datetime.now().strftime("%Y-%m-%d")
-            }
-        ]
+        for e in events:
+            scrip = e.scrip_code
+            date = e.date
+            
+            # Extract PDF or text
+            pdf_path = e.raw_data.get('pdf_path')
+            
+            if pdf_path:
+                text = self.alpha_engine.extract_text_from_pdf(pdf_path)
+            else:
+                text = e.title
+                
+            if not text:
+                continue
 
-    def scan_pledges(self):
-        """Main routine to scan pledge changes."""
-        logger.info("Scanning for significant Promoter Pledge changes...")
-        
-        pledges = self._fetch_recent_pledges()
-        
-        for p in pledges:
-            scrip = p["scrip_code"]
+            analysis = self.alpha_engine.analyze_pledge_document(text)
             
+            if not analysis:
+                continue
+
+            action_type = analysis.get("action_type")
+            if action_type not in ["Created", "Released", "Invoked"]:
+                continue
+                
+            pct_change = analysis.get("pct_change", 0.0)
+            total_pledged_pct = analysis.get("total_pledged_pct", 0.0)
+            promoter_name = analysis.get("promoter_name", "Promoter Group")
+
             # Check if this exact event is already processed for today
             with self.cache._connect() as conn:
                 exists = conn.execute(
                     "SELECT id FROM pledges WHERE scrip_code = ? AND date = ? AND action_type = ?", 
-                    (scrip, p["date"], p["action_type"])
+                    (scrip, date, action_type)
                 ).fetchone()
                 
             if exists:
                 continue
                 
             # Save to DB
-            with self.cache._connect() as conn:
-                conn.execute("""
-                    INSERT INTO pledges (scrip_code, promoter_name, action_type, pct_change, total_pledged_pct, date, processed, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, 1, ?)
-                """, (
-                    scrip, p["promoter_name"], p["action_type"], p["pct_change"], 
-                    p["total_pledged_pct"], p["date"], datetime.now().isoformat()
-                ))
+            try:
+                with self.cache._connect() as conn:
+                    conn.execute("""
+                        INSERT INTO pledges (scrip_code, promoter_name, action_type, pct_change, total_pledged_pct, date, processed, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+                    """, (
+                        scrip, promoter_name, action_type, pct_change, 
+                        total_pledged_pct, date, datetime.now().isoformat()
+                    ))
+            except Exception as db_e:
+                logger.warning(f"Could not save pledge to db, maybe table missing? Error: {db_e}")
                 
             # Alpha Engine Check: Is this a politically connected company?
             company = self.cache.get_company(scrip)
@@ -93,10 +97,15 @@ class PledgeMonitor:
             top_conn = connections[0]
             
             # Only alert for "Released" pledges on highly connected companies
-            if top_conn["alpha_score"] >= ALPHA_SCORE_THRESHOLD and p["action_type"] == "Released":
-                # High conviction threshold: massive sudden release
-                if p["pct_change"] > 15.0:
-                    self._send_pledge_alert(company, p, top_conn)
+            if top_conn["alpha_score"] >= ALPHA_SCORE_THRESHOLD and action_type == "Released":
+                # High conviction threshold: meaningful release
+                if pct_change >= 2.0:
+                    pledge_data = {
+                        "promoter_name": promoter_name,
+                        "pct_change": pct_change,
+                        "total_pledged_pct": total_pledged_pct
+                    }
+                    self._send_pledge_alert(company, pledge_data, top_conn)
 
     def _send_pledge_alert(self, company: dict, pledge: dict, connection: dict):
         """Send an alert for a sudden promoter pledge release."""

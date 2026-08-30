@@ -87,11 +87,9 @@ class BulkDealMonitor:
             if match and match[1] >= DONOR_MATCH_SCORE:
                 return True
                 
-        # 3. Check major institutions (heuristics)
-        # We could add a list of major DIIs/FIIs here if desired
-        major_keywords = ["MUTUAL FUND", "CAPITAL", "SECURITIES", "HOLDINGS", "INVESTMENT", "ASSET MANAGEMENT", "FUND"]
-        if any(keyword in client_upper for keyword in major_keywords):
-            return True
+        # 3. Check major institutions (heuristics) - REMOVED
+        # Generic mutual funds (e.g. WHITEOAK CAPITAL) trigger too many false positives.
+        # We only want pure political alpha or known superstars.
             
         return False
 
