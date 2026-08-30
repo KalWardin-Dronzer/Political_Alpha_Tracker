@@ -69,33 +69,62 @@ class PipelineOrchestrator:
         logger.info(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
         logger.info("=" * 60)
 
-        self._step1_poll_telegram()
-        scrip_codes = self._step2_build_monitoring_universe()
+        daily_stats = {
+            "contracts_found": 0,
+            "passed_fundamentals": 0,
+            "had_cin": 0,
+            "had_political_connection": 0,
+            "alerts_fired": 0
+        }
         
-        if not scrip_codes:
-            return
-            
-        events = self._step3_scan_bse_announcements(scrip_codes)
-        contracts = [e for e in events if e.event_type == "contract"]
-        board_changes = [e for e in events if e.event_type == "board_change"]
-        pledges = [e for e in events if e.event_type == "pledge"]
-        
-        logger.info(f"Found {len(contracts)} contract events, {len(board_changes)} board changes, {len(pledges)} pledges")
+        try:
 
-        self._step3_5_execute_virtual_sells()
-        self._step3_6_scan_bulk_deals()
-        self._step4_process_board_changes(board_changes)
-        
-        l1_contracts = self._step4_5_check_l1_bids()
-        contracts.extend(l1_contracts)
-        self.contracts_found = contracts
-        
-        self._step5_process_contract_events(contracts)
-        self._step5_5_policy_monitoring()
-        self._step5_5b_global_macro_events()
-        self._step5_6_advanced_scans(pledges)
-        
-        self._step6_wrap_up(start_time, scrip_codes)
+            self._step1_poll_telegram()
+            scrip_codes = self._step2_build_monitoring_universe()
+            
+            if not scrip_codes:
+                return
+                
+            events = self._step3_scan_bse_announcements(scrip_codes)
+            contracts = [e for e in events if e.event_type == "contract"]
+            board_changes = [e for e in events if e.event_type == "board_change"]
+            pledges = [e for e in events if e.event_type == "pledge"]
+            
+            logger.info(f"Found {len(contracts)} contract events, {len(board_changes)} board changes, {len(pledges)} pledges")
+
+            self._step3_5_execute_virtual_sells()
+            self._step3_6_scan_bulk_deals()
+            self._step4_process_board_changes(board_changes)
+            
+            l1_contracts = self._step4_5_check_l1_bids()
+            contracts.extend(l1_contracts)
+            self.contracts_found = contracts
+            
+            self._step5_process_contract_events(contracts, daily_stats=daily_stats)
+            self._step5_5_policy_monitoring()
+            self._step5_5b_global_macro_events()
+            self._step5_6_advanced_scans(pledges)
+            
+            if not self.dry_run:
+                msg = (
+                    f"✅ <b>Pipeline completed successfully.</b>\n\n"
+                    f"📊 <b>Daily Funnel:</b>\n"
+                    f"  • Contracts found: {daily_stats['contracts_found']}\n"
+                    f"  • Passed Fundamentals: {daily_stats['passed_fundamentals']}\n"
+                    f"  • Had CIN: {daily_stats['had_cin']}\n"
+                    f"  • Had Political Connection: {daily_stats['had_political_connection']}\n"
+                    f"  • <b>Alerts Fired: {daily_stats['alerts_fired']}</b>"
+                )
+                # send_system_alert is not a method, we should use _send_message
+                self.notifier._send_message(msg)
+            
+            self._step6_wrap_up(start_time, scrip_codes)
+
+        except Exception as e:
+            logger.exception(f"Pipeline crashed: {e}")
+            if not self.dry_run:
+                self.notifier._send_message(f"🔴 <b>Pipeline Failure</b>\n\n<code>{str(e)}</code>")
+            raise
 
     def run_volume_scan(self):
         """Phase 3: Smart Money Front-Running."""
@@ -208,12 +237,14 @@ class PipelineOrchestrator:
         logger.info("Step 4.5: eProcure L1 bids [SKIPPED — uses mock data]")
         return []
 
-    def _step5_process_contract_events(self, contracts):
+    def _step5_process_contract_events(self, contracts, daily_stats=None):
         if not contracts:
             logger.info("Step 5: No contract events to process")
             return
 
         logger.info("Step 5: Processing contract events...")
+        if daily_stats is not None:
+            daily_stats["contracts_found"] += len(contracts)
         regime = self.alpha_engine.get_vix_regime()
         logger.info(f"  VIX Regime: {regime['vix']:.2f} (High Fear: {regime['is_high_fear']})")
 
@@ -231,12 +262,18 @@ class PipelineOrchestrator:
                 logger.info(f"  ❌ Failed fundamentals: {result.reason}. Skipping.")
                 continue
 
+            if daily_stats is not None:
+                daily_stats["passed_fundamentals"] += 1
+
             logger.info(f"  ✅ Passed fundamentals: {result.summary()}")
 
             company = self.cache.get_company(event.scrip_code)
             if not company or not company.get("cin"):
                 logger.warning(f"  No CIN for {event.scrip_code}. Cannot run Alpha Query.")
                 continue
+
+            if daily_stats is not None:
+                daily_stats["had_cin"] += 1
 
             cin = company["cin"]
 
@@ -249,11 +286,13 @@ class PipelineOrchestrator:
 
             if not connections:
                 logger.info(f"  No political connections found for {cin}")
-                continue
-
-            top_connection = connections[0]
-            score = top_connection["alpha_score"]
-            logger.info(f"  🔗 Top connection: score={score:.2f}, director={top_connection['director_name']}, donor={top_connection['donor_company_name']}")
+                top_connection = None
+            else:
+                if daily_stats is not None:
+                    daily_stats["had_political_connection"] += 1
+                top_connection = connections[0]
+                score = top_connection["alpha_score"]
+                logger.info(f"  🔗 Top connection: score={score:.2f}, director={top_connection['director_name']}, donor={top_connection['donor_company_name']}")
 
             materiality = event.raw_data.get("materiality", {})
             mat_pct = materiality.get("materiality_pct", 0) if materiality else 0
@@ -283,11 +322,13 @@ class PipelineOrchestrator:
             for tb in ta_result.breakdown:
                 logger.info(f"    {tb}")
                 
-            if c_score >= 4.0:
+            if c_score >= 2.5:
+                if daily_stats is not None:
+                    daily_stats["alerts_fired"] += 1
                 if not self.dry_run:
                     self.paper_trader.execute_buy(event.scrip_code, c_score)
                     
-                logger.info(f"  🚨 Conviction >= 4.0. ALERTING!")
+                logger.info(f"  🚨 Conviction >= 2.5. ALERTING!")
                 
                 tender_id = self.graph.add_tender(title=event.title, date=event.date, scrip_code=event.scrip_code)
                 self.graph.link_company_to_tender(cin, tender_id)

@@ -45,10 +45,14 @@ class Backtester:
         print(report)
     """
 
-    def __init__(self, cache: CacheManager):
+    def __init__(self, cache: CacheManager, start_date: str = None):
         self.cache = cache
         self.graph = GraphManager(cache)
         self.alpha_engine = AlphaEngine(cache)
+        
+        if not start_date:
+            start_date = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
+        self.start_date = start_date
 
     def _get_price_history(self, scrip_code: str,
                             start_date: str,
@@ -238,12 +242,12 @@ class Backtester:
         # Get historical contract announcements
         from src.cache_manager import CacheManager
         with self.cache._connect() as conn:
-            rows = conn.execute("""
+            rows = conn.execute(f"""
                 SELECT a.scrip_code, a.title, a.date, c.cin, c.name, c.sector
                 FROM announcements a
                 JOIN companies c ON a.scrip_code = c.scrip_code
                 WHERE a.is_contract = 1
-                  AND a.date >= date('now', '-5 years')
+                  AND a.date >= '{self.start_date}'
                 ORDER BY a.date
             """).fetchall()
 
@@ -267,7 +271,7 @@ class Backtester:
                 is_regional_match=True,
                 event_date=row["date"]
             )
-            is_connected = conviction["score"] >= 4.0
+            is_connected = conviction["score"] >= 2.5
 
             # Get price history
             event_date = row["date"]
@@ -442,12 +446,12 @@ class Backtester:
 
         # Extract historical features
         with self.cache._connect() as conn:
-            rows = conn.execute("""
+            rows = conn.execute(f"""
                 SELECT a.scrip_code, a.date, c.cin
                 FROM announcements a
                 JOIN companies c ON a.scrip_code = c.scrip_code
                 WHERE a.is_contract = 1
-                  AND a.date >= date('now', '-5 years')
+                  AND a.date >= '{self.start_date}'
                 ORDER BY a.date ASC
             """).fetchall()
 

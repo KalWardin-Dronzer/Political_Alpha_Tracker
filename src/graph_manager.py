@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Optional
 
 import networkx as nx
+from thefuzz import fuzz, process
 
 from src.config import (
     GRAPH_FILE, DATA_DIR,
@@ -266,6 +267,64 @@ class GraphManager:
                     if board_cin and f"donor:{board_cin}" in self.G:
                         self.link_director_to_donor(din, board_cin)
 
+        # 4. Direct ListedCompany to Trust/Party matching (Fuzzy Match)
+        donors_list = list(donors) # iterate over donors again
+        donor_names = list(set(d["donor_name"] for d in donors_list if d.get("donor_name")))
+        
+        # Get all listed companies in the database
+        company_names = []
+        company_map = {}
+        all_companies = self.cache.get_all_companies()
+        for company in all_companies:
+            name_upper = company.get("name", "").upper()
+            if name_upper:
+                company_names.append(name_upper)
+                # Map name to the full company dict so we can add it to graph if matched
+                company_map[name_upper] = company
+        
+        matched_donor_to_company = {}
+        for d_name in donor_names:
+            result = process.extractOne(d_name.upper(), company_names, scorer=fuzz.token_set_ratio)
+            if result and result[1] >= 88:
+                matched_donor_to_company[d_name] = company_map[result[0]]
+                logger.info(f"Direct donor match: {d_name} -> {result[0]} (score: {result[1]}%)")
+
+        for donor in donors_list:
+            d_name = donor.get("donor_name")
+            if d_name in matched_donor_to_company:
+                company = matched_donor_to_company[d_name]
+                cin = company.get("cin")
+                if not cin: continue
+                
+                company_node = f"company:{cin}"
+                if company_node not in self.G:
+                    self.add_listed_company(
+                        cin=cin,
+                        name=company["name"],
+                        scrip_code=company["scrip_code"],
+                        sector=company.get("sector", ""),
+                        market_cap=company.get("market_cap", 0),
+                    )
+                    
+                    # Add directors for this company as well so the graph is complete
+                    directors = self.cache.get_directors_for_company(cin)
+                    for d in directors:
+                        self.add_director(d["din"], d["name"], is_bureaucrat=d.get("is_bureaucrat", 0))
+                        self.link_director_to_company(d["din"], cin)
+
+                trust_name = donor.get("trust_name")
+                if trust_name:
+                    if trust_name not in seen_trusts:
+                        self.add_electoral_trust(trust_name)
+                        seen_trusts.add(trust_name)
+                    # Add edge ListedCompany -> DONATED_TO -> Trust
+                    self.G.add_edge(
+                        company_node, f"trust:{trust_name}",
+                        edge_type="DONATED_TO",
+                        amount=donor["amount"],
+                        year=donor["year"],
+                    )
+
         logger.info(
             f"Graph built: {self.G.number_of_nodes()} nodes, "
             f"{self.G.number_of_edges()} edges"
@@ -363,9 +422,6 @@ class GraphManager:
                 director_node = (node, data)
                 break
 
-        if not director_node:
-            return None
-
         # Find the donor company
         donor_node = None
         for node, data in path_nodes:
@@ -373,8 +429,18 @@ class GraphManager:
                 donor_node = (node, data)
                 break
 
-        if not donor_node:
-            return None
+        is_direct = False
+        if not director_node and not donor_node:
+            # Check for direct path: ListedCompany -> DONATED_TO -> Trust/Party
+            if len(path) >= 2 and path_nodes[0][1].get("node_type") == "ListedCompany":
+                is_direct = True
+                donor_id = path[0]
+            else:
+                return None
+        else:
+            if not director_node or not donor_node:
+                return None
+            donor_id = donor_node[0]
 
         # Find the trust/party
         trust_node = None
@@ -384,7 +450,6 @@ class GraphManager:
                 break
 
         # Get donation details from edges
-        donor_id = donor_node[0]
         donations = []
         for _, target, edge_data in self.G.out_edges(donor_id, data=True):
             if edge_data.get("edge_type") == "DONATED_TO":
@@ -408,17 +473,22 @@ class GraphManager:
             return None
 
         # Compute scores
-        # Score 1: Director exclusivity
-        din = director_node[1].get("din", "")
-        total_board_seats = sum(
-            1 for _ in self.G.successors(director_node[0])
-        )
-        # Also count predecessors (undirected board connections)
-        total_board_seats += sum(
-            1 for _ in self.G.predecessors(director_node[0])
-        )
-        total_board_seats = max(total_board_seats, 1)
-        exclusivity_score = 1.0 / total_board_seats
+        if is_direct:
+            exclusivity_score = 2.0  # Direct donation is strongest
+            din = ""
+            total_board_seats = 0
+        else:
+            # Score 1: Director exclusivity
+            din = director_node[1].get("din", "")
+            total_board_seats = sum(
+                1 for _ in self.G.successors(director_node[0])
+            )
+            # Also count predecessors (undirected board connections)
+            total_board_seats += sum(
+                1 for _ in self.G.predecessors(director_node[0])
+            )
+            total_board_seats = max(total_board_seats, 1)
+            exclusivity_score = 1.0 / total_board_seats
 
         # Score 2: Path proximity
         path_length = len(path) - 1  # Edges = nodes - 1
@@ -471,8 +541,10 @@ class GraphManager:
 
         # Phase 5: Deep State Bureaucrat Weighting
         bureaucrat_multiplier = 1.0
-        if director_node[1].get("is_bureaucrat"):
+        is_bureaucrat = False
+        if not is_direct and director_node[1].get("is_bureaucrat"):
             bureaucrat_multiplier = 1.5
+            is_bureaucrat = True
 
         # Weighted alpha score
         alpha_score = (
@@ -487,10 +559,10 @@ class GraphManager:
             "company_name": company_node[1].get("name", "Unknown"),
             "company_cin": company_node[1].get("cin", ""),
             "scrip_code": company_node[1].get("scrip_code", ""),
-            "director_name": director_node[1].get("name", "Unknown"),
+            "director_name": director_node[1].get("name", "Unknown") if director_node else "DIRECT_DONOR",
             "director_din": din,
-            "donor_company_name": donor_node[1].get("name", "Unknown"),
-            "donor_cin": donor_node[1].get("cin", ""),
+            "donor_company_name": donor_node[1].get("name", "Unknown") if donor_node else company_node[1].get("name", "Unknown"),
+            "donor_cin": donor_node[1].get("cin", "") if donor_node else company_node[1].get("cin", ""),
             "trust_name": trust_node[1].get("name", "") if trust_node else "",
             "party_name": party_name,
             "max_donation": max_donation,
@@ -504,7 +576,8 @@ class GraphManager:
             "magnitude_score": round(magnitude_score, 3),
             "election_multiplier": election_multiplier,
             "bureaucrat_multiplier": bureaucrat_multiplier,
-            "is_bureaucrat": bool(director_node[1].get("is_bureaucrat")),
+            "is_bureaucrat": is_bureaucrat,
+            "is_direct_donor": is_direct,
             "alpha_score": round(alpha_score, 3),
             "path": [
                 f"{self.G.nodes[n].get('node_type', '?')}:"
