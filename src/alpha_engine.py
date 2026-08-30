@@ -249,11 +249,15 @@ class AlphaEngine:
         # 4 & 5. Insider Buying & SAST External Acquirer
         try:
             from src.insider_tracker import InsiderTracker
-            tracker = InsiderTracker(self.cache)
+            tracker = InsiderTracker(self.cache, graph)
             cluster = tracker.detect_cluster_buy(scrip_code)
             if cluster:
-                score += 2.0
-                breakdown.append("+2.0 Insider Buying Cluster")
+                if cluster.get("is_political_insider_buy"):
+                    score += 3.5
+                    breakdown.append("+3.5 Political Insider Buy (Highly Correlated)")
+                elif cluster.get("is_cluster") or cluster.get("is_whale"):
+                    score += 2.0
+                    breakdown.append("+2.0 Insider Buying Cluster/Whale")
                 
             if tracker.detect_sast_external_acquirer(scrip_code):
                 score += 2.0
@@ -454,3 +458,39 @@ class AlphaEngine:
         except Exception as e:
             logger.error(f"Gemini company benefit check failed: {e}")
             return False
+
+    def analyze_pledge_document(self, text: str) -> dict:
+        """
+        Uses Gemini LLM to parse a BSE SAST Regulation 31 disclosure (Promoter Pledge).
+        Extracts action type (Created, Released, Invoked), exact percentage changed, 
+        current total pledged percentage, and promoter name.
+        """
+        if not self.client:
+            return {}
+
+        prompt = (
+            "You are a financial analyst reviewing a BSE India corporate filing for promoter share pledges (Regulation 31 of SAST).\n"
+            "Read the following disclosure text and extract the key details regarding the encumbrance/pledge of shares.\n"
+            "Return a JSON object with the following keys:\n"
+            "- 'action_type': Must be exactly one of 'Created', 'Released', or 'Invoked'. If it's a release of pledge, output 'Released'. If new pledge, output 'Created'.\n"
+            "- 'pct_change': The percentage of total share capital that was pledged or released in this specific transaction. Output as a float (e.g., 2.5). If not found, use 0.0.\n"
+            "- 'total_pledged_pct': The new total percentage of share capital pledged by the promoter AFTER this transaction. Output as a float. If not found, use 0.0.\n"
+            "- 'promoter_name': The name of the promoter or promoter group entity making the disclosure.\n"
+            "Return ONLY raw JSON without markdown wrappers.\n"
+            f"TEXT:\n{text[:6000]}"
+        )
+
+        try:
+            response = self.client.models.generate_content(model='gemini-flash-lite-latest', contents=prompt)
+            res_text = response.text.strip()
+            if res_text.startswith("```json"):
+                res_text = res_text[7:-3].strip()
+            elif res_text.startswith("```"):
+                res_text = res_text[3:-3].strip()
+
+            data = json.loads(res_text)
+            return data
+        except Exception as e:
+            logger.error(f"Gemini pledge analysis failed: {e}")
+            return {}
+

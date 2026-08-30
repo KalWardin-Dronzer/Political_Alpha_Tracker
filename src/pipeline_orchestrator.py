@@ -48,9 +48,9 @@ class PipelineOrchestrator:
         self.universe_manager = UniverseManager(self.cache)
         self.tender_monitor = TenderMonitor(self.cache, self.notifier, self.graph)
         self.state_budget_monitor = StateBudgetMonitor(self.cache, self.notifier, self.graph)
-        self.pledge_monitor = PledgeMonitor(self.cache, self.notifier, self.graph)
-        self.paper_trader = PaperTrader(self.cache)
         self.alpha_engine = AlphaEngine(self.cache)
+        self.pledge_monitor = PledgeMonitor(self.cache, self.notifier, self.graph, self.alpha_engine)
+        self.paper_trader = PaperTrader(self.cache)
         self.policy_monitor = PolicyMonitor(self.cache, self.alpha_engine)
         self.macro_monitor = MacroEventMonitor(self.cache, self.alpha_engine)
         self.volume_tracker = VolumeTracker(self.cache)
@@ -78,8 +78,9 @@ class PipelineOrchestrator:
         events = self._step3_scan_bse_announcements(scrip_codes)
         contracts = [e for e in events if e.event_type == "contract"]
         board_changes = [e for e in events if e.event_type == "board_change"]
+        pledges = [e for e in events if e.event_type == "pledge"]
         
-        logger.info(f"Found {len(contracts)} contract events, {len(board_changes)} board changes")
+        logger.info(f"Found {len(contracts)} contract events, {len(board_changes)} board changes, {len(pledges)} pledges")
 
         self._step3_5_execute_virtual_sells()
         self._step3_6_scan_bulk_deals()
@@ -92,7 +93,7 @@ class PipelineOrchestrator:
         self._step5_process_contract_events(contracts)
         self._step5_5_policy_monitoring()
         self._step5_5b_global_macro_events()
-        self._step5_6_advanced_scans()
+        self._step5_6_advanced_scans(pledges)
         
         self._step6_wrap_up(start_time, scrip_codes)
 
@@ -418,23 +419,16 @@ class PipelineOrchestrator:
         except Exception as e:
             logger.error(f"  ❌ Error in Macro Event Scans: {e}")
 
-    def _step5_6_advanced_scans(self):
-        logger.info("Step 5.6: Advanced Alpha Sources (currently disabled — all use mock data)...")
+    def _step5_6_advanced_scans(self, pledges: list):
+        logger.info("Step 5.6: Advanced Alpha Sources...")
         if not self.dry_run:
-            # ──────────────────────────────────────────────────────────────
-            # ALL THREE MONITORS BELOW USE SIMULATED/MOCK DATA:
-            #   - tender_monitor.py  → random.choice + random tender IDs
-            #   - state_budget_monitor.py → random.choice of states + hardcoded text
-            #   - pledge_monitor.py  → random.choice + random pledge percentages
-            #
-            # Re-enable each ONLY after replacing _fetch_* methods with
-            # real API/RSS data sources (e.g., GeM API, BSE pledge filings).
-            # ──────────────────────────────────────────────────────────────
             logger.info("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
             logger.info("  [SKIPPED] State Budget Monitor (uses mock data)")
-            logger.info("  [SKIPPED] Promoter Pledge Monitor (uses mock data)")
+            
+            logger.info("  [ACTIVE] Promoter Pledge Monitor")
+            self.pledge_monitor.process_pledge_events(pledges)
         else:
-            logger.info("  [DRY RUN] Skipping Advanced Alpha Scans")
+            logger.info("  [DRY RUN] Would process Promoter Pledge Monitor")
 
     def _step6_wrap_up(self, start_time, scrip_codes):
         logger.info("Step 6: Saving graph and sending summary...")

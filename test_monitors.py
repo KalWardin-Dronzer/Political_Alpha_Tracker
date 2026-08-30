@@ -28,8 +28,10 @@ def run_tests():
     sbm.scan_budgets()
     
     print("Testing Pledge Monitor...")
-    pm = PledgeMonitor(cache, notifier, graph)
-    pm.scan_pledges()
+    from src.alpha_engine import AlphaEngine
+    alpha_engine = AlphaEngine(cache)
+    pm = PledgeMonitor(cache, notifier, graph, alpha_engine)
+    # pm.scan_pledges() is removed — now uses process_pledge_events(events)
     
     print("Tests complete.")
 

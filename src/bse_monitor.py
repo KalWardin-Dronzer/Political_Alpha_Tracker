@@ -21,7 +21,7 @@ from src.config import (
     BSE_ANNOUNCEMENTS_URL, BSE_HEADERS, BSE_REQUEST_DELAY,
     CONTRACT_KEYWORDS_PATTERN, BOARD_CHANGE_PATTERN,
     CONTRACT_EXCLUSION_PATTERN, ANNOUNCEMENT_LOOKBACK_DAYS,
-    DATA_DIR
+    PLEDGE_KEYWORDS_PATTERN, DATA_DIR
 )
 from src.cache_manager import CacheManager
 from src.alpha_engine import AlphaEngine
@@ -130,6 +130,9 @@ class BSEMonitor:
 
         if BOARD_CHANGE_PATTERN.search(title):
             return "board_change"
+
+        if PLEDGE_KEYWORDS_PATTERN.search(title):
+            return "pledge"
 
         return None
 
@@ -243,15 +246,18 @@ class BSEMonitor:
                     is_board_change=(event_type == "board_change"),
                 )
 
-                if event_type == "contract" and ann_id:
+                if event_type in ("contract", "pledge") and ann_id:
                     attachment_name = ann.get("ATTACHMENTNAME")
                     if attachment_name:
                         pdf_path = self._download_pdf(attachment_name)
                         if pdf_path:
-                            mat = self.alpha_engine.evaluate_materiality(ann_id, pdf_path, scrip_code)
-                            logger.info(f"Materiality for {scrip_code}: {mat}")
-                            # Store in event for notifier
-                            event.raw_data['materiality'] = mat
+                            if event_type == "contract":
+                                mat = self.alpha_engine.evaluate_materiality(ann_id, pdf_path, scrip_code)
+                                logger.info(f"Materiality for {scrip_code}: {mat}")
+                                # Store in event for notifier
+                                event.raw_data['materiality'] = mat
+                            elif event_type == "pledge":
+                                event.raw_data['pdf_path'] = pdf_path
 
         return events
 
@@ -283,9 +289,11 @@ class BSEMonitor:
                     board_changes = [
                         e for e in events if e.event_type == "board_change"
                     ]
+                    pledges = [e for e in events if e.event_type == "pledge"]
                     logger.info(
                         f"  {code}: {len(contracts)} contracts, "
-                        f"{len(board_changes)} board changes"
+                        f"{len(board_changes)} board changes, "
+                        f"{len(pledges)} pledges"
                     )
             except Exception as e:
                 logger.error(f"  Error scanning {code}: {e}")
