@@ -241,8 +241,12 @@ class AlphaEngine:
             if cin:
                 conns = graph.alpha_query(cin)
                 if conns and conns[0]["alpha_score"] > 0:
-                    score += 0.5
-                    breakdown.append("+0.5 Political Network Connection")
+                    if conns[0].get("is_direct_donor"):
+                        score += 1.0
+                        breakdown.append("+1.0 Direct Political Donor (1-hop)")
+                    else:
+                        score += 0.5
+                        breakdown.append("+0.5 Indirect Political Network Connection (Director path)")
         except Exception as e:
             logger.warning(f"Failed to check political connection for {scrip_code}: {e}")
             

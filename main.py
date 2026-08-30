@@ -45,6 +45,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Run the Phase 3 Volume Tracker instead of the regular pipeline",
     )
+    parser.add_argument(
+        "--tearsheet",
+        action="store_true",
+        help="Generate and send the weekly tearsheet",
+    )
     args = parser.parse_args()
 
     # Ensure data directory exists
@@ -52,8 +57,14 @@ if __name__ == "__main__":
 
     try:
         orchestrator = PipelineOrchestrator(dry_run=args.dry_run)
-        
-        if args.scan_volume:
+        if args.tearsheet:
+            from src.weekly_tearsheet import WeeklyTearsheet
+            ts = WeeklyTearsheet(orchestrator.cache)
+            if not args.dry_run:
+                ts.send_to_telegram()
+            else:
+                logger.info(ts.generate())
+        elif args.scan_volume:
             orchestrator.run_volume_scan()
         else:
             orchestrator.run_daily_pipeline()
