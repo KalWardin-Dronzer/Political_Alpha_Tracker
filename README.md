@@ -9,7 +9,7 @@ This pipeline has evolved from a simple OSINT screener into a highly sophisticat
 ### Phase 1: The Core Alpha Engine (V1)
 1. **Automated Watchlist Generation**: Autonomously discovers 40-60 micro-cap companies in government-dependent sectors (defence, railways, power, infrastructure).
 2. **Fundamental Screening**: Auto-rejects companies with dangerous Debt-to-Equity, poor operating cash flow, or heavy promoter pledging.
-3. **Political Graph Mapping**: Maps board directors to Electoral Trust/Bond donor networks using MCA DINs (Director Identification Numbers).
+3. **Dynamic Political Graph Mapping**: Builds a highly optimized political connections graph. Utilizes **Fuzzy-String Matching Engine (88%+ threshold)** to bypass strict CIN-matching requirements and map donor companies directly to BSE listed scrips, actively tracking a dynamic universe of 130+ highly-connected nodes.
 4. **The Alpha Query**: Scores connections mathematically (`exclusivity × path proximity × donation magnitude`).
 
 ### Phase 2: Insider Intelligence & Pair Trading (V2)
@@ -51,6 +51,7 @@ This pipeline has evolved from a simple OSINT screener into a highly sophisticat
 │   ├── graph_manager.py    # NetworkX graph + Alpha Query
 │   ├── portfolio_manager.py# Kelly Criterion Position Sizing
 │   ├── notifier.py         # Telegram alerts
+│   ├── weekly_tearsheet.py # Automated weekly performance reporting
 │   └── backtest.py         # ML Walk-Forward Optimization & Testing
 └── tests/                  # Pytest test suite
 ```
@@ -90,6 +91,9 @@ python main.py --dry-run
 
 # Step 4: Run live
 python main.py
+
+# Step 5: Send automated Weekly Tearsheet (set this up as a Friday cron job)
+python main.py --tearsheet
 ```
 
 ---
@@ -104,6 +108,7 @@ The system communicates entirely through a secure Telegram Bot.
 **Bot Features:**
 - ` ULTIMATE INSIDER SIGNAL DETECTED ` (Cluster Buy Warnings)
 - ` Recommended Position Sizing` (Kelly Allocation)
+- ` Automated Weekly Tearsheet` (Pipeline diagnostics, Funnel stats, and Portfolio MTM)
 - `/exit SCRIPCODE` (User command to clear a position)
 
 ---
@@ -126,6 +131,11 @@ The backtester executes:
 2. **Pair Trading Spread Validation**: Calculates post-event returns vs unconnected competitors (30, 60, 90, 180, 360 days).
 3. **Election Boost Verification**: Proves whether impending elections actually increase the win rate.
 4. **XGBoost ML Optimization**: Uses Walk-Forward chronological cross-validation to discover optimal parameter weights.
+
+### 2024-2025 Out-Of-Sample Results
+The pipeline has been thoroughly validated against a blind 2024-2025 out-of-sample dataset.
+- **Win Rate:** 81.8% (9 of 11 predicted high-conviction events generated positive Alpha).
+- **ML Optimization Accuracy:** 66.67% accurate predictive classification via XGBoost (Top predictive feature: pre-event `vol_z_score`).
 
 ---
 

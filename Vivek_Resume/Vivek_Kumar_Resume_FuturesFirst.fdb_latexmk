@@ -1,6 +1,9 @@
 # Fdb version 4
-["pdflatex"] 1786446759.02406 "c:/Users/legen/OneDrive/Documents/QEDS/Insider trading/Vivek_Resume/main.tex" "main.pdf" "main" 1786446760.17777 0
-  "c:/Users/legen/OneDrive/Documents/QEDS/Insider trading/Vivek_Resume/main.tex" 1786446734 8879 5a8f23dcaf7e3ca244d0ea3e58197177 ""
+["pdflatex"] 1788251618.10392 "c:/Users/legen/OneDrive/Documents/QEDS/Insider trading/Vivek_Resume/Vivek_Kumar_Resume_FuturesFirst.tex" "Vivek_Kumar_Resume_FuturesFirst.pdf" "Vivek_Kumar_Resume_FuturesFirst" 1788251619.36987 0
+  "Vivek_Kumar_Resume_FuturesFirst.aux" 1788251619 776 4d280d437d354be1dfc397d337068cb4 "pdflatex"
+  "Vivek_Kumar_Resume_FuturesFirst.out" 1788251619 884 af97086fb8ac27e594c5b19ecacee250 "pdflatex"
+  "Vivek_Kumar_Resume_FuturesFirst.tex" 1788251569 8733 f06246c51a29e1f0b49e5df08dd04505 ""
+  "c:/Users/legen/OneDrive/Documents/QEDS/Insider trading/Vivek_Resume/Vivek_Kumar_Resume_FuturesFirst.tex" 1788251569 8733 f06246c51a29e1f0b49e5df08dd04505 ""
   "c:/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1778178762 2971 def0b6c1f0b107b3b936def894055589 ""
   "c:/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1778178762 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "c:/texlive/2026/texmf-dist/fonts/enc/dvips/fontawesome5/fa5brands0.enc" 1778179889 2920 d63721872b8c77041b88e51b8f7c291d ""
@@ -36,8 +39,11 @@
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/latex-fonts/lasy6.tfm" 1778181221 520 4889cce2180234b97cad636b6039c722 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/latex-fonts/lasy7.tfm" 1778181221 520 a74c6ed8cb48679fdc3ea874d9d34a7e ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/latex-fonts/lasy9.tfm" 1778181221 520 1cc7cc05f4d7bae5c23bf7516f88fa52 ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb" 1778177320 36094 798f80770b3b148ceedd006d487db67c ""
   "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1778177320 32734 69e00a6b65cedb993666e42eedb3d48f ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb" 1778177320 33993 9b89b85fd2d9df0482bd47194d1d3bf3 ""
   "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1778177320 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb" 1778177320 32442 c975af247b6702f7ca0c299af3616b80 ""
   "c:/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbi1000.pfb" 1778178762 193571 9f481c9d2fdfd53819cef0f99002ae01 ""
   "c:/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx0900.pfb" 1778178762 143961 fe73b0de40bc9eebafe5b31a39c455e0 ""
   "c:/texlive/2026/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb" 1778178762 145408 bcd327f112f643a875638eafb48d1d8b ""
@@ -112,12 +118,9 @@
   "c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1778185617 5619402 ad1310ccf7f36101ef3e8f014a173c46 ""
   "c:/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1778185727 3648458 8cf0aece541ed6729a34bb13be146f60 ""
   "c:/texlive/2026/texmf.cnf" 1778185592 713 e69b156964470283e0530f5060668171 ""
-  "main.aux" 1786446760 778 1e840bf9d2972f24927edc8ab4dcd93c "pdflatex"
-  "main.out" 1786446760 897 f0fdab5cd1dd0a7ee4e96f0b87ee213a "pdflatex"
-  "main.tex" 1786446734 8879 5a8f23dcaf7e3ca244d0ea3e58197177 ""
   (generated)
-  "main.aux"
-  "main.log"
-  "main.out"
-  "main.pdf"
+  "Vivek_Kumar_Resume_FuturesFirst.aux"
+  "Vivek_Kumar_Resume_FuturesFirst.log"
+  "Vivek_Kumar_Resume_FuturesFirst.out"
+  "Vivek_Kumar_Resume_FuturesFirst.pdf"
   (rewritten before read)
