@@ -389,20 +389,35 @@ class Notifier:
                             alerts_fired: int,
                             watchlist_size: int,
                             elapsed_seconds: float = 0,
-                            graph_stats: dict = None):
+                            graph_stats: dict = None,
+                            daily_stats: dict = None):
         """Send end-of-day pipeline summary."""
         lines = [
             "📊 <b>Daily Pipeline Summary</b>",
             "",
             f"🔍 Contracts found: {contracts_found}",
-            f"🚨 Alerts fired: {alerts_fired}",
-            f"📋 Watchlist: {watchlist_size} companies scanned",
         ]
+
+        # Funnel breakdown — shows exactly where contracts get filtered
+        if daily_stats and contracts_found > 0:
+            lines.extend([
+                f"  ├ Passed Fundamentals: {daily_stats.get('passed_fundamentals', '?')}",
+                f"  ├ Had CIN: {daily_stats.get('had_cin', '?')}",
+                f"  ├ Had Political Connection: {daily_stats.get('had_political_connection', '?')}",
+                f"  └ <b>Alerts Fired: {alerts_fired}</b>",
+            ])
+        else:
+            lines.append(f"🚨 Alerts fired: {alerts_fired}")
+
+        lines.append(f"📋 Watchlist: {watchlist_size} companies scanned")
 
         if elapsed_seconds > 0:
             mins = int(elapsed_seconds // 60)
             secs = int(elapsed_seconds % 60)
             lines.append(f"⏱️ Pipeline runtime: {mins}m {secs}s")
+            
+        if graph_stats:
+            lines.append(f"🕸️ Graph: {graph_stats.get('nodes', 0)} nodes, {graph_stats.get('edges', 0)} edges")
 
         # Paper trading portfolio snapshot
         try:

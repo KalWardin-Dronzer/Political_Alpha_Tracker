@@ -118,7 +118,7 @@ class PipelineOrchestrator:
                 # send_system_alert is not a method, we should use _send_message
                 self.notifier._send_message(msg)
             
-            self._step6_wrap_up(start_time, scrip_codes)
+            self._step6_wrap_up(start_time, scrip_codes, daily_stats=daily_stats)
 
         except Exception as e:
             logger.exception(f"Pipeline crashed: {e}")
@@ -304,7 +304,8 @@ class PipelineOrchestrator:
                 materiality_pct=mat_pct,
                 is_regional_match=is_regional_match,
                 buyback_materiality_pct=buyback_mat_pct,
-                vix=regime["vix"]
+                vix=regime["vix"],
+                graph=self.graph
             )
             c_score = conviction["score"]
             c_breakdown = conviction["breakdown"]
@@ -378,7 +379,7 @@ class PipelineOrchestrator:
                     logger.info("  [DRY RUN] Would have sent alert")
                     self.alerts_fired += 1
             else:
-                logger.info(f"  Conviction Score {c_score} < 4. No alert.")
+                logger.info(f"  Conviction Score {c_score} < 2.5. No alert.")
 
     def _step5_5_policy_monitoring(self):
         logger.info("Step 5.5: Scanning for Macro-Policy Shifts (PIB)...")
@@ -471,7 +472,7 @@ class PipelineOrchestrator:
         else:
             logger.info("  [DRY RUN] Would process Promoter Pledge Monitor")
 
-    def _step6_wrap_up(self, start_time, scrip_codes):
+    def _step6_wrap_up(self, start_time, scrip_codes, daily_stats: dict = None):
         logger.info("Step 6: Saving graph and sending summary...")
         elapsed = (datetime.now() - start_time).total_seconds()
 
@@ -482,6 +483,11 @@ class PipelineOrchestrator:
                 alerts_fired=self.alerts_fired,
                 watchlist_size=len(scrip_codes),
                 elapsed_seconds=elapsed,
+                daily_stats=daily_stats,
+                graph_stats={
+                    "nodes": self.graph.G.number_of_nodes(),
+                    "edges": self.graph.G.number_of_edges()
+                }
             )
 
         logger.info("=" * 60)

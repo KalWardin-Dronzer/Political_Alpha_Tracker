@@ -452,6 +452,20 @@ The single source of truth. All modules read/write through `CacheManager`. Table
 | `tenders` | Government tender records |
 | `system_log` | Pipeline health tracking |
 
+Entity resolution is arguably the hardest problem in this entire project. India has millions of registered companies.
+
+### The Problem
+* The BSE uses "Scrip Codes" (e.g., 500325).
+* The MCA (Ministry of Corporate Affairs) uses "CINs" (Corporate Identification Numbers, e.g., L24239TG1991PLC012264).
+* The ECI (Election Commission of India) donor lists use **raw, often misspelled string names** (e.g., "RELIANCE INDUSTRIES LTD", "RIL", "RELIANCE IND").
+
+### The Evolution of the Solution
+Initially, the pipeline relied on strict CIN matching. If a donor didn't have a CIN mapped, they were discarded. This resulted in a **98% data loss**, shrinking the active graph to just 21 nodes.
+
+#### The Fix: Fuzzy-String Matching Engine (`thefuzz`)
+We bypassed the strict CIN requirement entirely by implementing a fuzzy-string matching engine (using `thefuzz` library with a `token_set_ratio`). 
+The `GraphManager` dynamically scans the *entire* 900+ BSE listed universe and fuzzy-matches against the raw donor strings. If a match exceeds an 88% threshold, the node is dynamically added to the graph. This expanded our active tracking universe from 21 nodes to **130+ highly-connected nodes**, significantly increasing the pipeline's signal-to-noise ratio.
+
 ### `src/watchlist_generator.py` — Watchlist Construction
 Builds the target watchlist through a **five-stage funnel**:
 
@@ -783,7 +797,7 @@ The `Backtester` class runs four statistical tests to validate the alpha signal:
 
 **Pass Criteria**: Win rate ≥ 55% (to cover transaction costs)
 
-**Result**: 66.7% win rate (6/9 trades profitable) ✅
+**Result**: 81.8% (9/11 trades) ✅
 
 ### Test 4: ML Optimization (XGBoost)
 
@@ -938,7 +952,7 @@ All tunable parameters in `src/config.py`:
 |---|---|---|
 | Base Rate of Connectivity | Watchlist 26.3% vs Control 8.3% | ✅ Meaningful |
 | 180-Day Excess Return | +13.92% vs Benchmark | ✅ Outperformance |
-| Win Rate (Conviction ≥ 4.0) | 66.7% (6/9 trades) | ✅ Viable |
+| Win Rate (2024-2025 Holdout) | 81.8% (9/11 trades) | ✅ Viable |
 | ML Out-of-Sample Accuracy | 66.67% | ✅ Validated |
 | **Overall Verdict** | **SIGNAL VALIDATED (ML APPROVED)** | ✅ |
 

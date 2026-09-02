@@ -192,7 +192,7 @@ class AlphaEngine:
 
     def calculate_conviction_score(self, scrip_code: str, materiality_pct: float = 0.0, 
                                    is_regional_match: bool = True, buyback_materiality_pct: float = 0.0,
-                                   vix: float = 15.0, event_date: str = None) -> dict:
+                                   vix: float = 15.0, event_date: str = None, graph=None) -> dict:
         """
         Calculates the Conviction Score (0-11) based on Phase 8 Quantamental factors.
         Applies Hard Filters before scoring.
@@ -234,8 +234,9 @@ class AlphaEngine:
             
         # 3. Political Connection
         try:
-            from src.graph_manager import GraphManager
-            graph = GraphManager(self.cache)
+            if graph is None:
+                from src.graph_manager import GraphManager
+                graph = GraphManager(self.cache)
             company = self.cache.get_company(scrip_code)
             cin = company.get("cin") if company else None
             if cin:
