@@ -34,6 +34,8 @@ data/pipeline.log
 data/refresh.log
 data/nse_industry_mapping.csv
 data/held_positions.csv
+data/pdfs/
+data/cron.log
 
 # Keep these tracked
 !data/.gitkeep

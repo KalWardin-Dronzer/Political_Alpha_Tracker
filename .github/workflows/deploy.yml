@@ -16,6 +16,8 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          set -e
           cd ~/Insider-trading
+          sudo chown -R $USER:$USER ~/Insider-trading
           git pull origin main
           docker build -t alpha-tracker .
