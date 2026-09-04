@@ -19,10 +19,8 @@ from src.notifier import Notifier
 from src.watchlist_generator import WatchlistGenerator
 from src.universe_manager import UniverseManager
 from src.tender_monitor import TenderMonitor
-from src.state_budget_monitor import StateBudgetMonitor
 from src.pledge_monitor import PledgeMonitor
 from src.portfolio_manager import PaperTrader
-from src.eprocure_monitor import EprocureMonitor
 from src.bulk_deal_monitor import BulkDealMonitor
 from src.alpha_engine import AlphaEngine
 from src.policy_monitor import PolicyMonitor
@@ -47,7 +45,6 @@ class PipelineOrchestrator:
         self.watchlist_gen = WatchlistGenerator(self.cache)
         self.universe_manager = UniverseManager(self.cache)
         self.tender_monitor = TenderMonitor(self.cache, self.notifier, self.graph)
-        self.state_budget_monitor = StateBudgetMonitor(self.cache, self.notifier, self.graph)
         self.alpha_engine = AlphaEngine(self.cache)
         self.pledge_monitor = PledgeMonitor(self.cache, self.notifier, self.graph, self.alpha_engine)
         self.paper_trader = PaperTrader(self.cache)
@@ -55,7 +52,6 @@ class PipelineOrchestrator:
         self.macro_monitor = MacroEventMonitor(self.cache, self.alpha_engine)
         self.volume_tracker = VolumeTracker(self.cache)
         self.technical_analyzer = TechnicalAnalyzer(self.cache)
-        self.eprocure_monitor = EprocureMonitor(self.cache)
         self.bulk_deal_monitor = BulkDealMonitor(self.cache)
         
         self.alerts_fired = 0
@@ -234,7 +230,7 @@ class PipelineOrchestrator:
         # eProcure Monitor disabled — uses mock data (hardcoded NBCC/JINDAL
         # name matching with random tender IDs and bid amounts).
         # Re-enable when a real Tender247/TendersInfo API is integrated.
-        logger.info("Step 4.5: eProcure L1 bids [SKIPPED — uses mock data]")
+        logger.debug("Step 4.5: eProcure L1 bids [SKIPPED — uses mock data]")
         return []
 
     def _step5_process_contract_events(self, contracts, daily_stats=None):
@@ -268,24 +264,21 @@ class PipelineOrchestrator:
             logger.info(f"  ✅ Passed fundamentals: {result.summary()}")
 
             company = self.cache.get_company(event.scrip_code)
-            if not company or not company.get("cin"):
-                logger.warning(f"  No CIN for {event.scrip_code}. Cannot run Alpha Query.")
-                continue
+            company_id = company.get("cin") if company and company.get("cin") else event.scrip_code
 
             if daily_stats is not None:
                 daily_stats["had_cin"] += 1
 
-            cin = company["cin"]
-
-            if not self.cache.is_director_cache_fresh(cin, MCA_CACHE_TTL_DAYS):
-                logger.info(f"  Refreshing directors for {cin}...")
-                self.mca.resolve_directors(cin)
+            if not self.cache.is_director_cache_fresh(company_id, MCA_CACHE_TTL_DAYS):
+                if company and company.get("cin"):
+                    logger.info(f"  Refreshing directors for {company_id}...")
+                    self.mca.resolve_directors(company_id)
 
             self.graph.build_from_cache()
-            connections = self.graph.alpha_query(cin)
+            connections = self.graph.alpha_query(company_id)
 
             if not connections:
-                logger.info(f"  No political connections found for {cin}")
+                logger.info(f"  No political connections found for {company_id}")
                 top_connection = None
             else:
                 if daily_stats is not None:
@@ -464,8 +457,8 @@ class PipelineOrchestrator:
     def _step5_6_advanced_scans(self, pledges: list):
         logger.info("Step 5.6: Advanced Alpha Sources...")
         if not self.dry_run:
-            logger.info("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
-            logger.info("  [SKIPPED] State Budget Monitor (uses mock data)")
+            logger.debug("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
+            logger.debug("  [SKIPPED] State Budget Monitor (uses mock data)")
             
             logger.info("  [ACTIVE] Promoter Pledge Monitor")
             self.pledge_monitor.process_pledge_events(pledges)

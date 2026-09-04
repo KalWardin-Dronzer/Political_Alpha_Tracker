@@ -199,7 +199,7 @@ class GraphManager:
         # 1. Add all watchlist companies
         watchlist = self.cache.get_watchlist()
         for company in watchlist:
-            cin = company.get("cin")
+            cin = company.get("cin") or company.get("scrip_code")
             if cin:
                 self.add_listed_company(
                     cin=cin,
@@ -293,7 +293,7 @@ class GraphManager:
             d_name = donor.get("donor_name")
             if d_name in matched_donor_to_company:
                 company = matched_donor_to_company[d_name]
-                cin = company.get("cin")
+                cin = company.get("cin") or company.get("scrip_code")
                 if not cin: continue
                 
                 company_node = f"company:{cin}"
