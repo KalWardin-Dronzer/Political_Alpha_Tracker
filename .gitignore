@@ -39,6 +39,3 @@ data/cron.log
 
 # Keep these tracked
 !data/.gitkeep
-!data/PurchaseData.csv
-!data/EncashmentData.csv
-!data/graph.json

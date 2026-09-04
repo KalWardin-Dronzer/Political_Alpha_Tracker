@@ -476,6 +476,9 @@ class PipelineOrchestrator:
         logger.info("Step 6: Saving graph and sending summary...")
         elapsed = (datetime.now() - start_time).total_seconds()
 
+        if self.graph.G.number_of_nodes() == 0:
+            self.graph.build_from_cache()
+
         if not self.dry_run:
             self.graph.save()
             self.notifier.send_daily_summary(
