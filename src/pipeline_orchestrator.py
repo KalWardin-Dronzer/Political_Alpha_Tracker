@@ -325,20 +325,20 @@ class PipelineOrchestrator:
                 logger.info(f"  🚨 Conviction >= 2.5. ALERTING!")
                 
                 tender_id = self.graph.add_tender(title=event.title, date=event.date, scrip_code=event.scrip_code)
-                self.graph.link_company_to_tender(cin, tender_id)
+                self.graph.link_company_to_tender(company_id, tender_id)
                 
                 competitors = self.alpha_engine.find_competitors(company_name=event.company_name, contract_details=event.title)
                 unconnected_competitors = []
                 for comp in competitors:
-                    comp_cin = None
+                    comp_id = None
                     if comp.get('scrip_code'):
                         c_info = self.cache.get_company(comp['scrip_code'])
                         if c_info:
-                            comp_cin = c_info.get('cin')
+                            comp_id = c_info.get('cin') if c_info.get('cin') else comp['scrip_code']
                     
                     comp_score = 0
-                    if comp_cin:
-                        c_connections = self.graph.alpha_query(comp_cin)
+                    if comp_id:
+                        c_connections = self.graph.alpha_query(comp_id)
                         if c_connections:
                             comp_score = c_connections[0]["alpha_score"]
                             
