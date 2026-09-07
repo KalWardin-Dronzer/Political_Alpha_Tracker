@@ -108,6 +108,8 @@ class FinancialScreener:
                 "market_cap": info.get("marketCap"),
                 "total_debt": info.get("totalDebt"),
                 "total_equity": info.get("totalStockholderEquity"),
+                "average_volume": info.get("averageVolume"),
+                "regular_market_price": info.get("regularMarketPrice"),
             }
 
             # Get operating cash flow from cash flow statement
@@ -279,25 +281,35 @@ class FinancialScreener:
 
         return results
 
-    def get_market_cap(self, scrip_code: str, nse_symbol: str = None) -> Optional[float]:
+    def get_market_cap_and_adtv(self, scrip_code: str, nse_symbol: str = None) -> tuple[Optional[float], Optional[float]]:
         """
-        Get market cap in Crores for a scrip code.
-        Checks cache first, falls back to yfinance.
+        Get market cap and ADTV (Average Daily Traded Volume) in Crores.
+        Checks cache for market cap first, falls back to yfinance.
+        ADTV always uses yfinance.
 
         Returns:
-            Market cap in Crores, or None if unavailable.
+            Tuple (market_cap_cr, adtv_cr). None if unavailable.
         """
-        # Check cache
+        mcap_cr = None
+        adtv_cr = None
+        
+        # Check cache for mcap
         company = self.cache.get_company(scrip_code)
         if company and company.get("market_cap"):
-            return company["market_cap"]
+            mcap_cr = company["market_cap"]
 
-        # Fetch from yfinance
-        data = self._get_yfinance_data(scrip_code, nse_symbol=nse_symbol)
-        time.sleep(YFINANCE_REQUEST_DELAY)
+        # If missing either, fetch from yfinance
+        if mcap_cr is None or adtv_cr is None:
+            data = self._get_yfinance_data(scrip_code, nse_symbol=nse_symbol)
+            time.sleep(YFINANCE_REQUEST_DELAY)
 
-        if data and data.get("market_cap"):
-            mcap_cr = data["market_cap"] / 1e7
-            return mcap_cr
+            if data:
+                if data.get("market_cap"):
+                    mcap_cr = data["market_cap"] / 1e7
+                    
+                avg_vol = data.get("average_volume")
+                price = data.get("regular_market_price")
+                if avg_vol and price:
+                    adtv_cr = (avg_vol * price) / 1e7
 
-        return None
+        return mcap_cr, adtv_cr

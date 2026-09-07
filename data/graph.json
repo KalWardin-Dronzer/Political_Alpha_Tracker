@@ -911,6 +911,789 @@
       "sector": "Consumer Discretionary",
       "market_cap": 183922.0523008,
       "id": "company:L35921TN1992PLC022845"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "513599",
+      "name": "Hindustan Copper Limited",
+      "scrip_code": "513599",
+      "sector": "Commodities",
+      "market_cap": 46721.7645568,
+      "id": "company:513599"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500260",
+      "name": "The Ramco Cements Limited",
+      "scrip_code": "500260",
+      "sector": "Commodities",
+      "market_cap": 21616.0272384,
+      "id": "company:500260"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "539177",
+      "name": "Authum Investment & Infrastructure Limited",
+      "scrip_code": "539177",
+      "sector": "Financial Services",
+      "market_cap": 45102.3634432,
+      "id": "company:539177"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532828",
+      "name": "AMD Industries Limited",
+      "scrip_code": "532828",
+      "sector": "Industrials",
+      "market_cap": 95.2204032,
+      "id": "company:532828"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "539872",
+      "name": "Bajaj Healthcare Limited",
+      "scrip_code": "539872",
+      "sector": "Healthcare",
+      "market_cap": 1088.4820992,
+      "id": "company:539872"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544131",
+      "name": "GPT Healthcare Limited",
+      "scrip_code": "544131",
+      "sector": "Healthcare",
+      "market_cap": 1309.9232256,
+      "id": "company:544131"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "540679",
+      "name": "HALEOS LABS LIMITED",
+      "scrip_code": "540679",
+      "sector": "Healthcare",
+      "market_cap": 465.1024896,
+      "id": "company:540679"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "521248",
+      "name": "Kitex Garments Limited",
+      "scrip_code": "521248",
+      "sector": "Consumer Discretionary",
+      "market_cap": 2933.4478848,
+      "id": "company:521248"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "531633",
+      "name": "Lincoln Pharmaceuticals Limited",
+      "scrip_code": "531633",
+      "sector": "Healthcare",
+      "market_cap": 1161.7242112,
+      "id": "company:531633"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "543287",
+      "name": "Lodha Developers Limited",
+      "scrip_code": "543287",
+      "sector": "Consumer Discretionary",
+      "market_cap": 114287.2342528,
+      "id": "company:543287"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "526642",
+      "name": "Mirza International Limited",
+      "scrip_code": "526642",
+      "sector": "Consumer Discretionary",
+      "market_cap": 484.5359104,
+      "id": "company:526642"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "524558",
+      "name": "Neuland Laboratories Limited",
+      "scrip_code": "524558",
+      "sector": "Healthcare",
+      "market_cap": 23794.3128064,
+      "id": "company:524558"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "509220",
+      "name": "PTL Enterprises Limited",
+      "scrip_code": "509220",
+      "sector": "Services",
+      "market_cap": 519.7121024,
+      "id": "company:509220"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532735",
+      "name": "R Systems International Limited",
+      "scrip_code": "532735",
+      "sector": "Information Technology",
+      "market_cap": 2909.1139584,
+      "id": "company:532735"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544522",
+      "name": "A B Cotspin India Limited",
+      "scrip_code": "544522",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544522"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500300",
+      "name": "Grasim Industries Limited",
+      "scrip_code": "500300",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:500300"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544138",
+      "name": "J.G.Chemicals Limited",
+      "scrip_code": "544138",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544138"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532714",
+      "name": "KEC International Limited",
+      "scrip_code": "532714",
+      "sector": "Industrials",
+      "market_cap": null,
+      "id": "company:532714"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544008",
+      "name": "Max Estates Limited",
+      "scrip_code": "544008",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544008"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "540795",
+      "name": "Dynamic Cables Limited",
+      "scrip_code": "540795",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:540795"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500877",
+      "name": "Apollo Tyres Limited",
+      "scrip_code": "500877",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500877"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532977",
+      "name": "Bajaj Auto Limited",
+      "scrip_code": "532977",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532977"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500490",
+      "name": "Bajaj Holdings & Investment Limited",
+      "scrip_code": "500490",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500490"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532454",
+      "name": "Bharti Airtel Limited",
+      "scrip_code": "532454",
+      "sector": "Telecommunication",
+      "market_cap": null,
+      "id": "company:532454"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500144",
+      "name": "Finolex Cables Limited",
+      "scrip_code": "500144",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500144"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "505710",
+      "name": "Grauer & Weil India Limited",
+      "scrip_code": "505710",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:505710"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532683",
+      "name": "AIA Engineering Limited",
+      "scrip_code": "532683",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532683"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532644",
+      "name": "JK Cement Limited",
+      "scrip_code": "532644",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:532644"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500033",
+      "name": "FORCE MOTORS LTD",
+      "scrip_code": "500033",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500033"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "509567",
+      "name": "Goa Carbon Limited",
+      "scrip_code": "509567",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:509567"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544525",
+      "name": "GK Energy Limited",
+      "scrip_code": "544525",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544525"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500227",
+      "name": "Jindal Poly Films Limited",
+      "scrip_code": "500227",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500227"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500124",
+      "name": "Dr. Reddy's Laboratories Limited",
+      "scrip_code": "500124",
+      "sector": "Healthcare",
+      "market_cap": 95936.610304,
+      "id": "company:500124"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500875",
+      "name": "ITC Limited",
+      "scrip_code": "500875",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500875"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "538902",
+      "name": "Dhunseri Tea & Industries Limited",
+      "scrip_code": "538902",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:538902"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500387",
+      "name": "SHREE CEMENT LIMITED",
+      "scrip_code": "500387",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:500387"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "501831",
+      "name": "Coastal Corporation Limited",
+      "scrip_code": "501831",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:501831"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "539542",
+      "name": "Lux Industries Limited",
+      "scrip_code": "539542",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:539542"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532642",
+      "name": "JSW Holdings Limited",
+      "scrip_code": "532642",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532642"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532942",
+      "name": "KNR Constructions Limited",
+      "scrip_code": "532942",
+      "sector": "Industrials",
+      "market_cap": 3409.1257856,
+      "id": "company:532942"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "524816",
+      "name": "Natco Pharma Limited",
+      "scrip_code": "524816",
+      "sector": "Healthcare",
+      "market_cap": 16504.0799744,
+      "id": "company:524816"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532868",
+      "name": "DLF Limited",
+      "scrip_code": "532868",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532868"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500294",
+      "name": "NCC Limited",
+      "scrip_code": "500294",
+      "sector": "Industrials",
+      "market_cap": null,
+      "id": "company:500294"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544699",
+      "name": "Aye Finance Limited",
+      "scrip_code": "544699",
+      "sector": "Financial Services",
+      "market_cap": 4207.0237184,
+      "id": "company:544699"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "530343",
+      "name": "Genus Power Infrastructures Limited",
+      "scrip_code": "530343",
+      "sector": "Industrials",
+      "market_cap": 8729.45664,
+      "id": "company:530343"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "543317",
+      "name": "G R Infraprojects Limited",
+      "scrip_code": "543317",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:543317"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "530005",
+      "name": "The India Cements Limited",
+      "scrip_code": "530005",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:530005"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "507438",
+      "name": "IFB Agro Industries Limited",
+      "scrip_code": "507438",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:507438"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "533095",
+      "name": "Bengal & Assam Company Limited",
+      "scrip_code": "533095",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:533095"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532628",
+      "name": "3i Infotech Limited",
+      "scrip_code": "532628",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532628"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "540192",
+      "name": "LKP Securities Limited",
+      "scrip_code": "540192",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:540192"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500097",
+      "name": "Dalmia Bharat Sugar and Industries Limited",
+      "scrip_code": "500097",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500097"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500038",
+      "name": "Balrampur Chini Mills Limited",
+      "scrip_code": "500038",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500038"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532508",
+      "name": "Jindal Stainless Limited",
+      "scrip_code": "532508",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:532508"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "543334",
+      "name": "Nuvoco Vistas Corporation Limited",
+      "scrip_code": "543334",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:543334"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532783",
+      "name": "LT Foods Limited",
+      "scrip_code": "532783",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532783"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "501425",
+      "name": "The Bombay Burmah Trading Corporation Limited",
+      "scrip_code": "501425",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:501425"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532286",
+      "name": "JINDAL STEEL LIMITED",
+      "scrip_code": "532286",
+      "sector": "Commodities",
+      "market_cap": null,
+      "id": "company:532286"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532331",
+      "name": "Ajanta Pharma Limited",
+      "scrip_code": "532331",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532331"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532835",
+      "name": "ICRA Limited",
+      "scrip_code": "532835",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532835"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500101",
+      "name": "Arvind Limited",
+      "scrip_code": "500101",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:500101"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "524494",
+      "name": "IPCA Laboratories Limited",
+      "scrip_code": "524494",
+      "sector": "Healthcare",
+      "market_cap": 44720.4425728,
+      "id": "company:524494"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "530109",
+      "name": "The Anup Engineering Limited",
+      "scrip_code": "530109",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:530109"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532296",
+      "name": "Glenmark Pharmaceuticals Limited",
+      "scrip_code": "532296",
+      "sector": "Healthcare",
+      "market_cap": 61858.414592,
+      "id": "company:532296"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "524824",
+      "name": "Bal Pharma Limited",
+      "scrip_code": "524824",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:524824"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "523395",
+      "name": "3M India Limited",
+      "scrip_code": "523395",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:523395"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "523367",
+      "name": "DCM Shriram Limited",
+      "scrip_code": "523367",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:523367"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544543",
+      "name": "BMW Ventures Limited",
+      "scrip_code": "544543",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544543"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "521018",
+      "name": "Maral Overseas Limited",
+      "scrip_code": "521018",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:521018"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "540710",
+      "name": "Capacit'e Infraprojects Limited",
+      "scrip_code": "540710",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:540710"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "505872",
+      "name": "WPIL Limited",
+      "scrip_code": "505872",
+      "sector": "Industrials",
+      "market_cap": 4684.5288448,
+      "id": "company:505872"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "522287",
+      "name": "Kalpataru Projects International Limited",
+      "scrip_code": "522287",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:522287"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544888",
+      "name": "Augmont Enterprises Limited",
+      "scrip_code": "544888",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:544888"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "543650",
+      "name": "DCX Systems Limited",
+      "scrip_code": "543650",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:543650"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "533152",
+      "name": "MBL Infrastructure Limited",
+      "scrip_code": "533152",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:533152"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "507488",
+      "name": "GM Breweries Limited",
+      "scrip_code": "507488",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:507488"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "539448",
+      "name": "InterGlobe Aviation Limited",
+      "scrip_code": "539448",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:539448"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "507526",
+      "name": "Associated Alcohols & Breweries Ltd.",
+      "scrip_code": "507526",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:507526"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532175",
+      "name": "Cyient Limited",
+      "scrip_code": "532175",
+      "sector": "Information Technology",
+      "market_cap": 8744.1186816,
+      "id": "company:532175"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "544497",
+      "name": "Anlon Healthcare Limited",
+      "scrip_code": "544497",
+      "sector": "Healthcare",
+      "market_cap": 797.804032,
+      "id": "company:544497"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532162",
+      "name": "JK Paper Limited",
+      "scrip_code": "532162",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532162"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532482",
+      "name": "Granules India Limited",
+      "scrip_code": "532482",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532482"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "531092",
+      "name": "OM INFRA LIMITED",
+      "scrip_code": "531092",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:531092"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "533398",
+      "name": "Muthoot Finance Limited",
+      "scrip_code": "533398",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:533398"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "519494",
+      "name": "NK Industries Limited",
+      "scrip_code": "519494",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:519494"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "506590",
+      "name": "PCBL Chemical Limited",
+      "scrip_code": "506590",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:506590"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "531120",
+      "name": "Patel Engineering Limited",
+      "scrip_code": "531120",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:531120"
     }
   ],
   "edges": [
@@ -1804,6 +2587,552 @@
       "amount": 10000000.0,
       "year": 2024,
       "source": "company:L35921TN1992PLC022845",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:500260",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:539177",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532828",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:544131",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:521248",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 100000.0,
+      "year": 2019,
+      "source": "company:544522",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2020,
+      "source": "company:500300",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:544138",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:532714",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2024,
+      "source": "company:544008",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2019,
+      "source": "company:540795",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:500877",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:532977",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:500490",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:532454",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:500144",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 100000.0,
+      "year": 2019,
+      "source": "company:505710",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2024,
+      "source": "company:532683",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532644",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:500033",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2022,
+      "source": "company:509567",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:544525",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2019,
+      "source": "company:500227",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:500124",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000.0,
+      "year": 2019,
+      "source": "company:500875",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2019,
+      "source": "company:538902",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2020,
+      "source": "company:500387",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:501831",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:539542",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:532642",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532942",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:524816",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:532868",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:500294",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:544699",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:530343",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2020,
+      "source": "company:543317",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2021,
+      "source": "company:530005",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:507438",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2022,
+      "source": "company:533095",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 100000.0,
+      "year": 2022,
+      "source": "company:532628",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 100000.0,
+      "year": 2022,
+      "source": "company:540192",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:500097",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:500038",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532508",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:543334",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2022,
+      "source": "company:532783",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:501425",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532286",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:532331",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532835",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:500101",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:524494",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:530109",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 100000.0,
+      "year": 2022,
+      "source": "company:532296",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:524824",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:523395",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:523367",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:544543",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:521018",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:540710",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:505872",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:522287",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:544888",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:543650",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:533152",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:507488",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:539448",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:507526",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:532175",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:544497",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:532162",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2024,
+      "source": "company:532482",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:531092",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2019,
+      "source": "company:533398",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:519494",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:506590",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 1000000.0,
+      "year": 2023,
+      "source": "company:531120",
       "target": "trust:Electoral Bonds"
     }
   ]
