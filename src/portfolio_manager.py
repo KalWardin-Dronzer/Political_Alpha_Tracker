@@ -55,8 +55,8 @@ class PaperTrader:
         self.gst_rate = 0.18  # 18% on (brokerage + txn + sebi)
         self.dp_charge = 15.93  # Flat DP charge per sell transaction per day
 
-        # Slippage penalty (e.g. 0.5% worse price due to illiquidity)
-        self.slippage_pct = 0.005
+        # Slippage penalty (Reduced to 0.1% to model TWAP Limit-at-Mid execution)
+        self.slippage_pct = 0.001
         
     def _get_live_price(self, scrip_code: str) -> float:
         """Fetch real-time closing/last price from Yahoo Finance."""
@@ -114,7 +114,7 @@ class PaperTrader:
         return execution_price, turnover, total_costs, stt, txn_charges
 
     def execute_buy(self, scrip_code: str, conviction_score: float):
-        """Simulate buying a stock based on Conviction Kelly-Sizing."""
+        """Simulate buying a stock based on Volatility-Scaled Sizing."""
         with self.cache._connect() as conn:
             existing = conn.execute("SELECT quantity FROM virtual_portfolio WHERE scrip_code = ?", (scrip_code,)).fetchone()
             if existing:
@@ -122,24 +122,38 @@ class PaperTrader:
                 return False
 
         available_cash = self.get_available_capital()
-        
-        # Position Sizing Logic (Kelly Tiers based on Phase 8)
-        if conviction_score >= 8.0:
-            allocation_pct = 0.25  # Full Kelly cap
-        elif conviction_score >= 6.0:
-            allocation_pct = 0.15  # Half Kelly cap
-        elif conviction_score >= 4.0:
-            allocation_pct = 0.05  # Quarter Kelly cap
-        else:
+        raw_price = self._get_live_price(scrip_code)
+        if raw_price <= 0:
             return False
+            
+        # Volatility-Scaled Sizing using ATR
+        allocation_pct = 0.05  # default 5% fallback
+        try:
+            from src.technical_analyzer import TechnicalAnalyzer
+            ta = TechnicalAnalyzer(self.cache)
+            ta_result = ta.analyze(scrip_code)
+            if ta_result and ta_result.atr:
+                # If ATR is high, stock is erratic -> size down.
+                # Target risking 1% of portfolio capital on a 2x ATR stop loss
+                atr_pct = ta_result.atr / raw_price
+                target_risk_pct = 0.01  # 1% risk
+                stop_distance_pct = 2.0 * atr_pct
+                
+                # Cap the maximum allocation at max_position_cap
+                calc_alloc = target_risk_pct / stop_distance_pct if stop_distance_pct > 0 else 0.0
+                allocation_pct = min(calc_alloc, self.max_position_cap / 100.0)
+                
+                # Boost allocation slightly based on conviction score (Max 2x multiplier)
+                conviction_multiplier = min(conviction_score / 5.0, 2.0)
+                allocation_pct = min(allocation_pct * conviction_multiplier, self.max_position_cap / 100.0)
+                
+                logger.info(f"Volatility Sizing for {scrip_code}: ATR={ta_result.atr:.2f} ({atr_pct*100:.1f}%), Base Alloc={calc_alloc*100:.1f}%, Final Alloc={allocation_pct*100:.1f}%")
+        except Exception as e:
+            logger.warning(f"Failed to fetch ATR for {scrip_code}, using default allocation. Error: {e}")
             
         target_allocation = available_cash * allocation_pct
         if target_allocation < 1000:
-            logger.warning(f"Insufficient funds to buy {scrip_code}")
-            return False
-            
-        raw_price = self._get_live_price(scrip_code)
-        if raw_price <= 0:
+            logger.warning(f"Insufficient funds to buy {scrip_code} (Target Alloc: {target_allocation:.2f})")
             return False
             
         estimated_exec_price = raw_price * (1 + self.slippage_pct)

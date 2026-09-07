@@ -152,14 +152,39 @@ class AlphaEngine:
                 (contract_value_cr, issuing_state, announcement_id)
             )
 
-        # Get company market cap
+        # Get company market cap (Point-in-Time adjusted to prevent Look-Ahead Bias)
         company = self.cache.get_company(scrip_code)
         if not company or not company.get("market_cap"):
             return {"is_material": False, "reason": "Market cap unknown"}
 
-        market_cap_cr = company["market_cap"]
-        materiality_pct = (contract_value_cr / market_cap_cr) * 100
+        current_market_cap_cr = company["market_cap"]
+        
+        # Calculate historical market cap with a 45-day lag if event_date is available
+        market_cap_cr = current_market_cap_cr
+        try:
+            with self.cache._connect() as conn:
+                event_date = conn.execute("SELECT date FROM announcements WHERE id = ?", (announcement_id,)).fetchone()
+            if event_date and event_date[0]:
+                import yfinance as yf
+                from datetime import datetime, timedelta
+                event_dt = datetime.strptime(event_date[0], "%Y-%m-%d")
+                lagged_dt = event_dt - timedelta(days=45)
+                start_str = lagged_dt.strftime("%Y-%m-%d")
+                end_str = (lagged_dt + timedelta(days=5)).strftime("%Y-%m-%d")
+                
+                ticker = yf.Ticker(f"{scrip_code}.BO")
+                hist = ticker.history(start=start_str, end=end_str)
+                if not hist.empty:
+                    lagged_price = hist["Close"].iloc[0]
+                    current_price = ticker.history(period="1d")["Close"].iloc[-1] if not ticker.history(period="1d").empty else lagged_price
+                    if current_price > 0:
+                        # Proxy historical market cap: (Lagged Price / Current Price) * Current Market Cap
+                        market_cap_cr = current_market_cap_cr * (lagged_price / current_price)
+                        logger.debug(f"Point-in-Time Adjust: {scrip_code} Mcap Rs.{current_market_cap_cr:.1f}Cr -> Rs.{market_cap_cr:.1f}Cr (45-day lag)")
+        except Exception as e:
+            logger.debug(f"Failed to calculate 45-day lagged market cap for {scrip_code}: {e}")
 
+        materiality_pct = (contract_value_cr / market_cap_cr) * 100
         is_material = materiality_pct >= 5.0
         
         # Check Regional Match (Phase 2)

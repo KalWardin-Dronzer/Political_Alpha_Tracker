@@ -214,6 +214,17 @@ YFINANCE_REQUEST_DELAY = 0.5  # seconds between yfinance calls
 MYNETA_REQUEST_DELAY = 1.5  # seconds between MyNeta requests
 
 # ──────────────────────────────────────────────
+# Watchlist Generation — Numeric Filters
+# ──────────────────────────────────────────────
+MARKET_CAP_MIN_CR = 50.0  # Min ₹50 Cr
+MARKET_CAP_MAX_CR = 10000.0  # Max ₹10,000 Cr
+MIN_CONTRACT_FREQUENCY = 1  # Need at least 1 contract win in lookback to care
+DONOR_MIN_AMOUNT_CR = 1.0  # Min ₹1 Cr donated
+
+# The Capacity Edge liquidity filter
+MIN_ADTV_CR = 0.1  # Minimum Average Daily Traded Volume of ₹10 Lakhs (0.1 Cr) threshold
+
+# ──────────────────────────────────────────────
 # Backtest Configuration
 # ──────────────────────────────────────────────
 BACKTEST_WINDOWS_DAYS = [30, 60, 90, 180, 360]

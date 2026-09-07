@@ -631,8 +631,8 @@ class WatchlistGenerator:
     def stage_b_market_cap_filter(self,
                                    candidates: list[dict]) -> list[dict]:
         """
-        Stage B: Filter candidates by market cap range.
-        Keeps companies between ₹50Cr and ₹5,000Cr.
+        Stage B: Filter candidates by market cap range and ADTV.
+        Keeps companies between ₹50Cr and ₹10,000Cr and ADTV >= MIN_ADTV_CR.
 
         Args:
             candidates: Output from Stage A
@@ -640,17 +640,21 @@ class WatchlistGenerator:
         Returns:
             Filtered list of candidates with market_cap populated.
         """
-        logger.info(f"=== Stage B: Market Cap Filter ({len(candidates)} candidates) ===")
+        logger.info(f"=== Stage B: Market Cap & Liquidity Filter ({len(candidates)} candidates) ===")
+        
+        # Import config ADTV here to avoid circular imports if any, or just rely on the global import
+        from src.config import MIN_ADTV_CR
 
         filtered = []
         skipped_no_data = 0
+        skipped_liquidity = 0
 
         for i, company in enumerate(candidates, 1):
             code = company["scrip_code"]
             nse_symbol = company.get("nse_symbol")
 
-            # Get market cap
-            mcap = self.screener.get_market_cap(code, nse_symbol=nse_symbol)
+            # Get market cap and ADTV
+            mcap, adtv = self.screener.get_market_cap_and_adtv(code, nse_symbol=nse_symbol)
 
             if mcap is None:
                 skipped_no_data += 1
@@ -658,17 +662,25 @@ class WatchlistGenerator:
                 continue
 
             company["market_cap"] = mcap
+            company["adtv"] = adtv
 
-            if MARKET_CAP_MIN_CR <= mcap <= MARKET_CAP_MAX_CR:
-                filtered.append(company)
-                logger.debug(
-                    f"  {company['name']}: ₹{mcap:.0f} Cr ✓"
-                )
-            else:
+            if not (MARKET_CAP_MIN_CR <= mcap <= MARKET_CAP_MAX_CR):
                 logger.debug(
                     f"  {company['name']}: ₹{mcap:.0f} Cr ✗ "
                     f"(outside {MARKET_CAP_MIN_CR}-{MARKET_CAP_MAX_CR} range)"
                 )
+                continue
+                
+            if adtv is None or adtv < MIN_ADTV_CR:
+                skipped_liquidity += 1
+                logger.debug(
+                    f"  {company['name']}: ADTV ₹{adtv:.2f} Cr ✗ "
+                    f"(below {MIN_ADTV_CR} Cr liquidity threshold)"
+                )
+                continue
+                
+            filtered.append(company)
+            logger.debug(f"  {company['name']}: ₹{mcap:.0f} Cr, ADTV: ₹{adtv:.2f} Cr ✓")
 
             # Progress logging
             if i % 50 == 0:
@@ -676,8 +688,8 @@ class WatchlistGenerator:
 
         logger.info(
             f"Stage B complete: {len(filtered)} candidates "
-            f"(removed {len(candidates) - len(filtered) - skipped_no_data} "
-            f"out of range, {skipped_no_data} no data)"
+            f"(removed {len(candidates) - len(filtered) - skipped_no_data - skipped_liquidity} out of range, "
+            f"{skipped_liquidity} illiquid, {skipped_no_data} no data)"
         )
 
         return filtered
