@@ -336,7 +336,7 @@ class AlphaEngine:
     def find_competitors(self, company_name: str, contract_details: str = "") -> list[dict]:
         """
         Uses Gemini LLM to identify top publicly listed Indian competitors
-        for pair trading (shorting the losers).
+        for the Sympathy Basket (trading thematic sector momentum).
         Returns a list of dicts: [{'name': 'Competitor A', 'scrip_code': '123456', 'reason': '...'}, ...]
         """
         if not self.client:
@@ -345,8 +345,9 @@ class AlphaEngine:
         prompt = (
             f"You are a hedge fund analyst. The Indian company '{company_name}' just won a major contract.\n"
             f"Context: {contract_details}\n"
-            "Identify 2-3 of their primary publicly listed Indian competitors who likely lost out on this market share. "
-            "For each competitor, provide their name, their 6-digit BSE scrip code (if known, otherwise leave empty), and a brief 1-sentence reason why they are a direct competitor.\n"
+            "Identify 2-3 of their primary publicly listed Indian competitors in the exact same micro-niche to form a 'Sympathy Basket'. "
+            "These peers will likely rally in sympathy due to sector momentum. "
+            "For each competitor, provide their name, their 6-digit BSE scrip code (if known, otherwise leave empty), and a brief 1-sentence reason why they are a direct competitor in this niche.\n"
             "Return ONLY a JSON list of objects with keys: 'name', 'scrip_code', and 'reason'.\n"
             "Do NOT use markdown block wrappers, output raw JSON only."
         )

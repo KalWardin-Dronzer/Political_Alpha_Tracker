@@ -1694,6 +1694,69 @@
       "sector": "",
       "market_cap": null,
       "id": "company:531120"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500034",
+      "name": "Bajaj Finance Limited",
+      "scrip_code": "500034",
+      "sector": "",
+      "market_cap": 629746.5389056,
+      "id": "company:500034"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "532497",
+      "name": "Radico Khaitan Limited",
+      "scrip_code": "532497",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:532497"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "517206",
+      "name": "Lumax Industries Limited",
+      "scrip_code": "517206",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:517206"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "500087",
+      "name": "Cipla Limited",
+      "scrip_code": "500087",
+      "sector": "",
+      "market_cap": 113954.65216,
+      "id": "company:500087"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "539150",
+      "name": "PNC Infratech Limited",
+      "scrip_code": "539150",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:539150"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "543635",
+      "name": "Piramal Pharma Limited",
+      "scrip_code": "543635",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:543635"
+    },
+    {
+      "node_type": "ListedCompany",
+      "cin": "540544",
+      "name": "PSP Projects Limited",
+      "scrip_code": "540544",
+      "sector": "",
+      "market_cap": null,
+      "id": "company:540544"
     }
   ],
   "edges": [
@@ -3133,6 +3196,55 @@
       "amount": 1000000.0,
       "year": 2023,
       "source": "company:531120",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:500034",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:532497",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2019,
+      "source": "company:517206",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:500087",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:539150",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2022,
+      "source": "company:543635",
+      "target": "trust:Electoral Bonds"
+    },
+    {
+      "edge_type": "DONATED_TO",
+      "amount": 10000000.0,
+      "year": 2023,
+      "source": "company:540544",
       "target": "trust:Electoral Bonds"
     }
   ]

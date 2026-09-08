@@ -142,7 +142,7 @@ class Notifier:
             competitors = announcement.get('competitors')
             if competitors:
                 lines.append("")
-                lines.append("📉 <b>Suggested Short Pairs (Unconnected Losers):</b>")
+                lines.append("🚀 <b>Suggested Sympathy Basket (Unconnected Peers):</b>")
                 for comp in competitors:
                     code_str = f" ({comp['scrip_code']})" if comp.get('scrip_code') else ""
                     lines.append(f"• <b>{comp['name']}</b>{code_str}: <i>{comp.get('reason', '')}</i>")
