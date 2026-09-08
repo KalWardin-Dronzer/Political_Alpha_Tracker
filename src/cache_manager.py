@@ -142,6 +142,16 @@ class CacheManager:
                     alert_date  TEXT NOT NULL,
                     expires_at  TEXT NOT NULL
                 );
+                
+                CREATE TABLE IF NOT EXISTS scheduled_alerts (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type        TEXT NOT NULL,
+                    scrip_code  TEXT NOT NULL,
+                    company_name TEXT NOT NULL,
+                    sympathy_basket TEXT,
+                    trigger_date TEXT NOT NULL,
+                    processed   INTEGER DEFAULT 0
+                );
 
                 CREATE TABLE IF NOT EXISTS system_log (
                     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -525,12 +535,34 @@ class CacheManager:
             """, (datetime.now().isoformat(), module, event, details, level))
 
     # ──────────────────────────────────────────
+    # Scheduled Alerts
+    # ──────────────────────────────────────────
+    def schedule_alert(self, type: str, scrip_code: str, company_name: str, sympathy_basket: str, trigger_date: str):
+        with self._connect() as conn:
+            conn.execute("""
+                INSERT INTO scheduled_alerts (type, scrip_code, company_name, sympathy_basket, trigger_date)
+                VALUES (?, ?, ?, ?, ?)
+            """, (type, scrip_code, company_name, sympathy_basket, trigger_date))
+
+    def get_pending_alerts(self, current_date: str) -> list[dict]:
+        with self._connect() as conn:
+            rows = conn.execute("""
+                SELECT * FROM scheduled_alerts 
+                WHERE processed = 0 AND trigger_date <= ?
+            """, (current_date,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def mark_alert_processed(self, alert_id: int):
+        with self._connect() as conn:
+            conn.execute("UPDATE scheduled_alerts SET processed = 1 WHERE id = ?", (alert_id,))
+
+    # ──────────────────────────────────────────
     # Monitoring Helpers
     # ──────────────────────────────────────────
     def get_table_counts(self) -> dict:
         """Get row counts for all tables (for health monitoring)."""
         tables = ["companies", "directors", "donors",
-                  "announcements", "held_positions"]
+                  "announcements", "held_positions", "scheduled_alerts"]
         counts = {}
         with self._connect() as conn:
             for table in tables:

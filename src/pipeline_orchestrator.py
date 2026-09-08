@@ -6,7 +6,8 @@ and firing trading signals.
 """
 
 import logging
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 
 from src.config import ALPHA_SCORE_THRESHOLD, MCA_CACHE_TTL_DAYS
 from src.cache_manager import CacheManager
@@ -76,6 +77,7 @@ class PipelineOrchestrator:
         try:
 
             self._step1_poll_telegram()
+            self._process_scheduled_alerts()
             scrip_codes = self._step2_build_monitoring_universe()
             
             if not scrip_codes:
@@ -368,11 +370,95 @@ class PipelineOrchestrator:
                         },
                     )
                     self.alerts_fired += 1
+                    
+                    # SCHEDULE ROTATION AND EXIT ALERTS
+                    rotation_date = (datetime.now() + timedelta(days=30)).isoformat()
+                    exit_date = (datetime.now() + timedelta(days=90)).isoformat()
+                    basket_json = json.dumps(unconnected_competitors)
+                    
+                    self.cache.schedule_alert(
+                        type="ROTATION", 
+                        scrip_code=event.scrip_code, 
+                        company_name=event.company_name, 
+                        sympathy_basket=basket_json, 
+                        trigger_date=rotation_date
+                    )
+                    self.cache.schedule_alert(
+                        type="EXIT", 
+                        scrip_code=event.scrip_code, 
+                        company_name=event.company_name, 
+                        sympathy_basket="[]", 
+                        trigger_date=exit_date
+                    )
+                    logger.info(f"  📅 Scheduled T+30 Rotation and T+90 Exit alerts for {event.scrip_code}")
+                    
                 else:
                     logger.info("  [DRY RUN] Would have sent alert")
                     self.alerts_fired += 1
             else:
                 logger.info(f"  Conviction Score {c_score} < 2.5. No alert.")
+
+    def _process_scheduled_alerts(self):
+        """Process any pending T+30 Rotation or T+90 Exit alerts."""
+        logger.info("Checking for scheduled rotation or exit alerts...")
+        current_date = datetime.now().isoformat()
+        pending_alerts = self.cache.get_pending_alerts(current_date)
+        
+        if not pending_alerts:
+            logger.info("  No scheduled alerts to process today.")
+            return
+            
+        for alert in pending_alerts:
+            if alert["type"] == "ROTATION":
+                basket = json.loads(alert.get("sympathy_basket", "[]"))
+                
+                # Re-run technical analysis to find the single best peer at T+30
+                best_peer = None
+                best_score = -1
+                for peer in basket:
+                    if peer.get("scrip_code"):
+                        ta = self.technical_analyzer.analyze(peer["scrip_code"], peer.get("name", "Unknown"))
+                        if ta.score > best_score:
+                            best_score = ta.score
+                            best_peer = {
+                                "scrip_code": peer["scrip_code"],
+                                "name": peer.get("name", "Unknown"),
+                                "ta_score": ta.score,
+                                "ta_signal": ta.signal,
+                                "current_price": ta.current_price
+                            }
+                
+                msg = (
+                    f"🔄 <b>ROTATION ALERT (T+30)</b>\n\n"
+                    f"Time to rotate capital for: <b>{alert['company_name']} ({alert['scrip_code']})</b>\n\n"
+                    f"🎯 <b>Action:</b> Sell the winner and allocate 100% of the trade capital to the single best peer.\n\n"
+                )
+                
+                if best_peer:
+                    msg += (
+                        f"🌟 <b>Best Peer Selected:</b>\n"
+                        f"  • Company: <b>{best_peer['name']}</b> ({best_peer['scrip_code']})\n"
+                        f"  • TA Score: {best_peer['ta_score']}/10 ({best_peer['ta_signal']})\n"
+                        f"  • Price: ₹{best_peer['current_price']}"
+                    )
+                else:
+                    msg += "⚠️ No viable peers found in the Sympathy Basket with valid TA scores."
+                    
+                if not self.dry_run:
+                    self.notifier._send_message(msg)
+                    
+            elif alert["type"] == "EXIT":
+                msg = (
+                    f"🛑 <b>EXIT ALERT (T+90)</b>\n\n"
+                    f"Hard exit reached for: <b>{alert['company_name']} ({alert['scrip_code']})</b> strategy.\n\n"
+                    f"🎯 <b>Action:</b> Sell all positions associated with this signal. Move capital to LIQUIDBEES and await the next signal."
+                )
+                if not self.dry_run:
+                    self.notifier._send_message(msg)
+            
+            logger.info(f"  Processed {alert['type']} alert for {alert['scrip_code']}")
+            if not self.dry_run:
+                self.cache.mark_alert_processed(alert["id"])
 
     def _step5_5_policy_monitoring(self):
         logger.info("Step 5.5: Scanning for Macro-Policy Shifts (PIB)...")
