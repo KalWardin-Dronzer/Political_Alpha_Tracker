@@ -107,12 +107,14 @@ class Backtester:
             if prices.index.tz is not None:
                 event_dt = event_dt.tz_localize(prices.index.tz)
 
-            # Find the closest trading day at or after the event
+            # Find the closest trading day at or after the event (T0)
             valid_dates = prices.index[prices.index >= event_dt]
-            if valid_dates.empty:
+            if len(valid_dates) < 2:
                 return {}
 
-            base_date = valid_dates[0]
+            # Execute at T+1 Close to completely eliminate look-ahead bias
+            # (Assuming the announcement happened after market close on T0)
+            base_date = valid_dates[1]
             base_price = prices.loc[base_date, "Close"]
 
             for window in windows:

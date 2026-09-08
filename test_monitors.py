@@ -6,8 +6,6 @@ sys.path.append(r"c:\Users\legen\OneDrive\Documents\QEDS\Insider trading")
 from src.cache_manager import CacheManager
 from src.graph_manager import GraphManager
 from src.notifier import Notifier
-from src.tender_monitor import TenderMonitor
-from src.state_budget_monitor import StateBudgetMonitor
 from src.pledge_monitor import PledgeMonitor
 import logging
 from pathlib import Path
@@ -19,14 +17,7 @@ def run_tests():
     graph = GraphManager(cache)
     notifier = Notifier(cache)
     
-    print("Testing Tender Monitor...")
-    tm = TenderMonitor(cache, notifier, graph)
-    tm.scan_for_tenders()
-    
-    print("Testing State Budget Monitor...")
-    sbm = StateBudgetMonitor(cache, notifier, graph)
-    sbm.scan_budgets()
-    
+
     print("Testing Pledge Monitor...")
     from src.alpha_engine import AlphaEngine
     alpha_engine = AlphaEngine(cache)
