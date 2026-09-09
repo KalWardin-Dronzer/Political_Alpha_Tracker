@@ -530,9 +530,9 @@ class CacheManager:
         """Log a pipeline event for monitoring."""
         with self._connect() as conn:
             conn.execute("""
-                INSERT INTO system_log (timestamp, module, event, details, level)
-                VALUES (?, ?, ?, ?, ?)
-            """, (datetime.now().isoformat(), module, event, details, level))
+                INSERT INTO system_log (timestamp, module, action, details)
+                VALUES (?, ?, ?, ?)
+            """, (datetime.now().isoformat(), module, event, details))
 
     # ──────────────────────────────────────────
     # Scheduled Alerts
