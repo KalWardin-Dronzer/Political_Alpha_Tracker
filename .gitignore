@@ -26,7 +26,11 @@ tmp/
 .DS_Store
 Thumbs.db
 
-# Data files (cached, not source-controlled except graph.json)
+# Data files (cached, never source-controlled).
+# graph.json is DERIVED from cache.sqlite via GraphManager.build_from_cache().
+# It MUST stay untracked: the pipeline rewrites it on every run, and while it was
+# tracked the dirty worktree made `git pull` fail on EC2, silently aborting deploys.
+data/graph.json
 data/cache.sqlite
 data/cache.sqlite-wal
 data/cache.sqlite-shm

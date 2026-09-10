@@ -7,6 +7,7 @@ live here. Modules import from this file instead of hardcoding values.
 
 import os
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -207,6 +208,17 @@ ALPHA_WEIGHT_MAGNITUDE = 0.3  # Donation size
 ALPHA_SCORE_THRESHOLD = 0.5  # Minimum score to fire alert
 MAX_PATH_HOPS = 3  # Maximum graph traversal depth
 
+# Maximum attainable conviction score: the sum of every component in
+# AlphaEngine.calculate_conviction_score():
+#   2.0 materiality + 1.5 buyback + 1.0 political + 3.5 insider
+# + 2.0 SAST + 1.5 bulk deal + 1.0 superstar + 2.5 technical = 15.0
+#
+# Lives here (not in alpha_engine) so that the notifier can report a score
+# without importing the LLM/yfinance stack. The displayed denominator had
+# drifted out of sync with the scorer: alerts said "/5", the pipeline logged
+# "/13.5", the docstring said "0-11". Anything reporting a score uses this.
+MAX_CONVICTION_SCORE = 15.0
+
 # ──────────────────────────────────────────────
 # Rate Limiting
 # ──────────────────────────────────────────────
@@ -269,3 +281,21 @@ UPCOMING_ELECTIONS = {
     "tamil nadu": (2026, 4),
     "central": (2029, 4), # Next Lok Sabha
 }
+
+
+# ──────────────────────────────────────────────
+# Timezone
+# ──────────────────────────────────────────────
+# Production runs in Docker on EC2, whose clock is UTC. Alerts were built with
+# a bare datetime.now() and then hard-labelled "IST", so every user-facing
+# timestamp read 5h30m earlier than the real IST time.
+#
+# Use now_ist() for anything a human reads. Do NOT use it for arithmetic
+# against naive datetimes (scheduling, days-held): it is timezone-aware and
+# subtracting a naive datetime from it raises TypeError.
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def now_ist() -> datetime:
+    """Current wall-clock time in IST, regardless of the host's timezone."""
+    return datetime.now(IST)

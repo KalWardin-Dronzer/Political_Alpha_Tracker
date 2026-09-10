@@ -9,7 +9,9 @@ import logging
 import json
 from datetime import datetime, timedelta
 
-from src.config import ALPHA_SCORE_THRESHOLD, MCA_CACHE_TTL_DAYS
+from src.config import (
+    ALPHA_SCORE_THRESHOLD, MCA_CACHE_TTL_DAYS, MAX_CONVICTION_SCORE, now_ist,
+)
 from src.cache_manager import CacheManager
 from src.bse_monitor import BSEMonitor
 from src.financial_screener import FinancialScreener
@@ -60,9 +62,9 @@ class PipelineOrchestrator:
 
     def run_daily_pipeline(self):
         """Execute the full daily pipeline sequence."""
-        start_time = datetime.now()
+        start_time = datetime.now()  # naive: used only for elapsed-seconds math
         logger.info("=" * 60)
-        logger.info(f"DAILY PIPELINE STARTED — {start_time.strftime('%Y-%m-%d %H:%M IST')}")
+        logger.info(f"DAILY PIPELINE STARTED — {now_ist().strftime('%Y-%m-%d %H:%M IST')}")
         logger.info(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
         logger.info("=" * 60)
 
@@ -76,6 +78,7 @@ class PipelineOrchestrator:
         
         try:
 
+            self._step0_reference_data_healthcheck()
             self._step1_poll_telegram()
             self._process_scheduled_alerts()
             scrip_codes = self._step2_build_monitoring_universe()
@@ -173,6 +176,60 @@ class PipelineOrchestrator:
     # ---------------------------------------------------------
     # PRIVATE STEPS
     # ---------------------------------------------------------
+    def _step0_reference_data_healthcheck(self):
+        """
+        Fail loudly when the reference data the strategy depends on is missing.
+
+        This exists because the pipeline spent weeks reporting "Pipeline
+        completed successfully / Alerts Fired: 0" while the production database
+        held zero donors and zero directors. With no donors there are no
+        DonorCompany or ElectoralTrust nodes, so alpha_query() returns [] for
+        every company and a political connection is not merely unlikely — it is
+        impossible. A green run in that state is a false negative, not a
+        genuine "no signal today".
+
+        Cheap (three COUNT(*) queries) and never fatal: it warns, it does not
+        stop the scan.
+        """
+        logger.info("Step 0: Reference data health check...")
+        try:
+            with self.cache._connect() as conn:
+                donors = conn.execute("SELECT COUNT(*) FROM donors").fetchone()[0]
+                directors = conn.execute("SELECT COUNT(*) FROM directors").fetchone()[0]
+                cins = conn.execute(
+                    "SELECT COUNT(*) FROM companies WHERE cin IS NOT NULL AND cin != ''"
+                ).fetchone()[0]
+        except Exception as e:
+            logger.warning(f"  Could not run reference data health check: {e}")
+            return
+
+        logger.info(f"  Donors: {donors} | Directors: {directors} | Companies with CIN: {cins}")
+
+        problems = []
+        if donors == 0:
+            problems.append("• <b>0 donor records</b> — no political graph can be built")
+        if directors == 0:
+            problems.append("• <b>0 director records</b> — no company can be linked to a donor")
+        if cins == 0:
+            problems.append("• <b>0 companies with a CIN</b> — graph lookups are keyed by CIN")
+
+        if not problems:
+            return
+
+        logger.error(
+            "  REFERENCE DATA MISSING — political connections are IMPOSSIBLE this run. "
+            f"donors={donors} directors={directors} cins={cins}"
+        )
+        if not self.dry_run:
+            self.notifier._send_message(
+                "🔴 <b>REFERENCE DATA MISSING</b>\n\n"
+                + "\n".join(problems)
+                + "\n\n<b>Every political-connection check will fail today.</b> "
+                  "Any 'Alerts Fired: 0' below reflects missing data, not an absence of signal.\n\n"
+                  "Fix: run <code>python refresh.py --mode annual</code> on this host "
+                  "(ingests donors, resolves CINs, rebuilds the graph)."
+            )
+
     def _step1_poll_telegram(self):
         logger.info("Step 1: Polling Telegram for /exit commands...")
         if not self.dry_run:
@@ -266,9 +323,16 @@ class PipelineOrchestrator:
             logger.info(f"  ✅ Passed fundamentals: {result.summary()}")
 
             company = self.cache.get_company(event.scrip_code)
-            company_id = company.get("cin") if company and company.get("cin") else event.scrip_code
+            cin = company.get("cin") if company else None
+            # Falls back to the scrip code so processing continues without a CIN,
+            # but note that graph nodes are keyed "company:{CIN}" — a scrip-code
+            # company_id can never match one, so alpha_query() will return [].
+            company_id = cin or event.scrip_code
 
-            if daily_stats is not None:
+            # Count only real CINs. This was incrementing unconditionally, which
+            # made the funnel report "Had CIN" == "Passed Fundamentals" always
+            # and hid the fact that CIN coverage is the binding constraint.
+            if daily_stats is not None and cin:
                 daily_stats["had_cin"] += 1
 
             if not self.cache.is_director_cache_fresh(company_id, MCA_CACHE_TTL_DAYS):
@@ -305,7 +369,7 @@ class PipelineOrchestrator:
             c_score = conviction["score"]
             c_breakdown = conviction["breakdown"]
             
-            logger.info(f"  Conviction Score: {c_score}/13.5")
+            logger.info(f"  Conviction Score: {c_score}/{MAX_CONVICTION_SCORE:g}")
             for b in c_breakdown:
                 logger.info(f"    {b}")
             
@@ -352,6 +416,11 @@ class PipelineOrchestrator:
                         connection=top_connection,
                         fundamental=result,
                         announcement={
+                            # Identity must live here too: top_connection is None
+                            # whenever no political path was found, and the alert
+                            # falls back to these for the company name and /exit.
+                            "scrip_code": event.scrip_code,
+                            "company_name": event.company_name,
                             "title": event.title,
                             "date": event.date,
                             "materiality": materiality,

@@ -479,9 +479,16 @@ class CacheManager:
     # Held Positions Operations
     # ──────────────────────────────────────────
     def add_held_position(self, scrip_code: str, name: str,
-                          alpha_score: float = None,
+                          alpha_score: float = 0.0,
                           expiry_days: int = 180):
-        """Add a company to held positions after an alert fires."""
+        """
+        Add a company to held positions after an alert fires.
+
+        alpha_score defaults to 0.0, not None: held_positions.alpha_score is
+        declared NOT NULL, so the previous None default raised IntegrityError
+        on every call that omitted a score. 0.0 is the honest value for an
+        alert that fired without a political-graph score.
+        """
         now = datetime.now()
         expires = (now + timedelta(days=expiry_days)).isoformat()
         with self._connect() as conn:

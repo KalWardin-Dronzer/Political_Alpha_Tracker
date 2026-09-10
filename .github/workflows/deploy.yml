@@ -16,8 +16,28 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          set -e
+          set -euo pipefail
           cd ~/Insider-trading
           sudo chown -R $USER:$USER ~/Insider-trading
-          git pull origin main
+
+          # Force the checkout to match origin/main.
+          #
+          # `git pull` was used here before and it silently broke every deploy:
+          # the pipeline rewrites data/graph.json on each run, that file was
+          # tracked, so the worktree was permanently dirty and pull aborted with
+          # "local changes would be overwritten by merge". With `set -e` the
+          # script then exited BEFORE `docker build`, leaving a stale image
+          # running for weeks with no failure signal.
+          #
+          # fetch + reset --hard cannot be blocked by local modifications.
+          # NOTE: deliberately no `git clean` — the live database and graph
+          # (data/cache.sqlite, data/graph.json) are untracked, and clean would
+          # delete them.
+          git fetch origin main
+          git reset --hard origin/main
+
+          echo "Deployed commit: $(git rev-parse --short HEAD)"
           docker build -t alpha-tracker .
+
+          # Prove the running image actually contains the new code.
+          docker run --rm alpha-tracker python -c "import src.pipeline_orchestrator; print('image import OK')"

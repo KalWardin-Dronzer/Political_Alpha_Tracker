@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from src.config import now_ist
 from src.cache_manager import CacheManager
 from src.graph_manager import GraphManager
 from src.notifier import Notifier
@@ -31,7 +32,7 @@ class WeeklyTearsheet:
             
         report = []
         report.append("📅 **POLITICAL ALPHA - WEEKLY TEARSHEET**")
-        report.append(f"*(For the week ending {datetime.now().strftime('%Y-%m-%d')})*")
+        report.append(f"*(For the week ending {now_ist().strftime('%Y-%m-%d')})*")
         report.append("")
         
         report.append("📊 **Pipeline Funnel**")
