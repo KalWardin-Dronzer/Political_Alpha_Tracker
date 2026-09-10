@@ -10,7 +10,10 @@ jobs:
 
     steps:
     - name: Deploy to AWS EC2
-      uses: appleboy/ssh-action@master
+      # Pinned to a release tag rather than @master: a floating branch ref
+      # pulls whatever is on that branch at run time, which is both a
+      # supply-chain risk and unresolvable by editor tooling.
+      uses: appleboy/ssh-action@v1.2.5
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USERNAME }}

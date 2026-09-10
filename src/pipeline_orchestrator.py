@@ -205,13 +205,26 @@ class PipelineOrchestrator:
 
         logger.info(f"  Donors: {donors} | Directors: {directors} | Companies with CIN: {cins}")
 
+        # A connection is a PATH: company -> director -> donor company -> trust.
+        # Every hop must exist, so each missing table needs its own remedy.
+        # `--mode annual` populates donors only; directors come from
+        # `--mode quarterly`. Running just one leaves the path broken.
         problems = []
         if donors == 0:
-            problems.append("• <b>0 donor records</b> — no political graph can be built")
+            problems.append(
+                "• <b>0 donor records</b> — no donor/trust nodes exist\n"
+                "   fix: <code>refresh.py --mode annual</code>"
+            )
         if directors == 0:
-            problems.append("• <b>0 director records</b> — no company can be linked to a donor")
+            problems.append(
+                "• <b>0 director records</b> — nothing bridges a company to a donor\n"
+                "   fix: <code>refresh.py --mode quarterly</code>"
+            )
         if cins == 0:
-            problems.append("• <b>0 companies with a CIN</b> — graph lookups are keyed by CIN")
+            problems.append(
+                "• <b>0 companies with a CIN</b> — graph nodes are keyed by CIN,\n"
+                "   so every lookup misses regardless of the other two"
+            )
 
         if not problems:
             return
@@ -226,8 +239,8 @@ class PipelineOrchestrator:
                 + "\n".join(problems)
                 + "\n\n<b>Every political-connection check will fail today.</b> "
                   "Any 'Alerts Fired: 0' below reflects missing data, not an absence of signal.\n\n"
-                  "Fix: run <code>python refresh.py --mode annual</code> on this host "
-                  "(ingests donors, resolves CINs, rebuilds the graph)."
+                  "<i>A connection is a path (company → director → donor → trust). "
+                  "Fixing only one of the above is not enough — the path still breaks.</i>"
             )
 
     def _step1_poll_telegram(self):

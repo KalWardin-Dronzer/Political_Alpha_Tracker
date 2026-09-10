@@ -43,3 +43,4 @@ data/cron.log
 
 # Keep these tracked
 !data/.gitkeep
+data/political_alpha_cache.db
