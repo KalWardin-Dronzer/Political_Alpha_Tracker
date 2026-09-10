@@ -15,6 +15,7 @@ from pypdf import PdfReader
 import yfinance as yf
 
 from src.cache_manager import CacheManager
+from src.config import MAX_CONVICTION_SCORE
 
 logger = logging.getLogger(__name__)
 
@@ -219,7 +220,7 @@ class AlphaEngine:
                                    is_regional_match: bool = True, buyback_materiality_pct: float = 0.0,
                                    vix: float = 15.0, event_date: str = None, graph=None) -> dict:
         """
-        Calculates the Conviction Score (0-11) based on Phase 8 Quantamental factors.
+        Calculates the Conviction Score (0 to MAX_CONVICTION_SCORE) based on Phase 8 Quantamental factors.
         Applies Hard Filters before scoring.
         """
         breakdown = []

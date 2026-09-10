@@ -18,7 +18,7 @@ import requests
 
 from src.config import (
     TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_API_BASE,
-    HELD_POSITION_EXPIRY_DAYS,
+    HELD_POSITION_EXPIRY_DAYS, MAX_CONVICTION_SCORE, now_ist,
 )
 from src.cache_manager import CacheManager
 from src.financial_screener import FundamentalResult
@@ -93,20 +93,32 @@ class Notifier:
         Send a political alpha alert to Telegram.
 
         Args:
-            connection: Dict from GraphManager.alpha_query() result
+            connection: Dict from GraphManager.alpha_query(), or None when the
+                conviction score cleared the threshold without any political
+                connection (e.g. carried entirely by technical analysis).
             fundamental: FundamentalResult for the company
             announcement: The triggering BSE announcement dict
         """
-        score = connection.get("alpha_score", 0)
-        company = connection.get("company_name", "Unknown")
-        scrip = connection.get("scrip_code", "")
-        director = connection.get("director_name", "Unknown")
-        din = connection.get("director_din", "")
-        donor = connection.get("donor_company_name", "Unknown")
-        trust = connection.get("trust_name", "")
-        donation = connection.get("max_donation", 0)
-        donation_year = connection.get("donation_year", "")
-        board_seats = connection.get("total_board_seats", 0)
+        announcement = announcement or {}
+
+        # `connection` is None whenever alpha_query() found no path to a donor.
+        # That is currently the COMMON case, not an edge case, so every read
+        # below must tolerate it. Identity falls back to the announcement,
+        # which the orchestrator always populates — without this the alert
+        # would be addressed to "Unknown (BSE: )" and its /exit command broken.
+        has_connection = bool(connection)
+        conn_data = connection or {}
+
+        score = conn_data.get("alpha_score", 0) or 0
+        company = conn_data.get("company_name") or announcement.get("company_name", "Unknown")
+        scrip = conn_data.get("scrip_code") or announcement.get("scrip_code", "")
+        director = conn_data.get("director_name", "Unknown")
+        din = conn_data.get("director_din", "")
+        donor = conn_data.get("donor_company_name", "Unknown")
+        trust = conn_data.get("trust_name", "")
+        donation = conn_data.get("max_donation", 0) or 0
+        donation_year = conn_data.get("donation_year", "")
+        board_seats = conn_data.get("total_board_seats", 0)
 
         # Format donation amount
         if donation >= 1e7:
@@ -168,7 +180,7 @@ class Notifier:
         if conviction:
             c_score = conviction.get("score", 0)
             lines.append("")
-            lines.append(f"🔥 <b>CONVICTION SCORE: {c_score}/5</b> 🔥")
+            lines.append(f"🔥 <b>CONVICTION SCORE: {c_score}/{MAX_CONVICTION_SCORE:g}</b> 🔥")
             if conviction.get("regime_warning"):
                 lines.append("⚠️ <b>WARNING: High Fear Regime (VIX > 22). Consider HALTING Longs.</b>")
             for brk in conviction.get("breakdown", []):
@@ -201,14 +213,24 @@ class Notifier:
             if ta_atr_stop is not None and ta_price is not None:
                 lines.append(f"   🛡️ ATR Stop-Loss: ₹{ta_atr_stop:.2f} (CMP: ₹{ta_price:.2f})")
 
-        lines.extend([
-            "",
-            f"🔗 <b>Political Connection (Graph Score: {score:.2f}):</b>",
-            f"   Director: {director} (DIN: {din})",
-            f"   Also on board of: {donor}",
-            f"   Which donated: {donation_str} → {trust}",
-            f"   Board seats: {board_seats} (fewer = stronger signal)",
-        ])
+        if has_connection:
+            lines.extend([
+                "",
+                f"🔗 <b>Political Connection (Graph Score: {score:.2f}):</b>",
+                f"   Director: {director} (DIN: {din})",
+                f"   Also on board of: {donor}",
+                f"   Which donated: {donation_str} → {trust}",
+                f"   Board seats: {board_seats} (fewer = stronger signal)",
+            ])
+        else:
+            # Be explicit rather than silent. An alert with no political link is
+            # a materially weaker signal than one with it, and the reader must
+            # not assume the connection section was merely omitted.
+            lines.extend([
+                "",
+                "🔗 <b>Political Connection:</b> ⚠️ <i>None found</i>",
+                "<i>This alert is driven by the other conviction factors only.</i>",
+            ])
 
         if fundamental:
             lines.extend([
@@ -216,14 +238,14 @@ class Notifier:
                 f"📈 <b>Fundamentals:</b> {fundamental.summary()}",
             ])
 
-        if connection.get('is_bureaucrat'):
+        if conn_data.get('is_bureaucrat'):
             lines.append("")
             lines.append("🕴️ <b>DEEP STATE SIGNAL:</b>")
             lines.append(f"<i>{director} is a former high-ranking bureaucrat (IAS/IPS/IRS) with immense regulatory influence.</i>")
 
-        if connection.get('election_multiplier', 1.0) > 1.0:
+        if conn_data.get('election_multiplier', 1.0) > 1.0:
             lines.append("")
-            lines.append(f"⚡ <b>Election Cycle Boost:</b> x{connection['election_multiplier']:.1f} (Imminent Election in Party Stronghold)")
+            lines.append(f"⚡ <b>Election Cycle Boost:</b> x{conn_data['election_multiplier']:.1f} (Imminent Election in Party Stronghold)")
 
         lines.extend([
             "",
@@ -234,13 +256,19 @@ class Notifier:
         text = "\n".join(lines)
         self._send_message(text)
 
-        # Auto-add to held positions
-        self.cache.add_held_position(
-            scrip_code=scrip,
-            name=company,
-            alpha_score=score,
-            expiry_days=HELD_POSITION_EXPIRY_DAYS,
-        )
+        # Auto-add to held positions. Guarded: without a scrip code this would
+        # write an unusable row that /exit could never clear.
+        if scrip:
+            self.cache.add_held_position(
+                scrip_code=scrip,
+                name=company,
+                alpha_score=score,
+                expiry_days=HELD_POSITION_EXPIRY_DAYS,
+            )
+        else:
+            logger.warning(
+                "Alpha alert sent without a scrip code — skipping held-position record."
+            )
 
         self.cache.log_event(
             "notifier", "alpha_alert_sent",
@@ -380,7 +408,7 @@ class Notifier:
         text = (
             f"{emoji} <b>{title}</b>\n\n"
             f"{details}\n\n"
-            f"🕐 {datetime.now().strftime('%Y-%m-%d %H:%M IST')}"
+            f"🕐 {now_ist().strftime('%Y-%m-%d %H:%M IST')}"
         )
 
         self._send_message(text)
@@ -437,7 +465,7 @@ class Notifier:
             pass
 
         lines.append(
-            f"\n🕐 {datetime.now().strftime('%Y-%m-%d %H:%M IST')}"
+            f"\n🕐 {now_ist().strftime('%Y-%m-%d %H:%M IST')}"
         )
 
         self._send_message("\n".join(lines))
