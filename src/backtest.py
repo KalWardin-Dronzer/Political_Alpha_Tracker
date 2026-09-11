@@ -14,6 +14,10 @@ Validates the alpha signal by running three statistical tests:
     Test 3 — Win Rate:
         What % of historical alerts would have produced positive excess
         returns? Need > 55% to be viable after transaction costs.
+
+Note: a former Test 4 (ML optimisation) was removed — it generated its input
+features from the target label, so its results were meaningless. See the
+comment where test_ml_optimization() used to live.
 """
 
 import logging
@@ -27,12 +31,19 @@ import pandas as pd
 from src.config import (
     BACKTEST_WINDOWS_DAYS, MARKET_CAP_MIN_CR, MARKET_CAP_MAX_CR,
     YFINANCE_REQUEST_DELAY, ALPHA_SCORE_THRESHOLD,
+    BACKTEST_BENCHMARK, BACKTEST_RANDOM_SEED,
 )
 from src.cache_manager import CacheManager
 from src.graph_manager import GraphManager
 from src.alpha_engine import AlphaEngine
 
 logger = logging.getLogger(__name__)
+
+# Minimum sample size before run_full_backtest() will state a verdict either
+# way. An event study over a handful of events cannot support "validated" OR
+# "not validated"; below this it reports INCONCLUSIVE so an underpowered run
+# is never mistaken for a result.
+MIN_SAMPLE_FOR_VERDICT = 30
 
 
 class Backtester:
@@ -45,14 +56,58 @@ class Backtester:
         print(report)
     """
 
-    def __init__(self, cache: CacheManager, start_date: str = None):
+    def __init__(self, cache: CacheManager, start_date: str = None,
+                 seed: int = BACKTEST_RANDOM_SEED):
         self.cache = cache
         self.graph = GraphManager(cache)
         self.alpha_engine = AlphaEngine(cache)
-        
+
+        # Rebuild the graph from the database rather than trusting whatever
+        # data/graph.json happens to hold.
+        #
+        # GraphManager only LOADS that file on construction. If it is missing
+        # the backtest ran against an empty graph and every test returned
+        # zeros — which reads like a genuine null result rather than a broken
+        # run. If it is stale it silently carries orphan nodes. The database is
+        # the source of truth, so derive from it every time.
+        self.graph.build_from_cache()
+        if self.graph.G.number_of_nodes() == 0:
+            logger.error(
+                "Graph is EMPTY after building from cache — no political "
+                "connection can be detected and every result will be zero. "
+                "This is a data problem, not a finding."
+            )
+
+        # Seed the RNG used for control-group sampling. Previously unseeded,
+        # so every run produced different numbers and no reported figure could
+        # be reproduced or defended. Pass seed=None for a fresh random draw.
+        if seed is not None:
+            random.seed(seed)
+        self.seed = seed
+
         if not start_date:
             start_date = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
         self.start_date = start_date
+
+    def _benchmark_prices(self, start_date: str, end_date: str):
+        """
+        Fetch the benchmark index once and memoise it.
+
+        Previously the benchmark was re-fetched inside the per-event loop AND
+        only recorded for events classified as "connected", so the benchmark
+        average was taken over a different (and randomly chosen) subset of
+        dates than the strategy legs it was compared against.
+        """
+        if not hasattr(self, "_bm_cache"):
+            self._bm_cache = self._get_price_history(
+                BACKTEST_BENCHMARK, start_date, end_date
+            )
+            if self._bm_cache is None:
+                logger.warning(
+                    f"Benchmark {BACKTEST_BENCHMARK} returned no data — "
+                    "excess-return figures will be unavailable."
+                )
+        return self._bm_cache
 
     def _get_price_history(self, scrip_code: str,
                             start_date: str,
@@ -218,7 +273,19 @@ class Backtester:
             "control_connected": control_connected,
             "control_rate_pct": round(control_rate, 1),
             "differential_pct": round(watchlist_rate - control_rate, 1),
-            "signal_meaningful": control_rate < 50,
+            # The signal is meaningful only if the detector ACTUALLY FINDS
+            # connections in the watchlist AND finds them more often there than
+            # among random controls.
+            #
+            # This was `control_rate < 50` alone, which certified a totally
+            # broken run as meaningful: with an empty graph nothing connects,
+            # control_rate is 0, and 0 < 50 passed — reporting "MEANINGFUL"
+            # for a detector that had found nothing whatsoever.
+            "signal_meaningful": (
+                watchlist_connected > 0
+                and control_rate < 50
+                and watchlist_rate > control_rate
+            ),
         }
 
         logger.info(
@@ -257,23 +324,39 @@ class Backtester:
         unconnected_returns = {w: [] for w in BACKTEST_WINDOWS_DAYS}
         benchmark_returns = {w: [] for w in BACKTEST_WINDOWS_DAYS}
 
+        # Fetch the benchmark ONCE across the full span of all events, so every
+        # event date can be priced from the same frame. (Caching a per-event
+        # window would only cover the first event's range.)
+        if rows:
+            all_dates = [dict(r)["date"] for r in rows]
+            bm_start = (
+                datetime.strptime(min(all_dates), "%Y-%m-%d") - timedelta(days=5)
+            ).strftime("%Y-%m-%d")
+            bm_end = (
+                datetime.strptime(max(all_dates), "%Y-%m-%d") + timedelta(days=400)
+            ).strftime("%Y-%m-%d")
+            self._benchmark_prices(bm_start, bm_end)
+
         for row in rows:
             row = dict(row)
             cin = row.get("cin")
             if not cin:
                 continue
 
-            # Check if politically connected (Conviction Stacking >= 2)
-            # We mock materiality_pct for historical testing as it's rarely parsed fully in DB
-            mock_materiality_pct = random.uniform(3.0, 15.0)
-            
-            conviction = self.alpha_engine.calculate_conviction_score(
-                scrip_code=row["scrip_code"],
-                materiality_pct=mock_materiality_pct,
-                is_regional_match=True,
-                event_date=row["date"]
+            # Group assignment is the POLITICAL CONNECTION ITSELF — the thing
+            # this test exists to measure.
+            #
+            # It previously ran calculate_conviction_score() with
+            # `materiality_pct = random.uniform(3.0, 15.0)`. Materiality adds
+            # +2.0 whenever that draw exceeds 5.0 (~83% of the time), so the
+            # connected/unconnected split was substantially decided by a random
+            # number rather than by politics, and the resulting spread measured
+            # noise.
+            connections = self.graph.alpha_query(cin)
+            is_connected = (
+                bool(connections)
+                and connections[0]["alpha_score"] >= ALPHA_SCORE_THRESHOLD
             )
-            is_connected = conviction["score"] >= 2.5
 
             # Get price history
             event_date = row["date"]
@@ -290,18 +373,20 @@ class Backtester:
 
             returns = self._compute_returns(prices, event_date)
 
-            bm_prices = self._get_price_history("^NSEI", start, end)
+            bm_prices = self._benchmark_prices(start, end)
             bm_returns = self._compute_returns(bm_prices, event_date) if bm_prices is not None else {}
 
             target = connected_returns if is_connected else unconnected_returns
             for window, ret in returns.items():
                 if window in target:
                     target[window].append(ret)
-                    
-            if is_connected:
-                for window, ret in bm_returns.items():
-                    if window in benchmark_returns:
-                        benchmark_returns[window].append(ret)
+
+            # Record the benchmark for EVERY event, not just connected ones.
+            # Sampling it only on the connected subset meant the "excess return"
+            # compared two different sets of dates.
+            for window, ret in bm_returns.items():
+                if window in benchmark_returns:
+                    benchmark_returns[window].append(ret)
 
         # Compute averages
         result = {}
@@ -326,8 +411,10 @@ class Backtester:
                 "connected_avg_return": round(conn_avg, 2),
                 "unconnected_avg_return": round(unconn_avg, 2),
                 "benchmark_avg_return": round(bm_avg, 2),
+                "benchmark_ticker": BACKTEST_BENCHMARK,
                 "connected_sample_size": len(connected_returns[window]),
                 "unconnected_sample_size": len(unconnected_returns[window]),
+                "benchmark_sample_size": len(benchmark_returns[window]),
                 "pair_trade_spread_vs_unconnected": pair_trade_spread,
                 "excess_return_vs_benchmark": round(conn_avg - bm_avg, 2),
             }
@@ -368,15 +455,24 @@ class Backtester:
             if not cin:
                 continue
 
-            # Check if this would have triggered an alert
-            mock_materiality_pct = random.uniform(3.0, 15.0)
+            # Would this have triggered a real alert?
+            #
+            # materiality_pct is 0.0 because it genuinely is not available
+            # historically — announcements.contract_value_cr is populated for
+            # 1 of 106 rows. It was previously filled with
+            # random.uniform(3.0, 15.0), which meant the set of "signals" being
+            # scored was chosen partly at random.
+            #
+            # The gate is ALPHA_CONVICTION_THRESHOLD (2.5), the same threshold
+            # the live pipeline fires on, rather than the arbitrary 4.0 used
+            # before — so this measures the strategy as actually deployed.
             conviction = self.alpha_engine.calculate_conviction_score(
                 scrip_code=row["scrip_code"],
-                materiality_pct=mock_materiality_pct,
+                materiality_pct=0.0,
                 is_regional_match=True,
                 event_date=row["date"]
             )
-            if conviction["score"] < 4.0:
+            if conviction["score"] < 2.5:
                 continue
                 
             connections = self.graph.alpha_query(cin)
@@ -429,137 +525,19 @@ class Backtester:
 
         return result
 
-    def test_ml_optimization(self) -> dict:
-        """
-        Test 4: ML Parameter Optimization (XGBoost)
-        
-        Uses Walk-Forward Optimization to train a highly regularized XGBoost model
-        on historical alpha events to find the mathematical optimal weighting of
-        Materiality, Z-Score, and Alpha Score.
-        """
-        logger.info("Running Test 4: ML Parameter Optimization (XGBoost)...")
-        try:
-            import xgboost as xgb
-            from sklearn.model_selection import TimeSeriesSplit
-            from sklearn.metrics import accuracy_score
-        except ImportError:
-            logger.error("XGBoost/scikit-learn not installed. Cannot run ML optimization.")
-            return {"viable": False, "error": "Missing dependencies"}
-
-        # Extract historical features
-        with self.cache._connect() as conn:
-            rows = conn.execute(f"""
-                SELECT a.scrip_code, a.date, c.cin
-                FROM announcements a
-                JOIN companies c ON a.scrip_code = c.scrip_code
-                WHERE a.is_contract = 1
-                  AND a.date >= '{self.start_date}'
-                ORDER BY a.date ASC
-            """).fetchall()
-
-        X = []
-        y = []
-        
-        for row in rows:
-            row = dict(row)
-            cin = row.get("cin")
-            if not cin:
-                continue
-
-            connections = self.graph.alpha_query(cin)
-            alpha_score = connections[0]["alpha_score"] if connections else 0
-            
-            # Get 90-day return to create the target label (1 = win, 0 = loss)
-            event_date = row["date"]
-            start = (datetime.strptime(event_date, "%Y-%m-%d") - timedelta(days=5)).strftime("%Y-%m-%d")
-            end = (datetime.strptime(event_date, "%Y-%m-%d") + timedelta(days=100)).strftime("%Y-%m-%d")
-
-            prices = self._get_price_history(row["scrip_code"], start, end)
-            if prices is None:
-                continue
-
-            returns = self._compute_returns(prices, event_date, [90])
-            if 90 not in returns:
-                continue
-
-            # Simulated features (since we don't have perfect historical z-scores in cache)
-            # Make them slightly correlated with the actual return to prove the ML pipeline works
-            is_win = returns[90] > 0
-            if is_win:
-                materiality_pct = random.uniform(5.0, 15.0)
-                vol_z_score = random.uniform(1.0, 5.0)
-            else:
-                materiality_pct = random.uniform(2.0, 8.0)
-                vol_z_score = random.uniform(-1.0, 2.0)
-
-            election_mult = connections[0].get("election_multiplier", 1.0) if connections else 1.0
-
-            # Get historical TA score by mocking the conviction calculation
-            mock_conviction = self.alpha_engine.calculate_conviction_score(
-                scrip_code=row["scrip_code"],
-                event_date=row["date"]
-            )
-            # Find the TA score embedded in the breakdown if any, otherwise 0.
-            # Not strict for ML test simulation since we are generating random features anyway
-            
-            X.append([alpha_score, materiality_pct, vol_z_score, election_mult])
-            y.append(1 if is_win else 0)
-
-        if len(X) < 30:
-            logger.warning("Not enough historical data points for robust ML training.")
-            return {"viable": False, "reason": "Insufficient data"}
-
-        import numpy as np
-        X = np.array(X)
-        y = np.array(y)
-
-        # Walk-Forward Optimization (Chronological Cross-Validation)
-        tscv = TimeSeriesSplit(n_splits=3)
-        
-        # Heavy Regularization to prevent Overfitting (The Quant Trap)
-        params = {
-            'objective': 'binary:logistic',
-            'max_depth': 2,        # Extremely shallow trees to force broad rules
-            'eta': 0.05,           # Slow learning rate
-            'lambda': 5.0,         # L2 Regularization
-            'alpha': 1.0,          # L1 Regularization
-            'eval_metric': 'logloss'
-        }
-
-        accuracies = []
-        for train_index, test_index in tscv.split(X):
-            X_train, X_test = X[train_index], X[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-            
-            dtrain = xgb.DMatrix(X_train, label=y_train)
-            dtest = xgb.DMatrix(X_test, label=y_test)
-            
-            model = xgb.train(params, dtrain, num_boost_round=50)
-            
-            preds = model.predict(dtest)
-            pred_labels = [1 if p > 0.5 else 0 for p in preds]
-            
-            acc = accuracy_score(y_test, pred_labels)
-            accuracies.append(acc)
-
-        avg_acc = sum(accuracies) / len(accuracies)
-        
-        # Feature Importance
-        importance = model.get_score(importance_type='gain')
-        # Map 'f0', 'f1', etc back to names
-        feature_names = ['alpha_score', 'materiality_pct', 'vol_z_score', 'election_mult']
-        mapped_importance = {feature_names[int(k.replace('f',''))]: round(v, 2) for k, v in importance.items()}
-
-        result = {
-            "walk_forward_accuracy_pct": round(avg_acc * 100, 2),
-            "feature_importance": mapped_importance,
-            "viable": avg_acc > 0.55
-        }
-        
-        logger.info(f"ML Optimization Complete. Out-of-sample Accuracy: {result['walk_forward_accuracy_pct']}%")
-        logger.info(f"Optimal Feature Weights (Gain): {result['feature_importance']}")
-
-        return result
+    # test_ml_optimization() was REMOVED.
+    #
+    # It synthesised both of its input features from the target label:
+    #
+    #     is_win = returns[90] > 0
+    #     if is_win:  materiality_pct = random.uniform(5.0, 15.0)
+    #     else:       materiality_pct = random.uniform(2.0, 8.0)
+    #
+    # That is target leakage — the model was shown the answer through its
+    # features — so its accuracy and feature-importance numbers measured
+    # nothing about the strategy. Rebuild it only on real historical features
+    # (genuine materiality and volume z-scores), never on values derived from
+    # the outcome being predicted.
 
     def run_full_backtest(self) -> dict:
         """
@@ -574,22 +552,37 @@ class Backtester:
 
         report = {
             "timestamp": datetime.now().isoformat(),
+            "random_seed": self.seed,
+            "benchmark": BACKTEST_BENCHMARK,
             "test_1_base_rate": self.test_base_rate(),
             "test_2_post_event_returns": self.test_post_event_returns(),
             "test_3_win_rate": self.test_win_rate(),
-            "test_4_ml_optimization": self.test_ml_optimization(),
         }
 
         # Overall verdict
         base_meaningful = report["test_1_base_rate"]["signal_meaningful"]
         win_viable = report["test_3_win_rate"]["viable"]
-        ml_viable = report["test_4_ml_optimization"].get("viable", False)
-        
-        report["overall_verdict"] = (
-            "SIGNAL VALIDATED (ML APPROVED)" if base_meaningful and win_viable and ml_viable
-            else "SIGNAL VALIDATED (RULES ONLY)" if base_meaningful and win_viable
-            else "SIGNAL NEEDS REVIEW"
+
+        # A verdict is only meaningful if the samples behind it are large
+        # enough to support one. Reporting VALIDATED / NOT VALIDATED off a
+        # handful of events overstates what the data can show, so an
+        # underpowered run is reported as INCONCLUSIVE instead.
+        min_n = min(
+            report["test_1_base_rate"].get("control_total", 0),
+            report["test_3_win_rate"].get("total_signals", 0),
         )
+        underpowered = min_n < MIN_SAMPLE_FOR_VERDICT
+
+        if underpowered:
+            report["overall_verdict"] = (
+                f"INCONCLUSIVE — INSUFFICIENT SAMPLE "
+                f"(smallest n={min_n}, need >={MIN_SAMPLE_FOR_VERDICT})"
+            )
+        else:
+            report["overall_verdict"] = (
+                "SIGNAL VALIDATED" if base_meaningful and win_viable
+                else "SIGNAL NOT VALIDATED"
+            )
 
         logger.info(f"\nOverall verdict: {report['overall_verdict']}")
         logger.info("=" * 60)

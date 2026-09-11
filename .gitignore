@@ -38,6 +38,9 @@ data/pipeline.log
 data/refresh.log
 data/nse_industry_mapping.csv
 data/held_positions.csv
+# Derived price panel for the factor engine. Rebuildable in ~4 min via
+# `python build_price_panel.py`, and large — never commit it.
+data/prices/
 data/pdfs/
 data/cron.log
 
