@@ -13,13 +13,13 @@ import argparse
 from datetime import datetime
 
 from src.config import DATA_DIR
-from src.cache_manager import CacheManager
-from src.watchlist_generator import WatchlistGenerator
-from src.mca_resolver import MCAResolver
-from src.entity_resolver import EntityResolver
-from src.donor_ingester import DonorIngester
-from src.graph_manager import GraphManager
-from src.notifier import Notifier
+from src.data.cache_manager import CacheManager
+from src.data.watchlist_generator import WatchlistGenerator
+from src.data.mca_resolver import MCAResolver
+from src.data.entity_resolver import EntityResolver
+from src.data.donor_ingester import DonorIngester
+from src.signals.graph_manager import GraphManager
+from src.execution.notifier import Notifier
 
 logging.basicConfig(
     level=logging.INFO,

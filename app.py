@@ -194,7 +194,7 @@ elif tab == "Technical Analysis":
             
             if st.button("🔍 Run Technical Analysis", type="primary"):
                 with st.spinner(f"Fetching price data and computing indicators for {sel_name}..."):
-                    from src.technical_analyzer import TechnicalAnalyzer
+                    from src.signals.technical_analyzer import TechnicalAnalyzer
                     ta = TechnicalAnalyzer()
                     result = ta.analyze(sel_scrip, sel_name, nse_symbol=sel_nse if sel_nse else None)
                 

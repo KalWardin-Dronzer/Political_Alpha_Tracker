@@ -7,7 +7,7 @@ fuzzy matching tiers, and director overlap detection.
 
 import pytest
 
-from src.entity_resolver import EntityResolver
+from src.data.entity_resolver import EntityResolver
 from tests.conftest import (
     RAILCO_CIN, DEFCO_CIN, DONOR_CIN, BRIDGE_DIRECTOR_DIN,
 )

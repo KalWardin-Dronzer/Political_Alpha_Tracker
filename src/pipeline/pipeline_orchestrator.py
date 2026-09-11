@@ -1,0 +1,670 @@
+"""
+Political Alpha Tracker — Pipeline Orchestrator
+
+Encapsulates the core pipeline logic for scanning BSE, monitoring geopolitical events,
+and firing trading signals.
+"""
+
+import logging
+import json
+from datetime import datetime, timedelta
+
+from src.config import (
+    ALPHA_SCORE_THRESHOLD, MCA_CACHE_TTL_DAYS, MAX_CONVICTION_SCORE, now_ist,
+)
+from src.data.cache_manager import CacheManager
+from src.data.bse_monitor import BSEMonitor
+from src.data.financial_screener import FinancialScreener
+from src.data.mca_resolver import MCAResolver
+from src.data.entity_resolver import EntityResolver
+from src.signals.graph_manager import GraphManager
+from src.execution.notifier import Notifier
+from src.data.watchlist_generator import WatchlistGenerator
+from src.data.universe_manager import UniverseManager
+from src.signals.tender_monitor import TenderMonitor
+from src.signals.pledge_monitor import PledgeMonitor
+from src.execution.portfolio_manager import PaperTrader
+from src.signals.bulk_deal_monitor import BulkDealMonitor
+from src.signals.alpha_engine import AlphaEngine
+from src.signals.policy_monitor import PolicyMonitor
+from src.signals.macro_event_monitor import MacroEventMonitor
+from src.signals.volume_tracker import VolumeTracker
+from src.signals.technical_analyzer import TechnicalAnalyzer
+
+logger = logging.getLogger("PipelineOrchestrator")
+
+class PipelineOrchestrator:
+    def __init__(self, dry_run: bool = False):
+        self.dry_run = dry_run
+        
+        # Initialize Services
+        self.cache = CacheManager()
+        self.bse = BSEMonitor(self.cache)
+        self.screener = FinancialScreener(self.cache)
+        self.mca = MCAResolver(self.cache)
+        self.entity = EntityResolver(self.cache)
+        self.graph = GraphManager(self.cache)
+        self.notifier = Notifier(self.cache)
+        self.watchlist_gen = WatchlistGenerator(self.cache)
+        self.universe_manager = UniverseManager(self.cache)
+        self.tender_monitor = TenderMonitor(self.cache, self.notifier, self.graph)
+        self.alpha_engine = AlphaEngine(self.cache)
+        self.pledge_monitor = PledgeMonitor(self.cache, self.notifier, self.graph, self.alpha_engine)
+        self.paper_trader = PaperTrader(self.cache)
+        self.policy_monitor = PolicyMonitor(self.cache, self.alpha_engine)
+        self.macro_monitor = MacroEventMonitor(self.cache, self.alpha_engine)
+        self.volume_tracker = VolumeTracker(self.cache)
+        self.technical_analyzer = TechnicalAnalyzer(self.cache)
+        self.bulk_deal_monitor = BulkDealMonitor(self.cache)
+        
+        self.alerts_fired = 0
+        self.contracts_found = []
+
+    def run_daily_pipeline(self):
+        """Execute the full daily pipeline sequence."""
+        start_time = datetime.now()  # naive: used only for elapsed-seconds math
+        logger.info("=" * 60)
+        logger.info(f"DAILY PIPELINE STARTED — {now_ist().strftime('%Y-%m-%d %H:%M IST')}")
+        logger.info(f"Mode: {'DRY RUN' if self.dry_run else 'LIVE'}")
+        logger.info("=" * 60)
+
+        daily_stats = {
+            "contracts_found": 0,
+            "passed_fundamentals": 0,
+            "had_cin": 0,
+            "had_political_connection": 0,
+            "alerts_fired": 0
+        }
+        
+        try:
+
+            self._step0_reference_data_healthcheck()
+            self._step1_poll_telegram()
+            self._process_scheduled_alerts()
+            scrip_codes = self._step2_build_monitoring_universe()
+            
+            if not scrip_codes:
+                return
+                
+            events = self._step3_scan_bse_announcements(scrip_codes)
+            contracts = [e for e in events if e.event_type == "contract"]
+            board_changes = [e for e in events if e.event_type == "board_change"]
+            pledges = [e for e in events if e.event_type == "pledge"]
+            
+            logger.info(f"Found {len(contracts)} contract events, {len(board_changes)} board changes, {len(pledges)} pledges")
+
+            self._step3_5_execute_virtual_sells()
+            self._step3_6_scan_bulk_deals()
+            self._step4_process_board_changes(board_changes)
+            
+            l1_contracts = self._step4_5_check_l1_bids()
+            contracts.extend(l1_contracts)
+            self.contracts_found = contracts
+            
+            self._step5_process_contract_events(contracts, daily_stats=daily_stats)
+            self._step5_5_policy_monitoring()
+            self._step5_5b_global_macro_events()
+            self._step5_6_advanced_scans(pledges)
+            
+            if not self.dry_run:
+                msg = (
+                    f"✅ <b>Pipeline completed successfully.</b>\n\n"
+                    f"📊 <b>Daily Funnel:</b>\n"
+                    f"  • Contracts found: {daily_stats['contracts_found']}\n"
+                    f"  • Passed Fundamentals: {daily_stats['passed_fundamentals']}\n"
+                    f"  • Had CIN: {daily_stats['had_cin']}\n"
+                    f"  • Had Political Connection: {daily_stats['had_political_connection']}\n"
+                    f"  • <b>Alerts Fired: {daily_stats['alerts_fired']}</b>"
+                )
+                # send_system_alert is not a method, we should use _send_message
+                self.notifier._send_message(msg)
+            
+            self._step6_wrap_up(start_time, scrip_codes, daily_stats=daily_stats)
+
+        except Exception as e:
+            logger.exception(f"Pipeline crashed: {e}")
+            if not self.dry_run:
+                self.notifier._send_message(f"🔴 <b>Pipeline Failure</b>\n\n<code>{str(e)}</code>")
+            raise
+
+    def run_volume_scan(self):
+        """Phase 3: Smart Money Front-Running."""
+        start_time = datetime.now()
+        logger.info("Starting Daily Volume Scan (Phase 3)...")
+        
+        watchlist = self.cache.get_watchlist()
+        scrip_codes = [c["scrip_code"] for c in watchlist if c.get("scrip_code")]
+        logger.info(f"Scanning volume for {len(scrip_codes)} companies...")
+        
+        spikes_found = 0
+        for company in watchlist:
+            cin = company.get("cin")
+            scrip_code = company.get("scrip_code")
+            company_name = company.get("name")
+            nse_symbol = company.get("nse_symbol")
+            
+            if not cin or not scrip_code:
+                continue
+                
+            connections = self.graph.alpha_query(cin)
+            if not connections:
+                continue
+                
+            top_connection = connections[0]
+            score = top_connection["alpha_score"]
+            
+            if score >= ALPHA_SCORE_THRESHOLD:
+                res = self.volume_tracker.check_volume_spike(scrip_code, company_name, nse_symbol=nse_symbol)
+                if res.is_spike:
+                    spikes_found += 1
+                    if not self.dry_run:
+                        self.notifier.send_volume_spike_alert(
+                            company_name=company_name,
+                            scrip_code=scrip_code,
+                            connection=top_connection,
+                            z_score=res.z_score,
+                            reason=res.reason
+                        )
+                    else:
+                        logger.info("  [DRY RUN] Would have sent volume spike alert")
+                        
+        elapsed = (datetime.now() - start_time).total_seconds()
+        logger.info("=" * 60)
+        logger.info(f"VOLUME SCAN COMPLETE — {elapsed:.1f}s elapsed, {spikes_found} spikes found")
+        logger.info("=" * 60)
+
+    # ---------------------------------------------------------
+    # PRIVATE STEPS
+    # ---------------------------------------------------------
+    def _step0_reference_data_healthcheck(self):
+        """
+        Fail loudly when the reference data the strategy depends on is missing.
+
+        This exists because the pipeline spent weeks reporting "Pipeline
+        completed successfully / Alerts Fired: 0" while the production database
+        held zero donors and zero directors. With no donors there are no
+        DonorCompany or ElectoralTrust nodes, so alpha_query() returns [] for
+        every company and a political connection is not merely unlikely — it is
+        impossible. A green run in that state is a false negative, not a
+        genuine "no signal today".
+
+        Cheap (three COUNT(*) queries) and never fatal: it warns, it does not
+        stop the scan.
+        """
+        logger.info("Step 0: Reference data health check...")
+        try:
+            with self.cache._connect() as conn:
+                donors = conn.execute("SELECT COUNT(*) FROM donors").fetchone()[0]
+                directors = conn.execute("SELECT COUNT(*) FROM directors").fetchone()[0]
+                cins = conn.execute(
+                    "SELECT COUNT(*) FROM companies WHERE cin IS NOT NULL AND cin != ''"
+                ).fetchone()[0]
+        except Exception as e:
+            logger.warning(f"  Could not run reference data health check: {e}")
+            return
+
+        logger.info(f"  Donors: {donors} | Directors: {directors} | Companies with CIN: {cins}")
+
+        # A connection is a PATH: company -> director -> donor company -> trust.
+        # Every hop must exist, so each missing table needs its own remedy.
+        # `--mode annual` populates donors only; directors come from
+        # `--mode quarterly`. Running just one leaves the path broken.
+        problems = []
+        if donors == 0:
+            problems.append(
+                "• <b>0 donor records</b> — no donor/trust nodes exist\n"
+                "   fix: <code>refresh.py --mode annual</code>"
+            )
+        if directors == 0:
+            problems.append(
+                "• <b>0 director records</b> — nothing bridges a company to a donor\n"
+                "   fix: <code>refresh.py --mode quarterly</code>"
+            )
+        if cins == 0:
+            problems.append(
+                "• <b>0 companies with a CIN</b> — graph nodes are keyed by CIN,\n"
+                "   so every lookup misses regardless of the other two"
+            )
+
+        if not problems:
+            return
+
+        logger.error(
+            "  REFERENCE DATA MISSING — political connections are IMPOSSIBLE this run. "
+            f"donors={donors} directors={directors} cins={cins}"
+        )
+        if not self.dry_run:
+            self.notifier._send_message(
+                "🔴 <b>REFERENCE DATA MISSING</b>\n\n"
+                + "\n".join(problems)
+                + "\n\n<b>Every political-connection check will fail today.</b> "
+                  "Any 'Alerts Fired: 0' below reflects missing data, not an absence of signal.\n\n"
+                  "<i>A connection is a path (company → director → donor → trust). "
+                  "Fixing only one of the above is not enough — the path still breaks.</i>"
+            )
+
+    def _step1_poll_telegram(self):
+        logger.info("Step 1: Polling Telegram for /exit commands...")
+        if not self.dry_run:
+            removed = self.notifier.poll_exit_commands()
+            if removed:
+                logger.info(f"Removed positions: {removed}")
+        else:
+            logger.info("  [DRY RUN] Skipping Telegram poll")
+
+    def _step2_build_monitoring_universe(self):
+        logger.info("Step 2: Building full universe monitoring list...")
+        self.universe_manager.update_universe()
+        scrip_codes = self.universe_manager.get_full_universe_scrip_codes()
+
+        if not scrip_codes:
+            logger.warning("No scrip codes to monitor. Is the universe empty?")
+            if not self.dry_run:
+                self.notifier.send_system_alert(
+                    "Empty Watchlist",
+                    "No companies to monitor. Run quarterly refresh.",
+                    "WARNING",
+                )
+        else:
+            logger.info(f"Monitoring {len(scrip_codes)} scrip codes")
+        return scrip_codes
+
+    def _step3_scan_bse_announcements(self, scrip_codes):
+        logger.info("Step 3: Scanning BSE announcements...")
+        return self.bse.scan_watchlist(scrip_codes, lookback_days=1)
+
+    def _step3_5_execute_virtual_sells(self):
+        if not self.dry_run:
+            logger.info("Step 3.5: Checking virtual portfolio for 90-day sells...")
+            self.paper_trader.execute_sells(max_hold_days=90)
+
+    def _step3_6_scan_bulk_deals(self):
+        logger.info("Step 3.6: Scanning Bulk & Block Deals...")
+        try:
+            tracked_buys = self.bulk_deal_monitor.scan_today_deals()
+            if tracked_buys:
+                logger.info(f"  Found {len(tracked_buys)} tracked smart money buys today.")
+                for tb in tracked_buys:
+                    logger.info(f"    {tb['client_name']} bought {tb['scrip_code']}")
+        except Exception as e:
+            logger.warning(f"Failed to scan bulk deals: {e}")
+
+    def _step4_process_board_changes(self, board_changes):
+        if board_changes:
+            logger.info("Step 4: Processing board changes...")
+            for event in board_changes:
+                company = self.cache.get_company(event.scrip_code)
+                if company and company.get("cin"):
+                    logger.info(f"  Board change at {event.company_name} — refreshing directors")
+                    self.mca.resolve_directors(company["cin"], force_refresh=True)
+
+    def _step4_5_check_l1_bids(self):
+        # eProcure Monitor disabled — uses mock data (hardcoded NBCC/JINDAL
+        # name matching with random tender IDs and bid amounts).
+        # Re-enable when a real Tender247/TendersInfo API is integrated.
+        logger.debug("Step 4.5: eProcure L1 bids [SKIPPED — uses mock data]")
+        return []
+
+    def _step5_process_contract_events(self, contracts, daily_stats=None):
+        if not contracts:
+            logger.info("Step 5: No contract events to process")
+            return
+
+        logger.info("Step 5: Processing contract events...")
+        if daily_stats is not None:
+            daily_stats["contracts_found"] += len(contracts)
+        regime = self.alpha_engine.get_vix_regime()
+        logger.info(f"  VIX Regime: {regime['vix']:.2f} (High Fear: {regime['is_high_fear']})")
+
+        for event in contracts:
+            logger.info(
+                f"\\n{'─' * 40}\\n"
+                f"Contract: {event.company_name} ({event.scrip_code})\\n"
+                f"Title: {event.title}\\n"
+                f"Date: {event.date}\\n"
+                f"{'─' * 40}"
+            )
+
+            result = self.screener.screen(event.scrip_code, event.company_name)
+            if not result.passes:
+                logger.info(f"  ❌ Failed fundamentals: {result.reason}. Skipping.")
+                continue
+
+            if daily_stats is not None:
+                daily_stats["passed_fundamentals"] += 1
+
+            logger.info(f"  ✅ Passed fundamentals: {result.summary()}")
+
+            company = self.cache.get_company(event.scrip_code)
+            cin = company.get("cin") if company else None
+            # Falls back to the scrip code so processing continues without a CIN,
+            # but note that graph nodes are keyed "company:{CIN}" — a scrip-code
+            # company_id can never match one, so alpha_query() will return [].
+            company_id = cin or event.scrip_code
+
+            # Count only real CINs. This was incrementing unconditionally, which
+            # made the funnel report "Had CIN" == "Passed Fundamentals" always
+            # and hid the fact that CIN coverage is the binding constraint.
+            if daily_stats is not None and cin:
+                daily_stats["had_cin"] += 1
+
+            if not self.cache.is_director_cache_fresh(company_id, MCA_CACHE_TTL_DAYS):
+                if company and company.get("cin"):
+                    logger.info(f"  Refreshing directors for {company_id}...")
+                    self.mca.resolve_directors(company_id)
+
+            self.graph.build_from_cache()
+            connections = self.graph.alpha_query(company_id)
+
+            if not connections:
+                logger.info(f"  No political connections found for {company_id}")
+                top_connection = None
+            else:
+                if daily_stats is not None:
+                    daily_stats["had_political_connection"] += 1
+                top_connection = connections[0]
+                score = top_connection["alpha_score"]
+                logger.info(f"  🔗 Top connection: score={score:.2f}, director={top_connection['director_name']}, donor={top_connection['donor_company_name']}")
+
+            materiality = event.raw_data.get("materiality", {})
+            mat_pct = materiality.get("materiality_pct", 0) if materiality else 0
+            is_regional_match = materiality.get("is_regional_match", True) if materiality else True
+            buyback_mat_pct = 0.0
+            
+            conviction = self.alpha_engine.calculate_conviction_score(
+                scrip_code=event.scrip_code, 
+                materiality_pct=mat_pct,
+                is_regional_match=is_regional_match,
+                buyback_materiality_pct=buyback_mat_pct,
+                vix=regime["vix"],
+                graph=self.graph
+            )
+            c_score = conviction["score"]
+            c_breakdown = conviction["breakdown"]
+            
+            logger.info(f"  Conviction Score: {c_score}/{MAX_CONVICTION_SCORE:g}")
+            for b in c_breakdown:
+                logger.info(f"    {b}")
+            
+            # Run standalone Technical Analysis for logging
+            ta_result = self.technical_analyzer.analyze(
+                scrip_code=event.scrip_code,
+                company_name=event.company_name
+            )
+            logger.info(f"  📊 Technical Analysis: {ta_result.signal} ({ta_result.score}/10)")
+            for tb in ta_result.breakdown:
+                logger.info(f"    {tb}")
+                
+            if c_score >= 2.5:
+                if daily_stats is not None:
+                    daily_stats["alerts_fired"] += 1
+                if not self.dry_run:
+                    self.paper_trader.execute_buy(event.scrip_code, c_score)
+                    
+                logger.info(f"  🚨 Conviction >= 2.5. ALERTING!")
+                
+                tender_id = self.graph.add_tender(title=event.title, date=event.date, scrip_code=event.scrip_code)
+                self.graph.link_company_to_tender(company_id, tender_id)
+                
+                competitors = self.alpha_engine.find_competitors(company_name=event.company_name, contract_details=event.title)
+                unconnected_competitors = []
+                for comp in competitors:
+                    comp_id = None
+                    if comp.get('scrip_code'):
+                        c_info = self.cache.get_company(comp['scrip_code'])
+                        if c_info:
+                            comp_id = c_info.get('cin') if c_info.get('cin') else comp['scrip_code']
+                    
+                    comp_score = 0
+                    if comp_id:
+                        c_connections = self.graph.alpha_query(comp_id)
+                        if c_connections:
+                            comp_score = c_connections[0]["alpha_score"]
+                            
+                    if comp_score < ALPHA_SCORE_THRESHOLD:
+                        unconnected_competitors.append(comp)
+
+                if not self.dry_run:
+                    self.notifier.send_alpha_alert(
+                        connection=top_connection,
+                        fundamental=result,
+                        announcement={
+                            # Identity must live here too: top_connection is None
+                            # whenever no political path was found, and the alert
+                            # falls back to these for the company name and /exit.
+                            "scrip_code": event.scrip_code,
+                            "company_name": event.company_name,
+                            "title": event.title,
+                            "date": event.date,
+                            "materiality": materiality,
+                            "competitors": unconnected_competitors,
+                            "conviction": conviction,
+                            "technical": {
+                                "signal": ta_result.signal,
+                                "score": ta_result.score,
+                                "rsi": ta_result.rsi,
+                                "macd_bullish": ta_result.macd_bullish_crossover,
+                                "golden_cross": ta_result.is_golden_cross,
+                                "obv_up": ta_result.obv_trending_up,
+                                "atr_stop": ta_result.atr_stop_loss,
+                                "current_price": ta_result.current_price,
+                            },
+                        },
+                    )
+                    self.alerts_fired += 1
+                    
+                    # SCHEDULE ROTATION AND EXIT ALERTS
+                    rotation_date = (datetime.now() + timedelta(days=30)).isoformat()
+                    exit_date = (datetime.now() + timedelta(days=90)).isoformat()
+                    basket_json = json.dumps(unconnected_competitors)
+                    
+                    self.cache.schedule_alert(
+                        type="ROTATION", 
+                        scrip_code=event.scrip_code, 
+                        company_name=event.company_name, 
+                        sympathy_basket=basket_json, 
+                        trigger_date=rotation_date
+                    )
+                    self.cache.schedule_alert(
+                        type="EXIT", 
+                        scrip_code=event.scrip_code, 
+                        company_name=event.company_name, 
+                        sympathy_basket="[]", 
+                        trigger_date=exit_date
+                    )
+                    logger.info(f"  📅 Scheduled T+30 Rotation and T+90 Exit alerts for {event.scrip_code}")
+                    
+                else:
+                    logger.info("  [DRY RUN] Would have sent alert")
+                    self.alerts_fired += 1
+            else:
+                logger.info(f"  Conviction Score {c_score} < 2.5. No alert.")
+
+    def _process_scheduled_alerts(self):
+        """Process any pending T+30 Rotation or T+90 Exit alerts."""
+        logger.info("Checking for scheduled rotation or exit alerts...")
+        current_date = datetime.now().isoformat()
+        pending_alerts = self.cache.get_pending_alerts(current_date)
+        
+        if not pending_alerts:
+            logger.info("  No scheduled alerts to process today.")
+            return
+            
+        for alert in pending_alerts:
+            if alert["type"] == "ROTATION":
+                basket = json.loads(alert.get("sympathy_basket", "[]"))
+                
+                # Re-run technical analysis to find the single best peer at T+30
+                best_peer = None
+                best_score = -1
+                for peer in basket:
+                    if peer.get("scrip_code"):
+                        ta = self.technical_analyzer.analyze(peer["scrip_code"], peer.get("name", "Unknown"))
+                        if ta.score > best_score:
+                            best_score = ta.score
+                            best_peer = {
+                                "scrip_code": peer["scrip_code"],
+                                "name": peer.get("name", "Unknown"),
+                                "ta_score": ta.score,
+                                "ta_signal": ta.signal,
+                                "current_price": ta.current_price
+                            }
+                
+                msg = (
+                    f"🔄 <b>ROTATION ALERT (T+30)</b>\n\n"
+                    f"Time to rotate capital for: <b>{alert['company_name']} ({alert['scrip_code']})</b>\n\n"
+                    f"🎯 <b>Action:</b> Sell the winner and allocate 100% of the trade capital to the single best peer.\n\n"
+                )
+                
+                if best_peer:
+                    msg += (
+                        f"🌟 <b>Best Peer Selected:</b>\n"
+                        f"  • Company: <b>{best_peer['name']}</b> ({best_peer['scrip_code']})\n"
+                        f"  • TA Score: {best_peer['ta_score']}/10 ({best_peer['ta_signal']})\n"
+                        f"  • Price: ₹{best_peer['current_price']}"
+                    )
+                else:
+                    msg += "⚠️ No viable peers found in the Sympathy Basket with valid TA scores."
+                    
+                if not self.dry_run:
+                    self.notifier._send_message(msg)
+                    
+            elif alert["type"] == "EXIT":
+                msg = (
+                    f"🛑 <b>EXIT ALERT (T+90)</b>\n\n"
+                    f"Hard exit reached for: <b>{alert['company_name']} ({alert['scrip_code']})</b> strategy.\n\n"
+                    f"🎯 <b>Action:</b> Sell all positions associated with this signal. Move capital to LIQUIDBEES and await the next signal."
+                )
+                if not self.dry_run:
+                    self.notifier._send_message(msg)
+            
+            logger.info(f"  Processed {alert['type']} alert for {alert['scrip_code']}")
+            if not self.dry_run:
+                self.cache.mark_alert_processed(alert["id"])
+
+    def _step5_5_policy_monitoring(self):
+        logger.info("Step 5.5: Scanning for Macro-Policy Shifts (PIB)...")
+        policies = self.policy_monitor.fetch_latest_policies()
+        
+        if policies:
+            watchlist = self.cache.get_watchlist()
+            for policy in policies:
+                impacted_sector = policy["impacted_sector"].lower()
+                logger.info(f"  🏛️ Found Policy Tailwind for sector: {impacted_sector}")
+                
+                for company in watchlist:
+                    cin = company.get("cin")
+                    scrip_code = company.get("scrip_code")
+                    niche = (company.get("micro_niche") or "").lower()
+                    
+                    if not cin or not niche or niche == "unknown":
+                        continue
+                        
+                    policy_words = set(impacted_sector.split())
+                    niche_words = set(niche.split())
+                    
+                    if policy_words.intersection(niche_words) or impacted_sector in niche or niche in impacted_sector:
+                        connections = self.graph.alpha_query(cin)
+                        if connections:
+                            top_conn = connections[0]
+                            if top_conn["alpha_score"] >= ALPHA_SCORE_THRESHOLD:
+                                logger.info(f"  🚨 MACRO POLICY ALPHA DETECTED for {scrip_code} ({company['name']})")
+                                if not self.dry_run:
+                                    self.notifier.send_policy_alert(
+                                        company=company,
+                                        connection=top_conn,
+                                        policy=policy
+                                    )
+                                    self.alerts_fired += 1
+                                else:
+                                    logger.info("  [DRY RUN] Would have sent policy alert")
+
+    def _step5_5b_global_macro_events(self):
+        logger.info("Step 5.5b: Scanning for Global Macro-Events...")
+        try:
+            global_events = self.macro_monitor.fetch_global_events()
+            
+            if global_events:
+                watchlist = self.cache.get_watchlist()
+                for event in global_events:
+                    event_type = event.get('event_type')
+                    logger.info(f"  🌍 Found Global Macro Event: {event_type} - {event.get('catalyst')}")
+                    
+                    for company in watchlist:
+                        cin = company.get("cin")
+                        scrip_code = company.get("scrip_code")
+                        niche = (company.get("micro_niche") or "unknown").lower()
+                        
+                        if not cin or niche == "unknown":
+                            continue
+                            
+                        benefits = self.alpha_engine.check_company_macro_benefit(
+                            company_name=company.get('name'), 
+                            company_niche=niche, 
+                            event_summary=event.get('summary')
+                        )
+                        
+                        if benefits:
+                            connections = self.graph.alpha_query(cin)
+                            if connections:
+                                top_conn = connections[0]
+                                if top_conn["alpha_score"] >= ALPHA_SCORE_THRESHOLD:
+                                    logger.info(f"  🚨 GLOBAL MACRO EVENT ALPHA DETECTED for {scrip_code} ({company['name']})")
+                                    if not self.dry_run:
+                                        self.notifier.send_macro_event_alert(
+                                            company=company,
+                                            connection=top_conn,
+                                            event=event
+                                        )
+                                        self.alerts_fired += 1
+                                    else:
+                                        logger.info("  [DRY RUN] Would have sent macro event alert")
+        except Exception as e:
+            logger.error(f"  ❌ Error in Macro Event Scans: {e}")
+
+    def _step5_6_advanced_scans(self, pledges: list):
+        logger.info("Step 5.6: Advanced Alpha Sources...")
+        if not self.dry_run:
+            logger.debug("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
+            logger.debug("  [SKIPPED] State Budget Monitor (uses mock data)")
+            
+            logger.info("  [ACTIVE] Promoter Pledge Monitor")
+            self.pledge_monitor.process_pledge_events(pledges)
+        else:
+            logger.info("  [DRY RUN] Would process Promoter Pledge Monitor")
+
+    def _step6_wrap_up(self, start_time, scrip_codes, daily_stats: dict = None):
+        logger.info("Step 6: Saving graph and sending summary...")
+        elapsed = (datetime.now() - start_time).total_seconds()
+
+        if self.graph.G.number_of_nodes() == 0:
+            self.graph.build_from_cache()
+
+        if not self.dry_run:
+            self.graph.save()
+            self.notifier.send_daily_summary(
+                contracts_found=len(self.contracts_found),
+                alerts_fired=self.alerts_fired,
+                watchlist_size=len(scrip_codes),
+                elapsed_seconds=elapsed,
+                daily_stats=daily_stats,
+                graph_stats={
+                    "nodes": self.graph.G.number_of_nodes(),
+                    "edges": self.graph.G.number_of_edges()
+                }
+            )
+
+        logger.info("=" * 60)
+        logger.info(
+            f"DAILY PIPELINE COMPLETE — "
+            f"{elapsed:.1f}s elapsed, "
+            f"{len(self.contracts_found)} contracts, "
+            f"{self.alerts_fired} alerts"
+        )
+        logger.info("=" * 60)
+
+        self.cache.log_event(
+            "main", "pipeline_complete",
+            f"Elapsed: {elapsed:.1f}s, "
+            f"Contracts: {len(self.contracts_found)}, Alerts: {self.alerts_fired}"
+        )

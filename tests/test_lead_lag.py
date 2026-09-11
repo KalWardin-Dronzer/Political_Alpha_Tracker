@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.lead_lag import (
+from src.signals.lead_lag import (
     LeadLagTest, SectorGroups, LeadLagResult,
     MIN_CONNECTED, MIN_PEERS,
 )

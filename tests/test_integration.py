@@ -11,9 +11,9 @@ Simulates the daily pipeline flow without network calls:
 
 import pytest
 
-from src.cache_manager import CacheManager
-from src.graph_manager import GraphManager
-from src.entity_resolver import EntityResolver
+from src.data.cache_manager import CacheManager
+from src.signals.graph_manager import GraphManager
+from src.data.entity_resolver import EntityResolver
 from src.config import ALPHA_SCORE_THRESHOLD
 from tests.conftest import RAILCO_CIN, DEFCO_CIN, DONOR_CIN, BRIDGE_DIRECTOR_DIN
 

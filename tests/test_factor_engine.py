@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.factor_engine import (
+from src.signals.factor_engine import (
     FactorEngine, _zscore, _winsorize,
     MOMENTUM_LOOKBACK, MOMENTUM_SKIP,
 )

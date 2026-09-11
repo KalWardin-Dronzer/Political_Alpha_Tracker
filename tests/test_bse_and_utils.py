@@ -6,7 +6,7 @@ Tests classification logic offline (no network calls).
 
 import pytest
 
-from src.bse_monitor import BSEMonitor
+from src.data.bse_monitor import BSEMonitor
 
 
 class TestAnnouncementClassification:
@@ -82,28 +82,28 @@ class TestDonorAmountParsing:
     """Tests for Indian amount format parsing used by donor_ingester."""
 
     def test_crore_format(self):
-        from src.donor_ingester import parse_amount
+        from src.data.donor_ingester import parse_amount
         assert parse_amount("5.2 Crore") == 52_000_000
         assert parse_amount("52.5 Cr") == 525_000_000
         assert parse_amount("1 crore") == 10_000_000
 
     def test_lakh_format(self):
-        from src.donor_ingester import parse_amount
+        from src.data.donor_ingester import parse_amount
         assert parse_amount("10 Lakh") == 1_000_000
         assert parse_amount("50 lakhs") == 5_000_000
 
     def test_raw_number_format(self):
-        from src.donor_ingester import parse_amount
+        from src.data.donor_ingester import parse_amount
         assert parse_amount("5,00,00,000") == 50_000_000
         assert parse_amount("10,00,000") == 1_000_000
 
     def test_rupee_symbol(self):
-        from src.donor_ingester import parse_amount
+        from src.data.donor_ingester import parse_amount
         result = parse_amount("₹ 10,00,000")
         assert result == 1_000_000
 
     def test_empty_and_none(self):
-        from src.donor_ingester import parse_amount
+        from src.data.donor_ingester import parse_amount
         assert parse_amount("") is None
         assert parse_amount(None) is None
 
@@ -112,7 +112,7 @@ class TestFinancialResult:
     """Tests for the FundamentalResult dataclass."""
 
     def test_summary_format(self):
-        from src.financial_screener import FundamentalResult
+        from src.data.financial_screener import FundamentalResult
         result = FundamentalResult(
             scrip_code="540001",
             company_name="Test Co",
@@ -126,7 +126,7 @@ class TestFinancialResult:
         assert "0.8" in summary
 
     def test_summary_failure(self):
-        from src.financial_screener import FundamentalResult
+        from src.data.financial_screener import FundamentalResult
         result = FundamentalResult(
             scrip_code="540001",
             company_name="Bad Co",
@@ -137,7 +137,7 @@ class TestFinancialResult:
         assert "FAIL" in summary
 
     def test_summary_unavailable(self):
-        from src.financial_screener import FundamentalResult
+        from src.data.financial_screener import FundamentalResult
         result = FundamentalResult(
             scrip_code="540001",
             company_name="Unknown Co",
@@ -152,12 +152,12 @@ class TestNotifierFormatting:
     """Tests for Telegram message formatting (offline, no API calls)."""
 
     def test_notifier_disabled_without_token(self, cache):
-        from src.notifier import Notifier
+        from src.execution.notifier import Notifier
         notifier = Notifier(cache)
         assert notifier.enabled is False
 
     def test_send_message_dry_run(self, cache):
-        from src.notifier import Notifier
+        from src.execution.notifier import Notifier
         notifier = Notifier(cache)
         result = notifier._send_message("Test message")
         assert result is False  # No token configured
