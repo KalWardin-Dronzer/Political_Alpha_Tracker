@@ -13,7 +13,7 @@ if sys.stdout.encoding != 'utf-8' and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 from src.config import DATA_DIR
-from src.pipeline_orchestrator import PipelineOrchestrator
+from src.pipeline.pipeline_orchestrator import PipelineOrchestrator
 
 # Configure global logging for the pipeline
 logging.basicConfig(
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     try:
         orchestrator = PipelineOrchestrator(dry_run=args.dry_run)
         if args.tearsheet:
-            from src.weekly_tearsheet import WeeklyTearsheet
+            from src.execution.weekly_tearsheet import WeeklyTearsheet
             ts = WeeklyTearsheet(orchestrator.cache)
             if not args.dry_run:
                 ts.send_to_telegram()
@@ -73,8 +73,8 @@ if __name__ == "__main__":
         logger.exception(f"Pipeline failed with error: {e}")
         # Try to send error alert
         try:
-            from src.cache_manager import CacheManager
-            from src.notifier import Notifier
+            from src.data.cache_manager import CacheManager
+            from src.execution.notifier import Notifier
             cache = CacheManager()
             notifier = Notifier(cache)
             notifier.send_system_alert(

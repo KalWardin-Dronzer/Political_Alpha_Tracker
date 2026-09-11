@@ -11,7 +11,7 @@ suite does not depend on network access.
 import pandas as pd
 import pytest
 
-from src.delisting_registry import DelistingRegistry, FAILURE_KEYWORDS
+from src.data.delisting_registry import DelistingRegistry, FAILURE_KEYWORDS
 
 
 @pytest.fixture

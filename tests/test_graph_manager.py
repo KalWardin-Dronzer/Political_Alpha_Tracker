@@ -9,7 +9,7 @@ connection detection algorithm works correctly.
 import pytest
 from datetime import datetime
 
-from src.graph_manager import GraphManager
+from src.signals.graph_manager import GraphManager
 from tests.conftest import (
     RAILCO_CIN, DEFCO_CIN, DONOR_CIN, BRIDGE_DIRECTOR_DIN,
 )

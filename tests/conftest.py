@@ -14,7 +14,7 @@ from pathlib import Path
 os.environ["TELEGRAM_BOT_TOKEN"] = ""
 os.environ["TELEGRAM_CHAT_ID"] = ""
 
-from src.cache_manager import CacheManager
+from src.data.cache_manager import CacheManager
 
 
 @pytest.fixture
