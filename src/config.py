@@ -240,7 +240,18 @@ MIN_ADTV_CR = 0.1  # Minimum Average Daily Traded Volume of ₹10 Lakhs (0.1 Cr)
 # Backtest Configuration
 # ──────────────────────────────────────────────
 BACKTEST_WINDOWS_DAYS = [30, 60, 90, 180, 360]
-BACKTEST_BENCHMARK = "BSE-SMLCAP"  # BSE SmallCap Index
+# Benchmark for backtest excess-return calculations.
+# MUST be a ticker yfinance actually serves. The previous value "BSE-SMLCAP"
+# was not one — it returns zero rows — and the code silently ignored it and
+# hardcoded ^NSEI (Nifty 50) instead. Nifty 50 is a large-cap index and the
+# wrong comparison for a small/mid-cap strategy.
+# Verified available: ^NSMIDCP (Nifty Midcap 100), ^CRSLDX (Nifty 500),
+# ^NSEI (Nifty 50), ^BSESN (Sensex). ^CNXSC returns no data.
+BACKTEST_BENCHMARK = "^NSMIDCP"  # Nifty Midcap 100
+
+# Seed for backtest sampling (control-group selection). Fixed so a report can
+# be reproduced and defended; set to None for a genuinely random draw.
+BACKTEST_RANDOM_SEED = 42
 MIN_WIN_RATE = 0.55  # 55% win rate threshold
 
 # ──────────────────────────────────────────────
