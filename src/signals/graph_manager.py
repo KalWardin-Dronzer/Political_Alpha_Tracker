@@ -33,6 +33,11 @@ from src.data.cache_manager import CacheManager
 
 logger = logging.getLogger(__name__)
 
+# Donor-name to company-name match threshold. Raised from 88 and paired with a
+# leading-word guard after a 91% false match ("D R INTERNATIONAL" vs "KEC
+# INTERNATIONAL") put a company into the connected set that never donated.
+DONOR_MATCH_THRESHOLD = 93
+
 
 class GraphManager:
     """
@@ -189,11 +194,23 @@ class GraphManager:
     # ──────────────────────────────────────────
     # Build Graph from Cache
     # ──────────────────────────────────────────
-    def build_from_cache(self):
+    def build_from_cache(self, reset: bool = True):
         """
         Reconstruct the full graph from SQLite cache data.
         Called during quarterly refresh or initial setup.
+
+        `reset` clears the in-memory graph first, which is what "build from
+        cache" has to mean: the database is the source of truth. Without it,
+        __init__ loads data/graph.json and this method layers on top, so every
+        rebuild accumulated orphan nodes from previous runs and — worse — kept
+        stale edges after a matching bug was fixed, hiding the fix. Measured:
+        four orphan company nodes survived a rebuild, and a corrected donor
+        match still showed as connected because the old edge persisted.
+
+        Pass reset=False only to deliberately merge into an existing graph.
         """
+        if reset:
+            self.G.clear()
         logger.info("Building graph from cache...")
 
         # 1. Add all watchlist companies
@@ -271,23 +288,56 @@ class GraphManager:
         donors_list = list(donors) # iterate over donors again
         donor_names = list(set(d["donor_name"] for d in donors_list if d.get("donor_name")))
         
-        # Get all listed companies in the database
+        # Match donor names to listed companies.
+        #
+        # This previously used token_set_ratio at a bare 88 threshold on raw
+        # uppercase names, which produced false connections. Observed:
+        #
+        #   "D R INTERNATIONAL PRIVATE LIMITED" -> "KEC INTERNATIONAL LIMITED"  91%
+        #
+        # token_set_ratio scores on token OVERLAP, so two unrelated companies
+        # sharing boilerplate ("INTERNATIONAL", "LIMITED") score highly. A false
+        # match here is the worst kind of bug in this project: it invents a
+        # political connection that does not exist and feeds it to the signal as
+        # though it were real.
+        #
+        # Same policy as CinResolver now applies: normalize away corporate
+        # boilerplate, require the leading word to match EXACTLY, use the
+        # stricter token_sort_ratio, and raise the threshold.
+        from src.data.cin_resolver import normalize as _norm, _first_token
+
         company_names = []
         company_map = {}
         all_companies = self.cache.get_all_companies()
         for company in all_companies:
-            name_upper = company.get("name", "").upper()
-            if name_upper:
-                company_names.append(name_upper)
-                # Map name to the full company dict so we can add it to graph if matched
-                company_map[name_upper] = company
-        
+            norm = _norm(company.get("name", ""))
+            if norm:
+                company_names.append(norm)
+                company_map[norm] = company
+
         matched_donor_to_company = {}
+        rejected_head = 0
         for d_name in donor_names:
-            result = process.extractOne(d_name.upper(), company_names, scorer=fuzz.token_set_ratio)
-            if result and result[1] >= 88:
-                matched_donor_to_company[d_name] = company_map[result[0]]
-                logger.info(f"Direct donor match: {d_name} -> {result[0]} (score: {result[1]}%)")
+            nd = _norm(d_name)
+            if not nd:
+                continue
+            result = process.extractOne(nd, company_names, scorer=fuzz.token_sort_ratio)
+            if not result or result[1] < DONOR_MATCH_THRESHOLD:
+                continue
+            if _first_token(result[0]) != _first_token(nd):
+                rejected_head += 1
+                logger.debug(
+                    f"Donor match rejected on leading word: {d_name} vs "
+                    f"{company_map[result[0]].get('name')} ({result[1]}%)"
+                )
+                continue
+            matched_donor_to_company[d_name] = company_map[result[0]]
+            logger.info(
+                f"Direct donor match: {d_name} -> "
+                f"{company_map[result[0]].get('name')} (score: {result[1]}%)"
+            )
+        if rejected_head:
+            logger.info(f"Rejected {rejected_head} donor matches on leading-word mismatch")
 
         for donor in donors_list:
             d_name = donor.get("donor_name")
