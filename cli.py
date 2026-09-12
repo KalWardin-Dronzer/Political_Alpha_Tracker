@@ -73,6 +73,9 @@ def cmd_research(args):
     if args.study == "lead-lag":
         from scripts.research import run_lead_lag
         return run_lead_lag.main() or 0
+    if args.study == "leadlag-rule":
+        from scripts.research import run_leadlag_rule
+        return run_leadlag_rule.main() or 0
     print(f"unknown study: {args.study}")
     return 1
 
@@ -188,10 +191,12 @@ def build_parser():
 
     rs = sub.add_parser("research", help="run a backtest or validation study")
     rs.add_argument("study",
-                    choices=["event", "factor", "controls", "universe", "lead-lag"],
+                    choices=["event", "factor", "controls", "universe",
+                             "lead-lag", "leadlag-rule"],
                     help="event=announcement study, factor=pre-declared grid, "
                          "controls=random/placebo controls, universe=premium test, "
-                         "lead-lag=political peer lead-lag with placebo control")
+                         "lead-lag=political peer lead-lag with placebo control, "
+                         "leadlag-rule=can the size lead-lag be traded after costs")
     rs.set_defaults(fn=cmd_research)
 
     sub.add_parser("trials", help="show the backtest trial log").set_defaults(fn=cmd_trials)
