@@ -1,9 +1,23 @@
 name: Weekly Graph Prune
 
 on:
-  schedule:
-    # Sunday 11:30 AM IST (06:00 UTC)
-    - cron: '0 6 * * 0'
+  # SCHEDULE DISABLED ON PURPOSE — see .github/workflows/README.md
+  #
+  # This job ran `refresh.py` on a GitHub runner, whose checkout has no
+  # database (data/cache.sqlite is gitignored). It therefore refreshed
+  # reference data into an empty, throwaway SQLite file. The commit step below
+  # was meant to persist it, but `git add` on a gitignored path stages nothing,
+  # so nothing was ever pushed. The job has never had any effect on real data,
+  # while sending a Telegram summary that looked like it had.
+  #
+  # Reference-data refreshes must run where the data lives, on EC2:
+  #   docker run --rm --env-file /home/ubuntu/Insider-trading/.env   #     -v /home/ubuntu/Insider-trading/data:/app/data   #     alpha-tracker python refresh.py --mode MODE
+  #
+  # Manual dispatch is kept for debugging.
+  # schedule:
+  # # Sunday 11:30 AM IST (06:00 UTC)
+  # - cron: '0 6 * * 0'
+
   workflow_dispatch:
 
 jobs:

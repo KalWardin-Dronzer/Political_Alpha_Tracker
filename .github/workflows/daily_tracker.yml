@@ -1,10 +1,29 @@
 name: Daily Alpha Tracker
 
 on:
-  schedule:
-    # 6:00 PM IST (12:30 UTC) on weekdays
-    - cron: '30 12 * * 1-5'
-  workflow_dispatch:  # Manual trigger
+  # SCHEDULE DISABLED ON PURPOSE — do not re-enable without reading this.
+  #
+  # The EC2 cron owns the daily pipeline (11:30 UTC, see crontab_setup.txt) and
+  # it is the only host with a persistent database. A GitHub Actions runner
+  # starts from a fresh checkout, and data/cache.sqlite is gitignored, so every
+  # scheduled CI run began with an EMPTY database: 184 companies built from
+  # scratch, 0 donors, 0 directors, 0 CINs, a 0-node graph, and no possibility
+  # of a valid alert. It then sent Telegram summaries indistinguishable in shape
+  # from the real EC2 run — noise that mimics signal, which is exactly what made
+  # the original silent failure so hard to diagnose.
+  #
+  # Observed 2026-09-11: EC2 reported 1678 companies and a 221-node graph at
+  # 17:42 IST; the CI run reported 184 companies and a 0-node graph at 22:16 IST.
+  # Two "successful" pipelines, one of them meaningless.
+  #
+  # The "Commit updated data files" step below was meant to persist the database
+  # between runs, but `git add` on a gitignored path silently adds nothing, so it
+  # never worked. Fixing it would mean committing a growing binary SQLite file on
+  # every run; EC2's volume is the right place for that state instead.
+  #
+  # Manual dispatch is kept for debugging. The reference-data health check will
+  # warn loudly if it is run without a database.
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   daily-pipeline:
@@ -44,11 +63,11 @@ jobs:
             data/pipeline.log
           retention-days: 7
 
-      - name: Commit updated data files
-        if: success()
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "actions@github.com"
-          git add data/graph.json data/cache.sqlite data/held_positions.csv || true
-          git diff --staged --quiet || git commit -m "chore: daily pipeline update $(date +%Y-%m-%d)"
-          git push || true
+      # The former "Commit updated data files" step was removed. It ran
+      # `git add data/graph.json data/cache.sqlite ...` on paths that .gitignore
+      # excludes, so it staged nothing, committed nothing and pushed nothing —
+      # while appearing to succeed. Anyone reading the workflow would reasonably
+      # conclude the database persisted between runs. It did not.
+      #
+      # Pipeline state lives on the EC2 volume. The artifact upload above is
+      # enough to inspect what a manual run produced.
