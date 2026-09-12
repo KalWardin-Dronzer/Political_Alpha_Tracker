@@ -51,6 +51,16 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
+# Allow running this file directly (python scripts/research/<name>.py) as well
+# as through cli.py. Without this the repo root is not on sys.path and the
+# `src` package cannot be imported — a regression introduced when these scripts
+# moved out of the repo root.
+import os as _os
+import sys as _sys
+_ROOT = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+if _ROOT not in _sys.path:
+    _sys.path.insert(0, _ROOT)
+
 from src.data.price_store import PriceStore
 from src.data.delisting_registry import DelistingRegistry
 from src.research.factor_backtest import CostModel, FactorBacktest, TrialLog
