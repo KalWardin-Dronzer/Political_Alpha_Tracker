@@ -16,9 +16,10 @@ on:
   # 17:42 IST; the CI run reported 184 companies and a 0-node graph at 22:16 IST.
   # Two "successful" pipelines, one of them meaningless.
   #
-  # The "Commit updated data files" step below was meant to persist the database
+  # A "Commit updated data files" step used to try to persist the database
   # between runs, but `git add` on a gitignored path silently adds nothing, so it
-  # never worked. Fixing it would mean committing a growing binary SQLite file on
+  # never worked. It has since been removed (see the note at the end of this
+  # file). Fixing it would have meant committing a growing binary SQLite file on
   # every run; EC2's volume is the right place for that state instead.
   #
   # Manual dispatch is kept for debugging. The reference-data health check will
@@ -32,10 +33,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -54,7 +55,7 @@ jobs:
 
       - name: Upload cache artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pipeline-data-${{ github.run_number }}
           path: |
