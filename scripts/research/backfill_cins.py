@@ -162,14 +162,23 @@ def cmd_promote(cache, apply: bool):
         ).fetchall()
         rows = [dict(r) for r in rows]
 
-        # A CIN staged against two different companies means at least one is
-        # wrong. Refuse the lot rather than promote a known-bad mapping.
+        # A CIN staged against two DIFFERENT companies means at least one is
+        # wrong, so refuse both rather than promote a known-bad mapping.
+        #
+        # But one CIN legitimately covering two scrip codes is normal: a company
+        # with two listed share classes shares a single CIN. JISLDVREQS and
+        # JISLJALEQS are both Jain Irrigation Systems Limited (DVR and ordinary
+        # equity). Blocking those would discard a correct mapping, so the test is
+        # whether the COMPANY NAMES differ, not whether the CIN repeats.
+        from src.data.cin_resolver import normalize
         seen, conflicts = {}, []
         for r in rows:
-            if r["resolved_cin"] in seen:
-                conflicts.append((seen[r["resolved_cin"]], r))
-            else:
-                seen[r["resolved_cin"]] = r
+            key = r["resolved_cin"]
+            prev = seen.get(key)
+            if prev is None:
+                seen[key] = r
+            elif normalize(prev["name"]) != normalize(r["name"]):
+                conflicts.append((prev, r))
 
         malformed = [r for r in rows if not CIN_RE.match(str(r["resolved_cin"]))]
 
