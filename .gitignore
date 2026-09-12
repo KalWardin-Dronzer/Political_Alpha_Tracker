@@ -31,6 +31,10 @@ Thumbs.db
 # It MUST stay untracked: the pipeline rewrites it on every run, and while it was
 # tracked the dirty worktree made `git pull` fail on EC2, silently aborting deploys.
 data/graph.json
+# All SQLite files, including manual pre-migration backups. The bare
+# data/cache.sqlite line missed data/cache.sqlite.pre-cin-backfill.
+data/*.sqlite
+data/*.sqlite.*
 data/cache.sqlite
 data/cache.sqlite-wal
 data/cache.sqlite-shm
