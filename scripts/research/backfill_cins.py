@@ -240,7 +240,25 @@ def main():
 
     got = 0
     t0 = time.time()
+    # Fail fast if the source is unreachable. The EC2 run spent 1h49m resolving
+    # 1631 companies at a 0% hit rate because Zaubacorp blocks datacenter IPs;
+    # every request failed and the summary read like a data outcome. There is no
+    # point continuing once it is clear nothing is getting through.
+    ABORT_AFTER = 25
     for i, row in enumerate(todo, 1):
+        if i > ABORT_AFTER and resolver.successful_requests == 0:
+            logger.error(
+                f"ABORTING: {resolver.transport_errors} consecutive transport "
+                f"failures, 0 successful requests "
+                f"(last: {resolver.last_transport_error}).
+"
+                f"  The source is unreachable from this host — Zaubacorp blocks "
+                f"datacenter IPs, so this fails on EC2 and cloud runners.
+"
+                f"  Run the backfill from a residential connection and copy the "
+                f"database over, rather than waiting for {len(todo)} failures."
+            )
+            break
         try:
             m = resolver.resolve(row["name"])
         except KeyboardInterrupt:

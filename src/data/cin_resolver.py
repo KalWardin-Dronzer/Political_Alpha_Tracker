@@ -142,6 +142,11 @@ class CinResolver:
         self.threshold = threshold
         self.listed_only = listed_only
         self._last_request = 0.0
+        # Kept so a caller can tell "the source returned nothing" apart from
+        # "we never reached the source".
+        self.transport_errors = 0
+        self.successful_requests = 0
+        self.last_transport_error = None
 
     def _throttle(self):
         gap = time.monotonic() - self._last_request
@@ -150,17 +155,35 @@ class CinResolver:
         self._last_request = time.monotonic()
 
     def _search(self, name: str, timeout: int = 25) -> list[tuple[str, str]]:
-        """Return [(cin, name), ...] candidates for a company name."""
+        """
+        Return [(cin, name), ...] candidates for a company name.
+
+        Transport failures are recorded on self.last_transport_error and counted,
+        NOT folded into an empty result. Conflating them cost a 1631-company run:
+        Zaubacorp blocks datacenter IPs, so from EC2 every request failed and the
+        report read "no search results after N query variants" for all 1631
+        companies — indistinguishable from a genuine 0% match rate, when the real
+        cause was that no request ever succeeded. A 92% hit rate on a residential
+        connection and 0% on EC2 is a network verdict, not a data one.
+        """
         self._throttle()
         url = SEARCH_URL.format(query=requests.utils.quote(name))
         try:
             resp = self.session.get(url, timeout=timeout)
         except Exception as e:
-            logger.debug(f"search failed for {name!r}: {e}")
+            self.transport_errors += 1
+            self.last_transport_error = f"{type(e).__name__}: {e}"
+            logger.warning(f"search TRANSPORT FAILURE for {name!r}: {e}")
             return []
         if resp.status_code != 200:
-            logger.debug(f"search HTTP {resp.status_code} for {name!r}")
+            self.transport_errors += 1
+            self.last_transport_error = f"HTTP {resp.status_code}"
+            logger.warning(
+                f"search HTTP {resp.status_code} for {name!r} — "
+                "this is a blocked/failed request, not an empty result"
+            )
             return []
+        self.successful_requests += 1
 
         out, seen = [], set()
         for cin, cand in _RESULT_RE.findall(resp.text):
@@ -232,6 +255,11 @@ class CinResolver:
             if candidates:
                 break
         if not candidates:
+            if self.last_transport_error and self.successful_requests == 0:
+                # Nothing has ever succeeded — report the block, not a miss.
+                return CinMatch(company_name, None, None, 0.0, 0,
+                                f"SOURCE UNREACHABLE ({self.last_transport_error}) — "
+                                f"no request has succeeded; this is not a data miss")
             return CinMatch(company_name, None, None, 0.0, 0,
                             f"no search results after {tried} query variants")
 
