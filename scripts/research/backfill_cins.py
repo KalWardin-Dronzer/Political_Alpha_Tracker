@@ -250,11 +250,9 @@ def main():
             logger.error(
                 f"ABORTING: {resolver.transport_errors} consecutive transport "
                 f"failures, 0 successful requests "
-                f"(last: {resolver.last_transport_error}).
-"
+                f"(last: {resolver.last_transport_error}).\n"
                 f"  The source is unreachable from this host — Zaubacorp blocks "
-                f"datacenter IPs, so this fails on EC2 and cloud runners.
-"
+                f"datacenter IPs, so this fails on EC2 and cloud runners.\n"
                 f"  Run the backfill from a residential connection and copy the "
                 f"database over, rather than waiting for {len(todo)} failures."
             )

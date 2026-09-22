@@ -104,8 +104,10 @@ class PipelineOrchestrator:
             self._step5_process_contract_events(contracts, daily_stats=daily_stats)
             self._step5_5_policy_monitoring()
             self._step5_5b_global_macro_events()
-            self._step5_6_advanced_scans(pledges)
-            
+            pledge_alerts = self._step5_6_advanced_scans(pledges)
+            daily_stats["alerts_fired"] += pledge_alerts
+            self.alerts_fired += pledge_alerts
+
             if not self.dry_run:
                 msg = (
                     f"✅ <b>Pipeline completed successfully.</b>\n\n"
@@ -622,16 +624,17 @@ class PipelineOrchestrator:
         except Exception as e:
             logger.error(f"  ❌ Error in Macro Event Scans: {e}")
 
-    def _step5_6_advanced_scans(self, pledges: list):
+    def _step5_6_advanced_scans(self, pledges: list) -> int:
+        """Returns the number of alerts sent, so the daily funnel counts them."""
         logger.info("Step 5.6: Advanced Alpha Sources...")
         if not self.dry_run:
             logger.debug("  [SKIPPED] GeM/CPPP Tender Monitor (uses mock data)")
             logger.debug("  [SKIPPED] State Budget Monitor (uses mock data)")
-            
+
             logger.info("  [ACTIVE] Promoter Pledge Monitor")
-            self.pledge_monitor.process_pledge_events(pledges)
-        else:
-            logger.info("  [DRY RUN] Would process Promoter Pledge Monitor")
+            return self.pledge_monitor.process_pledge_events(pledges)
+        logger.info("  [DRY RUN] Would process Promoter Pledge Monitor")
+        return 0
 
     def _step6_wrap_up(self, start_time, scrip_codes, daily_stats: dict = None):
         logger.info("Step 6: Saving graph and sending summary...")

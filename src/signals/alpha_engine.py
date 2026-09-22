@@ -493,21 +493,35 @@ class AlphaEngine:
 
     def analyze_pledge_document(self, text: str) -> dict:
         """
-        Uses Gemini LLM to parse a BSE SAST Regulation 31 disclosure (Promoter Pledge).
-        Extracts action type (Created, Released, Invoked), exact percentage changed, 
-        current total pledged percentage, and promoter name.
+        Extract the figures from a BSE SAST disclosure about encumbered shares.
+
+        Extraction only. Whether to alert is decided by
+        pledge_monitor.assess_disclosure(), which checks these figures against
+        the filing text. The previous prompt assumed every filing was a
+        promoter's Regulation 31 disclosure and allowed a single action, which
+        turned a lender-trustee's pledge-to-NDU swap (net change nil) into
+        "promoter released 6.22%" on 2026-09-22.
         """
         if not self.client:
             return {}
 
         prompt = (
-            "You are a financial analyst reviewing a BSE India corporate filing for promoter share pledges (Regulation 31 of SAST).\n"
-            "Read the following disclosure text and extract the key details regarding the encumbrance/pledge of shares.\n"
-            "Return a JSON object with the following keys:\n"
-            "- 'action_type': Must be exactly one of 'Created', 'Released', or 'Invoked'. If it's a release of pledge, output 'Released'. If new pledge, output 'Created'.\n"
-            "- 'pct_change': The percentage of total share capital that was pledged or released in this specific transaction. Output as a float (e.g., 2.5). If not found, use 0.0.\n"
-            "- 'total_pledged_pct': The new total percentage of share capital pledged by the promoter AFTER this transaction. Output as a float. If not found, use 0.0.\n"
-            "- 'promoter_name': The name of the promoter or promoter group entity making the disclosure.\n"
+            "You are reading a BSE India disclosure about encumbered shares (pledge, "
+            "non-disposal undertaking, lien). It may be a promoter's disclosure under "
+            "SAST Regulation 31, or a disclosure by a lender, debenture trustee or other "
+            "holder under Regulation 29. Do not assume which.\n"
+            "Copy figures exactly as printed. Never calculate, infer or round a figure; "
+            "if it is not printed, use null.\n"
+            "Return a JSON object with these keys:\n"
+            "- 'discloser_name': the entity that filed this disclosure.\n"
+            "- 'encumbered_pct_before': the discloser's total encumbered shares as a % of "
+            "total share capital BEFORE this event, as printed, or null.\n"
+            "- 'encumbered_pct_after': the same figure AFTER this event, as printed, or null.\n"
+            "- 'legs': one entry per encumbrance event in the filing. A filing can contain "
+            "several (for example a pledge released and a non-disposal undertaking created "
+            "on the same shares); list every one. Each entry is "
+            "{\"type\": one of \"Created\", \"Released\", \"Invoked\", \"NDU\", \"Other\", "
+            "\"pct\": its size as a positive % of total share capital, as printed}.\n"
             "Return ONLY raw JSON without markdown wrappers.\n"
             f"TEXT:\n{text[:6000]}"
         )
