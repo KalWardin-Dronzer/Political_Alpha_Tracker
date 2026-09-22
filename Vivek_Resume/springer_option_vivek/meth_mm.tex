@@ -1,0 +1,125 @@
+\begin{figure}[!t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+    node distance=1.8cm,
+    every node/.style={font=\small}
+]
+
+% ---------- STYLES ----------
+\tikzstyle{data} = [
+    rectangle, rounded corners,
+    minimum height=1cm,
+    text width=3.6cm,
+    align=center,
+    draw=black,
+    fill=blue!10
+]
+
+\tikzstyle{process} = [
+    rectangle,
+    minimum height=1cm,
+    text width=3.8cm,
+    align=center,
+    draw=black,
+    fill=orange!10
+]
+
+\tikzstyle{math} = [
+    ellipse,
+    minimum height=1cm,
+    text width=3.6cm,
+    align=center,
+    draw=black,
+    fill=green!10
+]
+
+\tikzstyle{decision} = [
+    diamond,
+    aspect=2,
+    text width=3.2cm,
+    align=center,
+    draw=black,
+    fill=red!10
+]
+
+\tikzstyle{arrow} = [
+  thick, ->, >=Stealth,
+  shorten <=2pt,
+  shorten >=2pt
+]
+
+
+% ---------- LEVEL 1 ----------
+\node (raw) [data] {
+\textbf{Raw Market Data}\\
+(NIFTY / BANKNIFTY)
+};
+
+\node (filter) [process, right=of raw] {
+\textbf{Filtration}\\
+Remove negligible prices\\
+and zero liquidity
+};
+
+% ---------- LEVEL 2 ----------
+\node (features) [data, below=of raw] {
+\textbf{Feature Vector} ($x_i$)\\
+Moneyness, Log-Liquidity\\
+Exact $T$, $\Delta$, $\Gamma$, $\nu$\\
+is\_call, dynamic IV
+};
+
+% ---------- LEVEL 3 ----------
+\node (bsm) [process, right=of features] {
+\textbf{BSM Anchor}\\
+Compute $P_{\text{BSM}}$\\
+(Dynamic ATM IV)
+};
+
+% ---------- LEVEL 4 ----------
+\node (transform) [math, below=of bsm] {
+\textbf{Log-Residuals}\\
+$r_i = \log(P_{\text{mkt}} / P_{\text{BSM}})$
+};
+
+% ---------- LEVEL 5 ----------
+\node (split) [decision, below=of transform] {Data Split};
+
+\node (train) [process, left=of split] {
+\textbf{Training Set}\\
+3-Quantile XGBoost\\
+$\tau \in \{0.05, 0.50, 0.95\}$
+};
+
+\node (calib) [process, right=of split] {
+\textbf{Calibration Set}\\
+Asymmetric CQR\\
+$\hat{q}^{\text{lo}}, \hat{q}^{\text{up}}$
+};
+
+% ---------- LEVEL 6 ----------
+\node (interval) [data, below=of split, fill=yellow!20] {
+\textbf{Asymmetric Interval}\\
+$[P_{\text{BSM}} e^{\hat{r}^{0.05} - \hat{q}^{\text{lo}}},$\\
+$P_{\text{BSM}} e^{\hat{r}^{0.95} + \hat{q}^{\text{up}}}]$
+};
+
+% ---------- CONNECTIONS ----------
+\draw [arrow] (raw) -- (filter);
+\draw [arrow] (filter) |- (features);
+\draw [arrow] (filter) -- (bsm);
+\draw [arrow] (features) -- (transform);
+\draw [arrow] (bsm) -- (transform);
+\draw [arrow] (transform) -- (split);
+
+\draw [arrow] (split) -- node[above]{$f_\tau(x)$} (train);
+\draw [arrow] (split) -- node[above]{$\hat{q}^{\text{lo}}, \hat{q}^{\text{up}}$} (calib);
+
+\draw [arrow] (train) |- (interval);
+\draw [arrow] (calib) |- (interval);
+
+\end{tikzpicture}}
+\caption{Overview of the proposed methodology. Raw market data is filtered, merged with spot prices, and transformed into a feature vector enriched with BSM Greeks. Log-residuals are computed relative to a dynamic BSM anchor. Three quantile XGBoost models are trained, and then Asymmetric Conformalized Quantile Regression calibrates independent lower and upper conformal adjustments to produce the final prediction intervals.}
+\label{fig:methodology_mindmap}
+\end{figure}

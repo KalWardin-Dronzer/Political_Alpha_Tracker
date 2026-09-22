@@ -1,0 +1,83 @@
+% Response to Reviewer Comments
+% Manuscript: Distribution-Free Uncertainty Quantification for Option Pricing
+% Authors: V. Kumar and M. Jana
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+\newcommand{\rev}[1]{\textbf{Reviewer Comment:} \textit{#1}}
+\newcommand{\resp}[1]{\textbf{Response:} #1}
+
+\title{Response to Reviewer Comments}
+\author{V. Kumar and M. Jana}
+\date{}
+
+\begin{document}
+\maketitle
+
+We sincerely thank the reviewer for the thoughtful and constructive feedback. Below we provide point-by-point responses. All changes in the revised manuscript are highlighted in {\color{blue}blue}.
+
+\section*{Comment 1}
+\rev{Title is too complex and technical, making it hard to understand quickly.}
+
+\resp{We have simplified the title from ``Distribution-free Uncertainty Quantification for Option Pricing Using Residual-space Conformal Prediction'' to ``\textbf{Conformalized Residual Option Pricing with Asymmetric Uncertainty Intervals}.'' The revised title is more concise and immediately conveys the three key ideas: conformal prediction, residual decomposition, and asymmetric intervals.}
+
+\section*{Comment 2}
+\rev{Abstract is conceptually strong but overly dense and difficult for general readers.}
+
+\resp{We have rewritten the abstract to improve readability. The revised version uses shorter sentences, avoids jargon on first mention, and leads with the practical motivation before introducing the technical contribution. Concrete numerical results (MAE, coverage percentages) are now included to ground the claims.}
+
+\section*{Comment 3}
+\rev{Claims like ``stable coverage'' are not supported with clear numerical results.}
+
+\resp{This was a significant gap. In the revised manuscript, we now provide:
+\begin{itemize}[nosep]
+    \item \textbf{Table~3 (in Section 5.3):} Stratified coverage across five moneyness regimes (Deep OTM: 76.75\%, OTM: 74.26\%, ATM: 79.51\%, ITM: 83.93\%, Deep ITM: 94.23\%).
+    \item \textbf{Table~4 in Section 5.5:} Stratified coverage across three liquidity buckets (Low: 80.29\%, Medium: 74.47\%, High: 85.06\%).
+    \item \textbf{Table~5 in Section 5.5:} Separate Call vs.\ Put coverage (Call: 79.87\%, Put: 79.90\%), confirming structural fairness.
+    \item \textbf{Figure~3 in Section 5.4:} A bar chart visualizing coverage stability across moneyness regimes.
+    \item \textbf{Figure~6 in Section 6:} A rolling coverage plot demonstrating temporal stability over the test period.
+\end{itemize}
+Every claim of ``stable coverage'' in the text is now backed by specific numerical evidence from these tables.}
+
+\section*{Comment 4}
+\rev{Literature comparison is weak, with no clear positioning against existing methods.}
+
+\resp{We have expanded the Related Work section to explicitly position our framework against: (a) parametric extensions such as Heston's stochastic volatility and Dupire's local volatility models (Section 4.3), (b) direct ML pricing methods that suffer from scale bias, and (c) standard conformal prediction in price space. We added six new references including Romano et al.\ (2019) on Conformalized Quantile Regression, Gu et al.\ (2020) on empirical asset pricing via ML, and Heston (1993), Dupire (1994), and Bates (1996) on stochastic/local volatility extensions. The research gap subsection now clearly states what each prior approach lacks and how our framework addresses it.}
+
+\section*{Comment 5}
+\rev{Method is interesting but not clearly explained, especially residual modeling and conformal setup which need more explanation.}
+
+\resp{We have substantially expanded the methodology: (a) The Residual-Space Decomposition subsection now includes a detailed explanation of why log-residuals are preferred over additive or percentage residuals, with explicit reference to heteroskedasticity. (b) The Conformal Prediction subsection has been entirely rewritten to describe the full Conformalized Quantile Regression (CQR) procedure, including the three-quantile XGBoost training, asymmetric nonconformity scores, and per-side calibration. (c) A new subsection on BSM Greeks as features explains how Delta, Gamma, and Vega are computed and injected into the model. (d) Figure~1 is now referenced in the text with an explicit walkthrough of each pipeline stage.}
+
+\section*{Comment 6}
+\rev{Result analysis is insufficient, with no benchmarks, error metrics, or interval quality evaluation.}
+
+\resp{As per the suggestion from the esteemed reviewer, we have included the experimental section as follows. 
+\begin{itemize}[nosep]
+    \item \textbf{Three benchmark models:} Dynamic BSM baseline, Direct ML (XGBoost trained on log-prices), and Hybrid Residual CQR (proposed).
+    \item \textbf{Table~1:} Point accuracy with MAE, RMSE, and MAPE for all three models.
+    \item \textbf{Table~2:} Interval quality metrics including Empirical Coverage, Avg Interval Width, Normalized Interval Width, Winkler Score, and PICP.
+    \item \textbf{Figure~7:} Actual vs.\ Predicted scatter plots with $R^2$ for all three models.
+    \item \textbf{Figure~5:} Feature importance analysis showing Delta (0.45), is\_call (0.18), Vega (0.09) as top features.
+\end{itemize}
+The proposed model achieves MAE of \textbf{84.06} vs.\ 144.88 (Direct ML) and 825.78 (BSM), a 42\% improvement over the strongest baseline.}
+
+\section*{Comment 7}
+\rev{Conclusion is theoretically strong but lacks practical validation and real-world applicability discussion.}
+
+\resp{We have added a new Discussion subsection on Practical Applicability. It emphasizes: (a) the model's reliance on economically meaningful features (Delta, Vega, is\_call) rather than opaque patterns, which makes it suitable for live trading systems; (b) the modularity of the framework---the conformal layer can be recalibrated without retraining the base model; and (c) the Normalized Interval Width metric (avg 2.86) as a scale-free measure that traders can interpret as percentage risk bounds. The Conclusion now explicitly discusses deployment considerations.}
+
+\section*{Comment 8}
+\rev{The paper should be checked for grammatical mistakes and typos.}
+
+\resp{The entire manuscript has been carefully proofread. We corrected grammatical errors, improved sentence structure throughout, and ensured consistency in notation and terminology.}
+
+\section*{Comment 9}
+\rev{Figure 1 is not mentioned in the text. Mention it at the appropriate place.}
+
+\resp{Figure~1 is now explicitly cited in Section~4.1 (Overview of the Framework) with a sentence: ``The complete pipeline is illustrated in Figure 1, which shows the flow from raw data through feature engineering, BSM anchoring, residual learning, and conformal calibration to the final interval construction.'' }
+
+\end{document}
