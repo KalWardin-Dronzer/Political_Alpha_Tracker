@@ -51,3 +51,8 @@ data/cron.log
 # Keep these tracked
 !data/.gitkeep
 data/political_alpha_cache.db
+
+# Personal files (resumes, applications, manuscripts) live next to the repo on
+# this machine but are never published.
+Claude outputs/
+Vivek_Resume/
