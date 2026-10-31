@@ -56,3 +56,7 @@ data/political_alpha_cache.db
 # this machine but are never published.
 Claude outputs/
 Vivek_Resume/
+
+# Local agent tooling. These were symlinks into .venv, which break on any other machine.
+.claude/
+.agents/
