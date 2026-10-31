@@ -1,62 +1,39 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.egg-info/
-dist/
-build/
-*.egg
 
 # Virtual environments
 .venv/
 venv/
-env/
 
 # Environment secrets
 .env
 
-# IDE
+# IDE and OS
 .vscode/
 .idea/
-*.swp
-*.swo
-tmp/
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Data files (cached, never source-controlled).
-# graph.json is DERIVED from cache.sqlite via GraphManager.build_from_cache().
-# It MUST stay untracked: the pipeline rewrites it on every run, and while it was
-# tracked the dirty worktree made `git pull` fail on EC2, silently aborting deploys.
-data/graph.json
-# All SQLite files, including manual pre-migration backups. The bare
-# data/cache.sqlite line missed data/cache.sqlite.pre-cin-backfill.
+# Downloaded or rebuilt locally, never committed: the Yahoo Finance price panel
+# (`python cli.py prices`) and anything left over from the old SQLite store.
+data/prices/
 data/*.sqlite
 data/*.sqlite.*
-data/cache.sqlite
-data/cache.sqlite-wal
-data/cache.sqlite-shm
-data/pipeline.log
-data/refresh.log
-data/nse_industry_mapping.csv
-data/held_positions.csv
-# Derived price panel for the factor engine. Rebuildable in ~4 min via
-# `python build_price_panel.py`, and large — never commit it.
-data/prices/
-data/pdfs/
-data/cron.log
+data/*.sqlite-*
+data/*.db
+data/graph.json
+data/*.log
 
-# Keep these tracked
-!data/.gitkeep
-data/political_alpha_cache.db
+# Generated on demand
+results/connections.html
+results/cin_candidates.csv
 
-# Personal files (resumes, applications, manuscripts) live next to the repo on
-# this machine but are never published.
+# Personal files that live next to the repo on this machine
 Claude outputs/
 Vivek_Resume/
 
-# Local agent tooling. These were symlinks into .venv, which break on any other machine.
+# Local agent tooling
 .claude/
 .agents/

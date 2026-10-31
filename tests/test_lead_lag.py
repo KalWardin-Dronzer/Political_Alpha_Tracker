@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.signals.lead_lag import (
+from src.research.lead_lag import (
     LeadLagTest, SectorGroups, LeadLagResult,
     MIN_CONNECTED, MIN_PEERS,
 )
@@ -31,28 +31,10 @@ class FakeStore:
         return pd.Series(10.0, index=self._close.columns)
 
 
-class FakeCache:
-    def __init__(self, rows):
-        self._rows = rows
-
-    class _Conn:
-        def __init__(self, rows): self._rows = rows
-        def execute(self, *_a, **_k): return self
-        def fetchall(self): return self._rows
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-
-    def _connect(self):
-        return self._Conn(self._rows)
-
-
-class FakeGraph:
-    """Treats a fixed symbol set as politically connected."""
-    def __init__(self, connected_cins):
-        self.connected = set(connected_cins)
-
-    def alpha_query(self, cin):
-        return [{"alpha_score": 1.0}] if cin in self.connected else []
+def universe(rows):
+    """A company table in the shape of data/companies.csv."""
+    return pd.DataFrame([{"scrip_code": r["nse_symbol"], "isin": "", "industry": "", **r}
+                         for r in rows])
 
 
 def make_setup(n_days=900, seed=3):
@@ -68,14 +50,14 @@ def make_setup(n_days=900, seed=3):
         connected = s.startswith("C")
         rows.append({"nse_symbol": s, "name": s, "sector": "TestSector",
                      "cin": f"CIN-{s}" if connected else ""})
-    graph = FakeGraph({f"CIN-{s}" for s in syms if s.startswith("C")})
-    return FakeStore(px), FakeCache(rows), graph, syms
+    connected = {f"CIN-{s}" for s in syms if s.startswith("C")}
+    return FakeStore(px), universe(rows), connected, syms
 
 
 class TestGroupConstruction:
     def test_connected_and_peers_are_identified(self):
-        store, cache, graph, _ = make_setup()
-        groups = LeadLagTest(store, cache, graph).build_groups()
+        store, companies, connected, _ = make_setup()
+        groups = LeadLagTest(store, companies, connected).build_groups()
         assert len(groups) == 1
         g = groups[0]
         assert set(g.connected) == {"C0", "C1", "C2", "C3"}
@@ -86,14 +68,14 @@ class TestGroupConstruction:
         THE test. Overlap here would let the regression predict a basket from
         itself and fabricate significance.
         """
-        store, cache, graph, _ = make_setup()
-        g = LeadLagTest(store, cache, graph).build_groups()[0]
+        store, companies, connected, _ = make_setup()
+        g = LeadLagTest(store, companies, connected).build_groups()[0]
         assert set(g.placebo).isdisjoint(set(g.peers))
 
     def test_placebo_is_never_connected(self):
         """A placebo leader must be an UNCONNECTED stand-in, or it isn't a control."""
-        store, cache, graph, _ = make_setup()
-        g = LeadLagTest(store, cache, graph).build_groups()[0]
+        store, companies, connected, _ = make_setup()
+        g = LeadLagTest(store, companies, connected).build_groups()[0]
         assert set(g.placebo).isdisjoint(set(g.connected))
 
     def test_placebo_matches_connected_on_traded_value(self):
@@ -111,8 +93,8 @@ class TestGroupConstruction:
                             enumerate([1, 2, 5, 48, 52, 100, 200, 300, 400, 500])}})
         rows = [{"nse_symbol": s, "name": s, "sector": "S",
                  "cin": f"CIN-{s}" if s.startswith("C") else ""} for s in syms]
-        g = LeadLagTest(FakeStore(px, adv), FakeCache(rows),
-                        FakeGraph({f"CIN-C{i}" for i in range(2)})).build_groups()[0]
+        g = LeadLagTest(FakeStore(px, adv), universe(rows),
+                        {f"CIN-C{i}" for i in range(2)}).build_groups()[0]
         # The closest ADV matches to 50 are U3 (48) and U4 (52).
         assert set(g.placebo) == {"U3", "U4"}
 
@@ -126,15 +108,15 @@ class TestGroupConstruction:
         )
         rows = [{"nse_symbol": s, "name": s, "sector": "S",
                  "cin": "CIN-C0" if s == "C0" else ""} for s in syms]
-        groups = LeadLagTest(FakeStore(px), FakeCache(rows),
-                             FakeGraph({"CIN-C0"})).build_groups()
+        groups = LeadLagTest(FakeStore(px), universe(rows),
+                             {"CIN-C0"}).build_groups()
         assert groups == []      # 1 connected < MIN_CONNECTED
 
 
 class TestRegression:
     def test_runs_and_reports_both_arms(self):
-        store, cache, graph, _ = make_setup()
-        t = LeadLagTest(store, cache, graph)
+        store, companies, connected, _ = make_setup()
+        t = LeadLagTest(store, companies, connected)
         r = t.run_sector(t.build_groups()[0])
         assert r is not None
         assert r.n_obs > 30
@@ -143,8 +125,8 @@ class TestRegression:
 
     def test_random_data_yields_no_lead_lag(self):
         """On independent random walks the verdict must be the null."""
-        store, cache, graph, _ = make_setup(seed=99)
-        t = LeadLagTest(store, cache, graph)
+        store, companies, connected, _ = make_setup(seed=99)
+        t = LeadLagTest(store, companies, connected)
         r = t.run_sector(t.build_groups()[0])
         assert "NO LEAD-LAG" in r.verdict() or r.verdict() == "AMBIGUOUS"
 

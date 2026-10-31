@@ -221,7 +221,7 @@ def bootstrap_sharpe_ci(returns: pd.Series, n_boot: int = 1000,
 
     try:
         from arch.bootstrap import StationaryBootstrap
-        bs = StationaryBootstrap(block_size, r.values)
+        bs = StationaryBootstrap(block_size, r.values, seed=42)
         lo, hi = bs.conf_int(_sharpe, n_boot, method="bca", size=ci).ravel()[:2]
         method = "bca"
     except Exception as e:
@@ -389,7 +389,7 @@ class FactorBacktest:
         it is cheap enough that there is no excuse for skipping it.
         """
         rng = np.random.default_rng(seed)
-        from src.signals.factor_engine import FactorEngine
+        from src.research.factor_engine import FactorEngine
 
         prices = self.store.close()
         if prices.empty:
