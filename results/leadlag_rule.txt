@@ -1,32 +1,32 @@
-liquid universe 1701   leaders (top 100 by ADV) 100   peers 1601
+leaders: the 100 names with the highest traded value over the previous year; peers: the other names above Rs 1 crore a day
+re-formed every period from sessions before it: median 1098 peers a week, from 2019-02-08
 round-trip cost 0.422%  (incl 10bps slippage/side)
 
 === weekly ===
-  BUY & HOLD peer basket            SR  1.246  ann   29.06%  maxDD  -42.96%  n=401
-  rule: long when lead[t-1] >  0.0%   SR  1.261  ann   20.48%  maxDD  -29.51%  invested   62%  switches   186  vs B&H +0.015  <-- beats buy&hold
-  rule: long when lead[t-1] >  0.5%   SR  1.305  ann   19.63%  maxDD  -26.69%  invested   54%  switches   200  vs B&H +0.060  <-- beats buy&hold
-  rule: long when lead[t-1] >  1.0%   SR  1.391  ann   18.60%  maxDD  -20.45%  invested   46%  switches   196  vs B&H +0.146  <-- beats buy&hold
-  rule: long when lead[t-1] >  2.0%   SR  1.170  ann   12.80%  maxDD  -13.22%  invested   30%  switches   166  vs B&H -0.075
-  same rule GROSS of costs          SR  1.584  ann   26.75%   <- signal before friction
+  BUY & HOLD peer basket            SR  0.940  ann   20.90%  maxDD  -44.06%  n=397
+  rule: long when lead[t-1] >  0.0%   SR  0.713  ann   10.35%  maxDD  -39.41%  invested   59%  switches   200  vs B&H -0.226
+  rule: long when lead[t-1] >  0.5%   SR  0.721  ann    9.28%  maxDD  -29.71%  invested   48%  switches   198  vs B&H -0.219
+  rule: long when lead[t-1] >  1.0%   SR  0.711  ann    8.54%  maxDD  -30.84%  invested   40%  switches   188  vs B&H -0.229
+  rule: long when lead[t-1] >  2.0%   SR  0.788  ann    7.30%  maxDD  -10.85%  invested   24%  switches   138  vs B&H -0.151
+  same rule GROSS of costs          SR  1.071  ann   16.61%   <- signal before friction
 
 === monthly ===
-  BUY & HOLD peer basket            SR  1.081  ann   29.90%  maxDD  -40.80%  n=92
-  rule: long when lead[t-1] >  0.0%   SR  1.360  ann   28.32%  maxDD  -23.87%  invested   74%  switches    29  vs B&H +0.279  <-- beats buy&hold
-  rule: long when lead[t-1] >  0.5%   SR  1.305  ann   25.91%  maxDD  -23.87%  invested   70%  switches    35  vs B&H +0.224  <-- beats buy&hold
-  rule: long when lead[t-1] >  1.0%   SR  1.307  ann   23.19%  maxDD  -23.87%  invested   64%  switches    35  vs B&H +0.226  <-- beats buy&hold
-  rule: long when lead[t-1] >  2.0%   SR  1.501  ann   23.33%  maxDD   -8.61%  invested   53%  switches    37  vs B&H +0.420  <-- beats buy&hold
-  same rule GROSS of costs          SR  1.403  ann   29.33%   <- signal before friction
+  BUY & HOLD peer basket            SR  0.861  ann   21.58%  maxDD  -41.50%  n=92
+  rule: long when lead[t-1] >  0.0%   SR  1.336  ann   22.73%  maxDD  -17.68%  invested   62%  switches    37  vs B&H +0.475  <-- beats buy&hold
+  rule: long when lead[t-1] >  0.5%   SR  1.645  ann   25.94%  maxDD   -8.38%  invested   58%  switches    37  vs B&H +0.784  <-- beats buy&hold
+  rule: long when lead[t-1] >  1.0%   SR  1.589  ann   23.54%  maxDD  -11.62%  invested   53%  switches    35  vs B&H +0.728  <-- beats buy&hold
+  rule: long when lead[t-1] >  2.0%   SR  1.488  ann   18.32%  maxDD   -4.62%  invested   45%  switches    39  vs B&H +0.628  <-- beats buy&hold
+  same rule GROSS of costs          SR  1.400  ann   23.97%   <- signal before friction
 
 --- paired bootstrap of the monthly rule vs buy-and-hold ---
-  observed Sharpe difference : +0.279
-  95% CI                     : [-0.324, +0.770]
-  P(difference <= 0)         : 0.210
-  return  rule +28.32%  vs  buy&hold +29.90%
-  vol     rule 19.90%  vs  buy&hold 28.12%
+  observed Sharpe difference : +0.475
+  95% CI                     : [-0.123, +1.026]
+  P(difference <= 0)         : 0.069
+  return  rule +22.73%  vs  buy&hold +21.58%
+  vol     rule 16.44%  vs  buy&hold 27.30%
 
 ==============================================================================
-VERDICT: the Sharpe gap does NOT survive a paired bootstrap.
-  The interval spans zero, and the rule earns LESS than buy-and-hold
-  with lower volatility — it is de-risking (time in cash), not alpha.
+VERDICT: the Sharpe gap does NOT survive a paired bootstrap; the interval
+  spans zero.
   Four thresholds on 92 months is also four more trials.
 ==============================================================================

@@ -13,14 +13,14 @@ usable sectors: 9   connected in test: 87   placebo leaders: 87   peers: 554
 PRE-DECLARED GRID: coefficients with 95% intervals, clustered by period
         spec periods                   treatment                     placebo           treatment - placebo  MDE treat
 ----------------------------------------------------------------------------------------------------------------------
-weekly lag 1     400  +0.002 [-0.057, +0.060] p=0.96  +0.034 [-0.013, +0.081] p=0.16  -0.032 [-0.098, +0.033] p=0.34      0.084
-weekly lag 2     399  +0.025 [-0.038, +0.088] p=0.44  +0.037 [-0.016, +0.089] p=0.17  -0.012 [-0.090, +0.066] p=0.77      0.090
-monthly lag 1      91  -0.043 [-0.231, +0.145] p=0.66  +0.139 [-0.001, +0.279] p=0.05  -0.182 [-0.377, +0.013] p=0.07      0.269
-monthly lag 2      90  -0.039 [-0.164, +0.086] p=0.54  -0.016 [-0.123, +0.091] p=0.77  -0.024 [-0.173, +0.126] p=0.76      0.178
+weekly lag 1     400  +0.003 [-0.057, +0.063] p=0.93  +0.035 [-0.012, +0.082] p=0.15  -0.032 [-0.098, +0.034] p=0.34      0.085
+weekly lag 2     399  +0.024 [-0.039, +0.087] p=0.46  +0.036 [-0.017, +0.088] p=0.19  -0.012 [-0.090, +0.066] p=0.77      0.090
+monthly lag 1      91  -0.040 [-0.228, +0.148] p=0.67  +0.142 [+0.003, +0.281] p=0.05  -0.182 [-0.378, +0.013] p=0.07      0.268
+monthly lag 2      90  -0.029 [-0.150, +0.092] p=0.64  -0.007 [-0.109, +0.096] p=0.89  -0.022 [-0.172, +0.128] p=0.77      0.173
 
   bond buyers lead their peers: no evidence; smallest Holm-adjusted p = 1.000
-  bond buyers lead peers by more than size-matched non-buyers: no evidence; smallest Holm-adjusted p = 0.268
-  smallest detectable treatment coefficient (80% power): 0.084 (weekly lag 1)
+  bond buyers lead peers by more than size-matched non-buyers: no evidence; smallest Holm-adjusted p = 0.269
+  smallest detectable treatment coefficient (80% power): 0.085 (weekly lag 1)
 
 === ENTITY LEVEL (check): 102 connected companies (a bond of Rs 10 lakh or more)
 usable sectors: 8   connected in test: 78   placebo leaders: 78   peers: 545
@@ -36,12 +36,35 @@ usable sectors: 8   connected in test: 78   placebo leaders: 78   peers: 545
 PRE-DECLARED GRID: coefficients with 95% intervals, clustered by period
         spec periods                   treatment                     placebo           treatment - placebo  MDE treat
 ----------------------------------------------------------------------------------------------------------------------
-weekly lag 1     400  +0.004 [-0.057, +0.065] p=0.91  +0.024 [-0.025, +0.074] p=0.33  -0.021 [-0.090, +0.049] p=0.56      0.087
-weekly lag 2     399  +0.019 [-0.046, +0.085] p=0.56  +0.023 [-0.031, +0.077] p=0.41  -0.003 [-0.079, +0.072] p=0.93      0.093
-monthly lag 1      91  -0.036 [-0.234, +0.162] p=0.72  +0.142 [+0.005, +0.279] p=0.04  -0.178 [-0.378, +0.022] p=0.08      0.283
-monthly lag 2      90  -0.022 [-0.147, +0.104] p=0.73  +0.020 [-0.089, +0.128] p=0.72  -0.041 [-0.189, +0.107] p=0.58      0.179
+weekly lag 1     400  +0.004 [-0.058, +0.067] p=0.89  +0.025 [-0.024, +0.075] p=0.32  -0.021 [-0.091, +0.049] p=0.56      0.089
+weekly lag 2     399  +0.018 [-0.047, +0.084] p=0.58  +0.022 [-0.032, +0.076] p=0.43  -0.003 [-0.080, +0.073] p=0.93      0.093
+monthly lag 1      91  -0.033 [-0.232, +0.165] p=0.74  +0.145 [+0.008, +0.281] p=0.04  -0.178 [-0.379, +0.023] p=0.08      0.283
+monthly lag 2      90  -0.012 [-0.134, +0.110] p=0.85  +0.027 [-0.079, +0.132] p=0.62  -0.038 [-0.187, +0.110] p=0.61      0.175
 
   bond buyers lead their peers: no evidence; smallest Holm-adjusted p = 1.000
-  bond buyers lead peers by more than size-matched non-buyers: no evidence; smallest Holm-adjusted p = 0.326
-  smallest detectable treatment coefficient (80% power): 0.087 (weekly lag 1)
+  bond buyers lead peers by more than size-matched non-buyers: no evidence; smallest Holm-adjusted p = 0.328
+  smallest detectable treatment coefficient (80% power): 0.089 (weekly lag 1)
 
+=== GROUP LEVEL, liquidity judged on 2019 traded value (check added after the first run)
+usable sectors: 9   connected in test: 75   placebo leaders: 75   peers: 299
+  Commodities                  connected= 13 placebo= 13 peers= 31
+  Consumer Discretionary       connected= 19 placebo= 19 peers= 66
+  Fast Moving Consumer Goods   connected=  5 placebo=  5 peers= 22
+  Financial Services           connected=  4 placebo=  4 peers= 70
+  Healthcare                   connected= 15 placebo= 15 peers= 17
+  Industrials                  connected= 12 placebo= 12 peers= 59
+  Information Technology       connected=  3 placebo=  3 peers= 16
+  Telecommunication            connected=  2 placebo=  2 peers=  4
+  Utilities                    connected=  2 placebo=  2 peers= 14
+
+PRE-DECLARED GRID: coefficients with 95% intervals, clustered by period
+        spec periods                   treatment                     placebo           treatment - placebo  MDE treat
+----------------------------------------------------------------------------------------------------------------------
+weekly lag 1     400  +0.011 [-0.049, +0.070] p=0.72  +0.009 [-0.034, +0.052] p=0.68  +0.002 [-0.063, +0.067] p=0.96      0.085
+weekly lag 2     399  +0.022 [-0.039, +0.083] p=0.48  +0.029 [-0.012, +0.070] p=0.17  -0.007 [-0.075, +0.062] p=0.85      0.087
+monthly lag 1      91  -0.037 [-0.191, +0.116] p=0.63  +0.013 [-0.074, +0.101] p=0.76  -0.051 [-0.194, +0.092] p=0.49      0.220
+monthly lag 2      90  -0.059 [-0.175, +0.057] p=0.32  +0.013 [-0.065, +0.091] p=0.74  -0.072 [-0.199, +0.056] p=0.27      0.166
+
+  bond buyers lead their peers: no evidence; smallest Holm-adjusted p = 1.000
+  bond buyers lead peers by more than size-matched non-buyers: no evidence; smallest Holm-adjusted p = 1.000
+  smallest detectable treatment coefficient (80% power): 0.085 (weekly lag 1)

@@ -1,62 +1,63 @@
 Trials already logged before this run: 28
 
-[1/8] top20/reb10d/adv1                  net SR  0.812 | bench SR  1.137 | net   16.94% | cost  10.78% | turn  18.1x | maxDD  -32.51%
-[2/8] top20/reb21d/adv1                  net SR  0.858 | bench SR  1.137 | net   17.85% | cost   5.70% | turn   9.7x | maxDD  -30.49%
-[3/8] top20/reb63d/adv1                  net SR  1.221 | bench SR  1.137 | net   26.72% | cost   2.24% | turn   3.6x | maxDD  -30.63%
-[4/8] top40/reb21d/adv1                  net SR  0.926 | bench SR  1.137 | net   18.33% | cost   5.92% | turn   8.9x | maxDD  -27.78%
-[5/8] top40/reb63d/adv1                  net SR  1.243 | bench SR  1.137 | net   25.59% | cost   2.35% | turn   3.4x | maxDD  -28.36%
-[6/8] top20/reb21d/adv5                  net SR  0.745 | bench SR  1.137 | net   15.51% | cost   5.60% | turn   9.7x | maxDD  -27.12%
-[7/8] top20/reb21d/adv1/mom-only         net SR  1.002 | bench SR  1.137 | net   21.51% | cost   3.54% | turn   5.9x | maxDD  -33.04%
-[8/8] top20/reb63d/adv1/mom-only         net SR  0.740 | bench SR  1.137 | net   14.79% | cost   1.62% | turn   2.9x | maxDD  -39.94%
+[1/8] top20/reb10d/adv1                  net SR  0.675 | bench SR  1.026 | net   13.47% | cost  10.65% | turn  18.4x | maxDD  -34.67%
+[2/8] top20/reb21d/adv1                  net SR  0.893 | bench SR  1.026 | net   18.82% | cost   5.78% | turn   9.8x | maxDD  -31.45%
+[3/8] top20/reb63d/adv1                  net SR  1.214 | bench SR  1.026 | net   26.70% | cost   2.24% | turn   3.6x | maxDD  -32.13%
+[4/8] top40/reb21d/adv1                  net SR  0.856 | bench SR  1.026 | net   16.66% | cost   5.92% | turn   9.0x | maxDD  -28.33%
+[5/8] top40/reb63d/adv1                  net SR  1.183 | bench SR  1.026 | net   24.11% | cost   2.34% | turn   3.4x | maxDD  -28.44%
+[6/8] top20/reb21d/adv5                  net SR  0.687 | bench SR  1.026 | net   13.88% | cost   5.51% | turn   9.7x | maxDD  -26.88%
+[7/8] top20/reb21d/adv1/mom-only         net SR  1.046 | bench SR  1.026 | net   22.66% | cost   3.50% | turn   5.8x | maxDD  -33.26%
+[8/8] top20/reb63d/adv1/mom-only         net SR  0.660 | bench SR  1.026 | net   12.90% | cost   1.52% | turn   2.7x | maxDD  -41.40%
 
 ==============================================================================
-BEST BY NET SHARPE: top40/reb63d/adv1
+BEST BY NET SHARPE: top20/reb63d/adv1
 ==============================================================================
 {
-  "sharpe_net": 1.243,
-  "sharpe_gross": 1.338,
-  "annual_return_net_pct": 25.59,
-  "annual_return_gross_pct": 27.94,
-  "cost_drag_annual_pct": 2.35,
-  "max_drawdown_pct": -28.36,
-  "benchmark_sharpe": 1.137,
-  "annual_turnover_x": 3.36,
+  "sharpe_net": 1.214,
+  "sharpe_gross": 1.298,
+  "annual_return_net_pct": 26.7,
+  "annual_return_gross_pct": 28.94,
+  "cost_drag_annual_pct": 2.24,
+  "max_drawdown_pct": -32.13,
+  "benchmark_sharpe": 1.026,
+  "annual_turnover_x": 3.59,
   "n_rebalances": 16,
   "n_days": 989
 }
 
-Sharpe vs equal-weight universe: +0.106
+Sharpe vs equal-weight universe: +0.188
 
 --- Bootstrap CI on net Sharpe (stationary block, BCa) ---
 {
-  "sharpe": 1.243,
-  "ci_low": 0.082,
-  "ci_high": 2.383,
+  "sharpe": 1.215,
+  "ci_low": -0.031,
+  "ci_high": 2.412,
   "method": "bca",
   "n_boot": 1000,
   "block_size": 20,
-  "excludes_zero": true
+  "excludes_zero": false
 }
+  >> Interval includes zero. The point estimate is not evidence.
 
 --- Deflated Sharpe (against 36 logged trials) ---
 {
-  "dsr": 0.6205,
-  "sharpe_annual": 1.243,
+  "dsr": 0.5994,
+  "sharpe_annual": 1.214,
   "expected_max_noise_sharpe_annual": 1.084,
   "n_trials": 36,
-  "skew": -0.57,
-  "kurtosis": 5.489,
+  "skew": -0.543,
+  "kurtosis": 5.0,
   "n_obs": 989,
   "passes": false
 }
   >> Below the 0.95 bar: not distinguishable from the best of 36 noise draws.
 
 --- Purged, embargoed folds (out-of-sample stability) ---
-  fold 0  2022-09-15 .. 2023-07-03  n= 197  Sharpe   0.357
-  fold 1  2023-07-04 .. 2024-04-24  n= 198  Sharpe   3.551
-  fold 2  2024-04-25 .. 2025-02-06  n= 198  Sharpe   1.304
-  fold 3  2025-02-07 .. 2025-11-27  n= 198  Sharpe   0.425
-  fold 4  2025-11-28 .. 2026-09-10  n= 198  Sharpe   0.682
+  fold 0  2022-09-15 .. 2023-07-03  n= 197  Sharpe   0.149
+  fold 1  2023-07-04 .. 2024-04-24  n= 198  Sharpe   3.390
+  fold 2  2024-04-25 .. 2025-02-06  n= 198  Sharpe   1.192
+  fold 3  2025-02-07 .. 2025-11-27  n= 198  Sharpe   0.363
+  fold 4  2025-11-28 .. 2026-09-10  n= 198  Sharpe   1.010
   folds with positive Sharpe: 5/5
 
 ==============================================================================

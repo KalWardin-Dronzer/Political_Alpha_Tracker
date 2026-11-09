@@ -135,7 +135,7 @@ def radial_layout(G: nx.Graph) -> dict:
     return pos
 
 
-def save_png(G: nx.Graph, path, dark: bool = True, labels: int = 10) -> Path:
+def save_png(G: nx.Graph, path, dark: bool = True, labels: int = 7) -> Path:
     """Static rendering for the README, labelling the largest buyers and every sector."""
     import matplotlib
     matplotlib.use("Agg")
@@ -158,39 +158,35 @@ def save_png(G: nx.Graph, path, dark: bool = True, labels: int = 10) -> Path:
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color=theme["edge"], width=0.8)
     for kind in ("company", "sector", "bonds"):
         nodes = [n for n, d in G.nodes(data=True) if d["kind"] == kind]
+        if kind == "company":
+            nodes.sort(key=lambda n: G.nodes[n]["total"])   # largest last, so on top
         nx.draw_networkx_nodes(G, pos, nodelist=nodes, ax=ax, node_color=theme[kind],
                                node_size=[area(n) for n in nodes],
                                edgecolors=theme["surface"], linewidths=1.5)
 
     companies = sorted((n for n, d in G.nodes(data=True) if d["kind"] == "company"),
                        key=lambda n: -G.nodes[n]["total"])
-    named = {n: display_name(G.nodes[n]["name"]) for n in companies[:labels]}
-    named.update({n: d["name"] for n, d in G.nodes(data=True) if d["kind"] != "company"})
-    for node, text in named.items():
-        bold = G.nodes[node]["kind"] != "company"
+    # The largest buyers are numbered inside their own circles and named in a
+    # key below, so their names cannot collide however crowded a fan gets.
+    top = companies[:labels]
+    for rank, node in enumerate(top, 1):
+        ax.annotate(str(rank), pos[node], ha="center", va="center", fontsize=7,
+                    fontweight="bold", color=theme["surface"])
+    for node, data in G.nodes(data=True):
+        if data["kind"] == "company":
+            continue
         x, y = pos[node]
         gap = (area(node) / math.pi) ** 0.5 + 3
         if node == BONDS:
             offset, ha, va = (0, -gap), "center", "top"
         else:
-            # Sectors: label pointing away from the centre. Companies: label to
-            # the side, away from the middle of their fan, so stacked neighbours
-            # label on opposite sides.
+            # Sectors: label pointing away from the centre.
             angle = math.atan2(y, x)
-            sector = G.nodes[node].get("sector")
-            if G.nodes[node]["kind"] == "company":
-                side = 1
-                if sector:
-                    sx, sy = pos[f"sector:{sector}"]
-                    drift = (angle - math.atan2(sy, sx) + math.pi) % (2 * math.pi) - math.pi
-                    side = -1 if drift < -1e-9 else 1
-                angle += side * math.pi / 2
             offset = (gap * math.cos(angle), gap * math.sin(angle))
             ha = "left" if math.cos(angle) > 0.2 else "right" if math.cos(angle) < -0.2 else "center"
             va = "bottom" if math.sin(angle) > 0.2 else "top" if math.sin(angle) < -0.2 else "center"
-        ax.annotate(text, (x, y), xytext=offset, textcoords="offset points", ha=ha, va=va,
-                    fontsize=9 if bold else 8, fontweight="bold" if bold else "normal",
-                    color=theme["ink"] if bold else theme["muted"])
+        ax.annotate(data["name"], (x, y), xytext=offset, textcoords="offset points", ha=ha, va=va,
+                    fontsize=9, fontweight="bold", color=theme["ink"])
 
     n_companies = len(companies)
     n_labelled = sum(1 for n in companies if G.nodes[n].get("sector"))
@@ -206,6 +202,14 @@ def save_png(G: nx.Graph, path, dark: bool = True, labels: int = 10) -> Path:
                        ncol=3, frameon=False, fontsize=9)
     for text in legend.get_texts():
         text.set_color(theme["muted"])
+    entries = [f"{rank} {display_name(G.nodes[n]['name'])} {G.nodes[n]['total'] / 1e7:,.0f}"
+               for rank, n in enumerate(top, 1)]
+    half = (len(entries) + 1) // 2
+    key = "Largest buyers, Rs crore:   " + "   ".join(entries[:half])
+    if entries[half:]:
+        key += "\n" + "   ".join(entries[half:])
+    ax.text(0.5, -0.07, key, transform=ax.transAxes, ha="center", va="top", fontsize=9,
+            color=theme["ink"], linespacing=1.6)
 
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

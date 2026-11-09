@@ -1,7 +1,8 @@
 ============================================================================================
 TEST A — IS THE SMALL/MID-CAP UNIVERSE PREMIUM REAL?
 ============================================================================================
-panel: 2591 symbols | liquid (ADV>=1Cr): 1701 | largest-100 subset for the size decomposition
+panel: 2591 symbols | in the universe on a given day (ADV >= Rs 1 crore over the previous year, point in time): median 1198, from 2019-01-30 | largest-100 subset for the size decomposition
+impossible daily moves removed from the panel: 229 (beyond +/-40%, in 116 symbols)
 survivorship drag applied: -0.284%/yr (59 failures / 2705 reconstructed universe)
 equal-weight maintenance cost applied: -0.42%/yr
 
@@ -10,53 +11,54 @@ PART 1 — sub-period stability, and equal-weight decomposed by size
 --------------------------------------------------------------------------------------------
 period                EW universe  EW top-100  Midcap100  Nifty500  Nifty50   EW-vs-Mid
                          (Sharpe)    (Sharpe)   (Sharpe)  (Sharpe) (Sharpe)
-pre-COVID                  -0.332       0.423      0.159     0.600    0.833      -0.490
-COVID crash+rally           2.363       1.878      1.049     1.042    0.893      +1.314
-2022 drawdown               0.636       0.854      0.055     0.181    0.245      +0.581
-post-COVID                  1.403       1.942      0.959     0.874    0.618      +0.444
-FULL                        1.368       1.561      0.766     0.795    0.681      +0.602
+pre-COVID                   0.052       0.276      0.159     0.600    0.833      -0.107
+COVID crash+rally           1.694       1.078      1.049     1.042    0.893      +0.645
+2022 drawdown               0.370       0.148      0.055     0.181    0.245      +0.314
+post-COVID                  0.970       0.979      0.959     0.874    0.618      +0.011
+FULL                        0.989       0.801      0.766     0.795    0.681      +0.223
 
 annualised returns, same rows:
 period                EW universe   Midcap100    excess
-pre-COVID                  -6.49%       1.27%    -7.76%
-COVID crash+rally          69.72%      23.60%   +46.12%
-2022 drawdown              11.75%      -0.87%   +12.61%
-post-COVID                 27.77%      16.33%   +11.44%
-FULL                       28.86%      13.49%   +15.37%
+pre-COVID                  -0.54%       1.27%    -1.81%
+COVID crash+rally          46.66%      23.60%   +23.06%
+2022 drawdown               5.82%      -0.87%    +6.69%
+post-COVID                 18.07%      16.33%    +1.75%
+FULL                       19.98%      13.49%    +6.48%
 
 --------------------------------------------------------------------------------------------
 PART 2 — rolling 3-year windows (is the premium ever absent?)
 --------------------------------------------------------------------------------------------
   window start    window end    EW SR   Mid SR   excess
-    2019-01-02    2022-01-25    1.473    0.724   +0.750
-    2019-07-10    2022-07-28    1.507    0.737   +0.770
-    2020-01-16    2023-01-31    1.644    0.578   +1.066
-    2020-07-22    2023-08-04    2.521    1.125   +1.397
-    2021-01-20    2024-02-09    2.471    1.169   +1.302
-    2021-07-27    2024-08-19    1.914    1.262   +0.652
-    2022-01-27    2025-02-17    1.421    0.769   +0.652
-    2022-07-29    2025-08-22    1.809    1.069   +0.739
-    2023-02-01    2026-02-25    1.455    1.237   +0.218
-    2023-08-07    2026-09-01    1.189    0.979   +0.210
+    2019-01-02    2022-01-25    1.189    0.724   +0.466
+    2019-07-10    2022-07-28    1.051    0.737   +0.314
+    2020-01-16    2023-01-31    1.131    0.578   +0.552
+    2020-07-22    2023-08-04    1.948    1.125   +0.823
+    2021-01-20    2024-02-09    1.927    1.169   +0.758
+    2021-07-27    2024-08-19    1.424    1.262   +0.162
+    2022-01-27    2025-02-17    0.892    0.769   +0.123
+    2022-07-29    2025-08-22    1.271    1.069   +0.202
+    2023-02-01    2026-02-25    0.955    1.237   -0.282
+    2023-08-07    2026-09-01    0.778    0.979   -0.201
 
-windows where the universe did NOT beat the midcap index: 0/10
+windows where the universe did NOT beat the midcap index: 2/10
 
 --------------------------------------------------------------------------------------------
 PART 3 — INVESTABLE version: 40 names, ANNUAL rebalance, full costs
 --------------------------------------------------------------------------------------------
-  seed 1: SR  1.538 | net ann (after survivorship)  33.28% | turnover 1.07x | maxDD  -27.01%
-  seed 2: SR  1.429 | net ann (after survivorship)  28.73% | turnover 1.07x | maxDD  -28.67%
-  seed 3: SR  1.419 | net ann (after survivorship)  30.85% | turnover 1.09x | maxDD  -38.43%
-  seed 4: SR  1.437 | net ann (after survivorship)  29.61% | turnover 1.09x | maxDD  -36.98%
-  seed 5: SR  1.190 | net ann (after survivorship)  25.18% | turnover 1.07x | maxDD  -34.30%
+  seed 1: SR  1.506 | net ann (after survivorship)  31.99% | turnover 1.07x | maxDD  -25.74%
+  seed 2: SR  1.328 | net ann (after survivorship)  27.37% | turnover 1.07x | maxDD  -31.82%
+  seed 3: SR  1.460 | net ann (after survivorship)  31.83% | turnover 1.09x | maxDD  -30.07%
+  seed 4: SR  1.578 | net ann (after survivorship)  34.29% | turnover 1.09x | maxDD  -29.17%
+  seed 5: SR  1.303 | net ann (after survivorship)  27.53% | turnover 1.07x | maxDD  -35.13%
 
-  mean SR 1.403 (sd 0.128) | mean net annual 29.53%
+  mean SR 1.435 (sd 0.117) | mean net annual 30.60%
+  window 2020-04-29 .. 2026-09-10
 
 ============================================================================================
 PRE-DECLARED VERDICT
   (a) beats midcap index in EVERY sub-period ......... False
-  (b) beats it in EVERY rolling 3y window ............ True
-  (c) investable 40-name annual version beats index .. True   (index SR 0.766)
+  (b) beats it in EVERY rolling 3y window ............ False
+  (c) investable 40-name annual version beats index .. True   (index SR 1.124 over the same days)
 
   FAIL — the premium is regime-dependent or does not survive
          implementation. Honest conclusion: an index fund.
