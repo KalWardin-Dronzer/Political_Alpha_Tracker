@@ -24,10 +24,9 @@ TWO THINGS MAKE THIS TRACTABLE
    search.
 
 2. Candidates are scored by fuzzy name similarity and rejected below a
-   threshold. A wrong CIN is worse than no CIN: it would silently attach
-   another company's directors to the graph and manufacture a political
-   connection that does not exist. This resolver returns None rather than a
-   guess.
+   threshold. A wrong CIN is worse than no CIN: it would silently credit one
+   company with another's bonds and manufacture a political connection that
+   does not exist. This resolver returns None rather than a guess.
 """
 
 import html
@@ -60,7 +59,7 @@ _RESULT_RE = re.compile(
 CIN_RE = re.compile(r"^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$")
 
 # Below this name-similarity score the match is refused. A wrong CIN corrupts
-# the graph silently; a missing one merely leaves a gap that is visible.
+# the attribution silently; a missing one merely leaves a gap that is visible.
 MATCH_THRESHOLD = 88
 
 REQUEST_DELAY_SEC = 1.2
@@ -206,8 +205,8 @@ class CinResolver:
         still guards every result, so a looser query cannot produce a wrong CIN.
         """
         raw = str(name).strip()
-        # Delete apostrophes and periods outright: "Divi's" -> "Divis".
-        tight = re.sub(r"[''´`.]", "", raw)
+        # Delete apostrophes, straight or curly, and periods outright: "Divi's" -> "Divis".
+        tight = re.sub(r"[‘’'´`.]", "", raw)
         # Other punctuation becomes a space.
         tight = re.sub(r"[^\w\s&]", " ", tight)
         tight = re.sub(r"\s+", " ", tight).strip()
@@ -268,7 +267,7 @@ class CinResolver:
         # "gsl infrastructure" scores 94 — above any threshold that still admits
         # a genuine match like "divis laboratories" at 93 — yet GTL and GSL are
         # unrelated companies. One letter in a short acronym is a different firm,
-        # and a wrong CIN would attach its directors to the graph silently.
+        # and a wrong CIN would silently credit one firm with the other's bonds.
         # Legitimate matches essentially always share their leading word.
         best_cin = best_name = None
         best_score = -1.0

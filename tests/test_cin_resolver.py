@@ -2,8 +2,8 @@
 Tests for the name-to-CIN resolver.
 
 The property under test is REFUSAL. A wrong CIN is far worse than a missing
-one: it silently attaches another company's directors to the political graph
-and manufactures a connection that does not exist, which is exactly the kind of
+one: it silently credits one company with another's bonds and manufactures a
+connection that does not exist, which is exactly the kind of
 fake signal this project has already been burned by. So most of these tests
 check that the resolver declines rather than guesses.
 
@@ -48,9 +48,10 @@ class TestQueryVariants:
         "Divis Laboratories" returns the right company. An apostrophe must
         vanish, not become a space.
         """
-        v = CinResolver.query_variants("Divi's Laboratories Limited")
-        assert any("Divis" in x for x in v)
-        assert not any("Divi s" in x for x in v)
+        for name in ("Divi's Laboratories Limited", "Divi’s Laboratories Limited"):  # straight, curly
+            v = CinResolver.query_variants(name)
+            assert any("Divis" in x for x in v)
+            assert not any("Divi s" in x for x in v)
 
     def test_offers_a_variant_without_the_limited_suffix(self):
         """"Britannia Industries Limited" -> 0 records; "Britannia Industries" -> 1."""
@@ -75,7 +76,7 @@ class TestRefusal:
         """
         The real AUROPHARMA case: Zaubacorp returned only
         'AUROBINDO PAHRMA PRIVATE LIMITED' (a typo'd private company). Guessing
-        it would have attached the wrong directors.
+        it would have keyed Aurobindo to the wrong company.
         """
         r = StubResolver({"Aurobindo Pharma Limited": [
             ("U99999PY1986PTC000469", "AUROBINDO PAHRMA PRIVATE LIMITED")]})
@@ -95,8 +96,8 @@ class TestRefusal:
 
         In the live measurement this case was rejected purely because Zaubacorp
         happened to return U-prefix companies that the listed filter removed.
-        Had any been L-prefix, the resolver would have attached GSL's directors
-        to GTL and invented a political connection.
+        Had any been L-prefix, the resolver would have given GTL GSL's CIN and
+        could have credited it with GSL's bonds, inventing a political connection.
         """
         r = StubResolver({"GTL Infrastructure Limited": [
             ("L45209GJ2008PLC052891", "GSL INFRASTRUCTURE LIMITED"),
