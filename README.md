@@ -156,7 +156,7 @@ Yahoo Finance daily prices ─ src/data/price_store.py ────────�
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                         # 103 tests, offline
+pytest -q                         # 94 tests, offline
 python cli.py connections         # who bought bonds: offline, in seconds
 python cli.py prices              # download daily prices from Yahoo Finance
 python cli.py study lead-lag      # also: event-study, leadlag-rule, factor, controls, universe
