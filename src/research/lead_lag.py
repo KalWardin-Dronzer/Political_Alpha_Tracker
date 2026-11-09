@@ -142,16 +142,21 @@ class LeadLagTest:
     # ──────────────────────────────────────────
     # Group construction
     # ──────────────────────────────────────────
-    def build_groups(self, min_adv_cr: float = 0.5) -> list[SectorGroups]:
+    def build_groups(self, min_adv_cr: float = 0.5, adv=None) -> list[SectorGroups]:
         """
         Split each sector into connected / placebo-leader / peer groups.
 
         Placebo leaders are the unconnected names whose traded value most
         closely matches the connected group's median, so they stand in for
         "a comparably large and liquid name that simply isn't connected".
+
+        `adv` is the traded value per symbol (Rs crore) used for the liquidity
+        screen and the matching. The declared default is the panel's last 252
+        sessions, which judges liquidity after the fact; the study also runs a
+        check with the panel's first year.
         """
         panel = set(self.store.close().columns)
-        adv = self.store.adv_cr(252)
+        adv = self.store.adv_cr(252) if adv is None else adv
 
         by_sector: dict[str, dict[str, list]] = {}
         for _, r in self.companies.iterrows():

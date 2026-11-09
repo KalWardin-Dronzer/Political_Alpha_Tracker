@@ -43,6 +43,32 @@ VOLUME_FILE = PRICE_DIR / "volume.parquet"
 BATCH_SIZE = 60
 BATCH_PAUSE_SEC = 0.4
 
+# A close-to-close move larger than this is treated as a data error. NSE's
+# widest daily price band for stocks outside the derivatives segment is 20%.
+# The Yahoo panel holds moves no band allows: prints of +9,411% that reverse
+# three days later, splits and demergers it never adjusted (Vedanta -65% on its
+# 2026 demerger), and level shifts on 1 January. A few genuine moves go with
+# them: YES Bank and IndusInd Bank moved 45-58% on some days in March 2020.
+MAX_DAILY_MOVE = 0.40
+
+
+def remove_impossible_moves(close: pd.DataFrame, limit: float = MAX_DAILY_MOVE):
+    """Chain-link out every close-to-close move larger than `limit`.
+
+    Each such move is set to zero and the prices before it are rescaled, as a
+    split adjustment would be, so a bad print that reverts leaves no trace and
+    an unadjusted split no longer looks like a crash. A move across missing
+    days is measured from the last close. Returns (cleaned panel, removed moves
+    as a Series indexed by date and symbol).
+    """
+    moves = close.ffill().pct_change(fill_method=None).where(close.notna())
+    flagged = moves.abs() > limit
+    factor = (1 + moves).where(flagged, 1.0)
+    # The prices on day t are scaled by every flagged move after t.
+    later = factor.iloc[::-1].cumprod().iloc[::-1].shift(-1).fillna(1.0)
+    removed = moves.where(flagged).stack().dropna()
+    return close * later, removed
+
 
 class PriceStore:
     """
@@ -57,6 +83,7 @@ class PriceStore:
     def __init__(self, price_dir: Path = None):
         self.dir = price_dir or PRICE_DIR
         self.dir.mkdir(parents=True, exist_ok=True)
+        self._cleaned = None   # (file modification time, cleaned panel)
 
     # ──────────────────────────────────────────
     # Fetch
@@ -195,9 +222,16 @@ class PriceStore:
     # ──────────────────────────────────────────
     # Access
     # ──────────────────────────────────────────
-    def close(self) -> pd.DataFrame:
-        """Adjusted closes: DatetimeIndex x symbol."""
-        return self._read(CLOSE_FILE)
+    def close(self, clean: bool = True) -> pd.DataFrame:
+        """Adjusted closes: DatetimeIndex x symbol, with impossible moves removed
+        (see remove_impossible_moves) unless clean=False."""
+        if not clean or not CLOSE_FILE.exists():
+            return self._read(CLOSE_FILE)
+        stamp = CLOSE_FILE.stat().st_mtime_ns
+        if self._cleaned is None or self._cleaned[0] != stamp:
+            raw = self._read(CLOSE_FILE)
+            self._cleaned = (stamp, remove_impossible_moves(raw)[0] if not raw.empty else raw)
+        return self._cleaned[1].copy()
 
     def volume(self) -> pd.DataFrame:
         """Raw share volume: DatetimeIndex x symbol."""
@@ -231,6 +265,22 @@ class PriceStore:
         common = px.columns.intersection(vol.columns)
         turnover = (px[common] * vol[common]).tail(window)
         return (turnover.mean() / 1e7).dropna().sort_values(ascending=False)
+
+    def adv_history(self, window: int = 252, min_periods: int = 21) -> pd.DataFrame:
+        """
+        Average daily traded value over the `window` sessions up to and
+        including each date, Rs crore: DatetimeIndex x symbol, NaN until a
+        symbol has `min_periods` sessions with a price.
+
+        For point-in-time screens. Shift it before use, so that a screen
+        applied on day t sees only sessions before t.
+        """
+        px, vol = self.close(), self.volume()
+        if px.empty or vol.empty:
+            return pd.DataFrame()
+        common = px.columns.intersection(vol.columns)
+        value = px[common] * vol[common]
+        return value.rolling(window, min_periods=min_periods).mean() / 1e7
 
     def coverage(self) -> dict:
         px = self.close()

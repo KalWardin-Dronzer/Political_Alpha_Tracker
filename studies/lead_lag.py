@@ -51,6 +51,15 @@ Four specifications, all reported. Political connection is said to
 Otherwise the result is "no evidence", stated with the 95% intervals. The
 primary definition of a connected company is group level (src.connections);
 entity level is reported as a check.
+
+ADDED AFTER THE FIRST RUN (2026-11-09)
+--------------------------------------
+The declared design screens and size-matches companies on traded value over
+the panel's last year, which judges liquidity after the fact. A second check,
+added after the first run and not part of the decision rules, repeats the group
+level with traded value over the panel's first year (2019) instead. The price
+panel itself is now cleaned of impossible daily moves (src.data.price_store);
+the first run, on uncleaned prices, is in the git history (commit ce5f11f).
 """
 
 import logging
@@ -81,6 +90,7 @@ GRID = [("W-FRI", "weekly", 1), ("W-FRI", "weekly", 2),
 ALPHA = 0.05
 MDE_Z = 1.96 + 0.8416   # 5% two-sided test, 80% power
 LEVELS = ("group", "entity")
+FIRST_YEAR_END = "2019-12-31"   # for the check added after the first run
 
 
 def _pool(t: LeadLagTest, groups, freq: str, lag: int) -> pd.DataFrame | None:
@@ -164,13 +174,17 @@ def main():
         if code:
             return code
         print()
-    return 0
+
+    first_year = store.adv_cr(252, as_of=FIRST_YEAR_END)
+    table = connections(level=LEVELS[0])
+    print("=== GROUP LEVEL, liquidity judged on 2019 traded value (check added after the first run)")
+    return report(store, companies, set(table.index[table["connected"]]), adv=first_year)
 
 
-def report(store, companies, connected) -> int:
+def report(store, companies, connected, adv=None) -> int:
     """Run the pre-declared grid for one definition of `connected` and print it."""
     t = LeadLagTest(store, companies, connected)
-    groups = t.build_groups()
+    groups = t.build_groups(adv=adv)
     if not groups:
         logger.error("No sector has enough connected companies AND peers.")
         return 1

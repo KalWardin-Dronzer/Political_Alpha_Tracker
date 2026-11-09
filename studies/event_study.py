@@ -16,6 +16,10 @@ DECISION RULES (declared 2026-11-09, before the study was run)
   across the three events.
 - The [0,+5] and pre-event [-5,-1] windows, the entity-level definition and the
   market-adjusted portfolio are reported as checks and descriptions.
+
+After the first run the price panel was cleaned of impossible daily moves
+(src.data.price_store), which changes these numbers slightly; the first run,
+on uncleaned prices, is in the git history (commit ce5f11f).
 """
 
 import logging

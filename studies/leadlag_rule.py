@@ -5,25 +5,26 @@ Can the size lead-lag be traded?
 
 WHAT THIS TESTS
 ---------------
-The peer lead-lag test refuted the POLITICAL hypothesis but produced one
-statistically significant coefficient along the way — in the placebo arm:
+Large, liquid stocks' returns lead small stocks' returns (Lo and MacKinlay,
+1990): news reaches the most traded names first. The political lead-lag test
+controls for this with a size-matched placebo arm. This study asks the
+practical question about the size effect itself: does holding the smaller
+stocks only after the most liquid ones rose beat simply holding them, after
+costs?
 
-    peers[t] ~ 0.078 * liquid_leaders[t-1]     t = 2.47   (weekly, clustered)
+Leaders are the N_LEADERS names with the highest traded value over the previous
+year and peers are every other name above MIN_ADV_CR, both re-formed at the
+start of each period from sessions before it. An earlier version picked them by
+traded value over the panel's last year, which chose stocks by how they turned
+out.
 
-Liquid names' returns predict smaller peers' returns one week ahead. That is
-information diffusion, the mechanism the capacity argument predicts, and it is
-the only significant result this project has produced. It is also ours rather
-than a paper's, so it has no publication-decay problem.
-
-The question here is narrower than "is it real": it is "does it survive costs".
-
-WHY THE ARITHMETIC IS ALREADY DISCOURAGING
-------------------------------------------
-beta 0.078 means a +2% week in the leader basket predicts +0.16% in peers. A
-weekly round trip costs ~0.42% (STT both sides, stamp duty, exchange, GST, 10bps
-slippage each side). The signal has to clear that on every round trip, and it
-does not obviously do so. This script exists to measure it rather than argue it, and
-to check whether lower-turnover variants fare better.
+WHY THE ARITHMETIC IS DISCOURAGING
+----------------------------------
+A weekly round trip costs ~0.42% (STT both sides, stamp duty, exchange, GST,
+10bps slippage each side). A lead-lag coefficient of 0.08 means a +2% week in
+the leader basket predicts +0.16% in peers, so the signal has to clear the cost
+on every round trip. This script measures that rather than argues it, and checks
+whether lower-turnover variants fare better.
 
 THE BENCHMARK THAT MATTERS
 --------------------------
@@ -82,19 +83,37 @@ def trading_costs(pos: pd.Series, costs: CostModel) -> pd.Series:
     return (change > 0) * costs.buy_pct() + (change < 0) * costs.sell_pct()
 
 
+def basket_groups(known: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Leader and peer membership for each period from the traded value known
+    at its start: leaders are the N_LEADERS highest, peers the rest above
+    MIN_ADV_CR."""
+    liquid = known >= MIN_ADV_CR
+    leaders = known.where(liquid).rank(axis=1, ascending=False, method="first") <= N_LEADERS
+    return leaders, liquid & ~leaders
+
+
+def basket_returns(store, freq: str) -> pd.DataFrame:
+    """Per-period returns of the leader and peer baskets, equal weighted, with
+    the number of names in each; membership is re-formed at the start of every
+    period from sessions before it."""
+    px = store.close()
+    px.index = pd.to_datetime(px.index)
+    pr = px.resample(freq).last().pct_change(fill_method=None)
+    # Traded value over the year to the end of the previous period.
+    known = (store.adv_history(252).resample(freq).last().shift(1)
+             .reindex(index=pr.index, columns=pr.columns))
+    leaders, peers = basket_groups(known)
+    return pd.concat([pr.where(leaders).mean(axis=1).rename("lead"),
+                      pr.where(peers).mean(axis=1).rename("peer"),
+                      leaders.sum(axis=1).rename("n_lead"),
+                      peers.sum(axis=1).rename("n_peer")], axis=1).dropna()
+
+
 def weekly_curves(store) -> pd.DataFrame:
     """Weekly returns of the threshold-0 rule gross and net of costs, and of
     buying and holding the same peer basket. Same steps as main(); used for the
     figure in results/figures."""
-    px = store.close()
-    px.index = pd.to_datetime(px.index)
-    adv = store.adv_cr(252)
-    liquid = [s for s in px.columns if adv.get(s, 0) >= MIN_ADV_CR]
-    leaders = list(adv.reindex(liquid).dropna().nlargest(N_LEADERS).index)
-    peers = [s for s in liquid if s not in set(leaders)]
-    pr = px.resample("W-FRI").last().pct_change()
-    aligned = pd.concat([pr[leaders].mean(axis=1).rename("lead"),
-                         pr[peers].mean(axis=1).rename("peer")], axis=1).dropna()
+    aligned = basket_returns(store, "W-FRI")
     pos = (aligned["lead"].shift(1) > 0).astype(float)
     gross = pos * aligned["peer"]
     return pd.DataFrame({
@@ -110,27 +129,21 @@ def main():
     if px.empty:
         logger.error("Price panel empty. Run: python cli.py prices")
         return 1
-    px.index = pd.to_datetime(px.index)
-
-    adv = store.adv_cr(252)
-    liquid = [s for s in px.columns if adv.get(s, 0) >= MIN_ADV_CR]
-    leaders = list(adv.reindex(liquid).dropna().nlargest(N_LEADERS).index)
-    peers = [s for s in liquid if s not in set(leaders)]
-
     costs = CostModel()
     rt = costs.round_trip_pct()
+    baskets = {freq: basket_returns(store, freq) for freq in PERIODS}
+    weekly = baskets["W-FRI"]
 
-    print(f"liquid universe {len(liquid)}   leaders (top {N_LEADERS} by ADV) "
-          f"{len(leaders)}   peers {len(peers)}")
+    print(f"leaders: the {N_LEADERS} names with the highest traded value over the previous year; "
+          f"peers: the other names above Rs {MIN_ADV_CR:g} crore a day")
+    print(f"re-formed every period from sessions before it: median {weekly['n_peer'].median():.0f} "
+          f"peers a week, from {weekly.index[0].date()}")
     print(f"round-trip cost {rt*100:.3f}%  (incl {costs.slippage*1e4:.0f}bps slippage/side)")
     print()
 
     any_win = False
     for freq, (label, ppy) in PERIODS.items():
-        pr = px.resample(freq).last().pct_change()
-        lead = pr[leaders].mean(axis=1)
-        peer = pr[peers].mean(axis=1)
-        aligned = pd.concat([lead.rename("lead"), peer.rename("peer")], axis=1).dropna()
+        aligned = baskets[freq]
         if len(aligned) < 30:
             continue
         sig = aligned["lead"].shift(1)          # only past information
@@ -173,9 +186,7 @@ def main():
     # buy-and-hold on the same periods, because that is the comparison the rule
     # has to win, and a gap of +0.2 on 92 months is well inside noise.
     print("--- paired bootstrap of the monthly rule vs buy-and-hold ---")
-    pr = px.resample("ME").last().pct_change()
-    a = pd.concat([pr[leaders].mean(axis=1).rename("lead"),
-                   pr[peers].mean(axis=1).rename("peer")], axis=1).dropna()
+    a = baskets["ME"]
     pos = (a["lead"].shift(1) > 0).astype(float)
     rule = (pos * a["peer"] - trading_costs(pos, costs)).dropna()
     bh = a["peer"].loc[rule.index]
@@ -215,17 +226,20 @@ def main():
         print("The rule beat buy-and-hold on BOTH Sharpe and return, and the interval")
         print("excludes zero. Re-check the trial count before acting on it.")
     elif any_win:
-        print("VERDICT: the Sharpe gap does NOT survive a paired bootstrap.")
-        print("  The interval spans zero, and the rule earns LESS than buy-and-hold")
-        print("  with lower volatility — it is de-risking (time in cash), not alpha.")
-        print("  Four thresholds on 92 months is also four more trials.")
+        if lo > 0:
+            print("VERDICT: the monthly rule's Sharpe gap survives the bootstrap, but the")
+            print("  rule earns less than buy-and-hold: it is de-risking (time in cash), not alpha.")
+        else:
+            print("VERDICT: the Sharpe gap does NOT survive a paired bootstrap; the interval")
+            print("  spans zero.")
+            if ret_rule < ret_bh:
+                print("  The rule also earns LESS than buy-and-hold, with lower volatility:")
+                print("  it is de-risking (time in cash), not alpha.")
+        print(f"  Four thresholds on {n} months is also four more trials.")
     else:
         print("VERDICT: no variant beat simply holding the peer basket.")
-        print("  The lead-lag coefficient is real (t=2.47) but too small to pay for")
-        print("  the round trips required to harvest it. A statistically significant")
-        print("  signal is not automatically a tradeable one — that gap is where most")
-        print("  retail strategies die, and it is why costs belong in the test rather")
-        print("  than in a footnote.")
+        print("  Whatever lead-lag there is does not pay for the round trips needed")
+        print("  to harvest it.")
     print("=" * 78)
     return 0
 

@@ -22,11 +22,14 @@ Three reasons it might be an artifact, each tested here:
      Any long-only strategy looks brilliant from there. Fixed by reporting
      every sub-period separately, including pre-COVID and post-COVID alone.
 
-  3. UNIVERSE SELECTION. The 1,588 names came from the watchlist generator's
-     fundamental screens applied with TODAY's data, which tilts toward
-     companies that look good now. Not fully fixable without point-in-time
-     fundamentals, but a premium concentrated in one regime is the signature
-     of a selection artifact, so sub-period stability speaks to it.
+  3. UNIVERSE SELECTION. The universe is NSE's list of equities as of
+     November 2026, so it holds only companies still listed then; the
+     delisting registry's drag below stands in for the rest. The liquidity
+     screen is point in time: a stock counts on day t if its traded value over
+     the previous year averaged Rs 1 crore, judged from sessions before t. An
+     earlier version screened on the panel's last year, which kept the stocks
+     that had become liquid by 2026, so it picked winners in advance and added
+     roughly 0.4 to the universe's Sharpe ratio.
 
 Costs are applied to the equal-weight basket, because maintaining equal weights
 is not free, and the survivorship drag from the delisting registry is
@@ -37,9 +40,10 @@ PRE-DECLARED VERDICT — fixed before seeing results
 PASS requires ALL of:
   a) equal-weight universe beats the cap-weighted midcap index in EVERY
      sub-period tested, not just on average
-  b) the excess survives costs and the survivorship adjustment
+  b) it beats the index in EVERY rolling three-year window
   c) an INVESTABLE version (40 names, annual rebalance, full costs) still
      beats the index
+Every figure is after costs and the survivorship adjustment.
 Anything less is a FAIL, and the honest conclusion is an index fund.
 """
 
@@ -61,7 +65,7 @@ _ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
 if _ROOT not in _sys.path:
     _sys.path.insert(0, _ROOT)
 
-from src.data.price_store import PriceStore
+from src.data.price_store import MAX_DAILY_MOVE, PriceStore, remove_impossible_moves
 from src.data.delisting_registry import DelistingRegistry
 from src.research.factor_backtest import CostModel, FactorBacktest, TrialLog
 
@@ -119,9 +123,14 @@ def main():
         return 1
     px.index = pd.to_datetime(px.index)
 
-    adv = store.adv_cr(252)
-    liquid = [s for s in px.columns if adv.get(s, 0) >= 1.0]
-    top100 = list(adv.reindex(liquid).dropna().nlargest(100).index)
+    # Point in time: on day t a stock is in the universe if its traded value
+    # over the previous year (at least a month of it) averaged Rs 1 crore, and
+    # in the top 100 if it ranked there by the same measure.
+    known = store.adv_history(252).shift(1).reindex(index=px.index, columns=px.columns)
+    liquid = known >= 1.0
+    top100 = known.where(liquid).rank(axis=1, ascending=False, method="first") <= 100
+    rets = px.pct_change(fill_method=None)
+    removed = remove_impossible_moves(store.close(clean=False))[1]
 
     # Survivorship drag, subtracted from every constructed-basket figure.
     reg = DelistingRegistry()
@@ -136,8 +145,12 @@ def main():
     print("=" * 92)
     print("TEST A — IS THE SMALL/MID-CAP UNIVERSE PREMIUM REAL?")
     print("=" * 92)
-    print(f"panel: {px.shape[1]} symbols | liquid (ADV>=1Cr): {len(liquid)} | "
-          f"largest-100 subset for the size decomposition")
+    daily = liquid.sum(axis=1)
+    print(f"panel: {px.shape[1]} symbols | in the universe on a given day (ADV >= Rs 1 crore over the "
+          f"previous year, point in time): median {int(daily[daily > 0].median())}, from "
+          f"{daily[daily > 0].index[0].date()} | largest-100 subset for the size decomposition")
+    print(f"impossible daily moves removed from the panel: {len(removed)} "
+          f"(beyond +/-{MAX_DAILY_MOVE:.0%}, in {removed.index.get_level_values(1).nunique()} symbols)")
     print(f"survivorship drag applied: -{drag_annual*100:.3f}%/yr "
           f"({bias.n_failures} failures / {bias.universe_size} reconstructed universe)")
     print(f"equal-weight maintenance cost applied: -{1.0*costs.round_trip_pct()*100:.2f}%/yr")
@@ -153,11 +166,11 @@ def main():
 
     verdict_rows = []
     for name, s, e in SUBPERIODS:
-        seg = px.loc[(px.index >= s) & (px.index <= e)]
-        if len(seg) < 40:
+        seg = (px.index >= s) & (px.index <= e)
+        if seg.sum() < 40:
             continue
-        ew_all = seg[liquid].pct_change().mean(axis=1) - ew_cost_daily - drag_daily
-        ew_big = seg[top100].pct_change().mean(axis=1) - ew_cost_daily - drag_daily
+        ew_all = rets[seg].where(liquid[seg]).mean(axis=1) - ew_cost_daily - drag_daily
+        ew_big = rets[seg].where(top100[seg]).mean(axis=1) - ew_cost_daily - drag_daily
 
         idx = {k: index_returns(v, s, e) for k, v in INDICES.items()}
         s_all, s_big = sharpe(ew_all), sharpe(ew_big)
@@ -179,7 +192,7 @@ def main():
     print("-" * 92)
     print("PART 2 — rolling 3-year windows (is the premium ever absent?)")
     print("-" * 92)
-    ew_full = px[liquid].pct_change().mean(axis=1) - ew_cost_daily - drag_daily
+    ew_full = rets.where(liquid).mean(axis=1) - ew_cost_daily - drag_daily
     mid_full = index_returns("^NSMIDCP", "2019-01-01", "2026-09-10")
     common = ew_full.index.intersection(mid_full.index)
     ew_c, mid_c = ew_full.loc[common], mid_full.loc[common]

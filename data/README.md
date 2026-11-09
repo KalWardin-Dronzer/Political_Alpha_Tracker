@@ -14,8 +14,8 @@ which comes from Yahoo Finance and is downloaded with `python cli.py prices`.
 | `donor_cins.csv` | 29 purchaser spellings mapped to the CIN of the listed company they name. | An earlier entity-resolution step, checked by hand. It covers names the strict name match misses, such as "DIVI S LABORATORIES" and "JINDAL STEEL AND POWER" (since renamed Jindal Steel). |
 | `match_audit.csv` | A decision for every purchaser reviewed in November 2026: `same_company` (another spelling, a former name, or a company since merged into the listed one), `subsidiary` (majority owned by a listed company) or `not_attributed`, each with the listed company, the relation and a source. | The 60 largest purchasers the rules left unattributed and every unattributed name close to a listed company's under looser rules (`python -m scripts.audit_candidates` lists them, and shows none without a decision). Sources are company filings, rating agencies' rationales and news reports; "name" means the decision rests on the names alone. |
 | `nse_delisted.parquet` | 416 NSE delistings with date and type. | NSE's delisted-securities list. Used to estimate survivorship bias. |
-| `backtest_trials.jsonl` | Every factor-backtest configuration ever run. | Appended by the backtests. The deflated Sharpe ratio is computed against this count, so do not prune it. |
-| `prices/` (not committed) | Adjusted daily closes and volumes. | Yahoo Finance via yfinance, to a pinned end date (`PRICE_END` in `src/config.py`): 1,905 trading days from 1 January 2019 to 10 September 2026. The earlier universe's 1,588 symbols were downloaded on 10 September 2026; the 1,003 added in November returned data for the same calendar. Four of those are earlier companies whose symbol has since changed (HEG is now HEGAM); their returns agree with the September download on every day both have. `python cli.py prices` fetches only symbols missing from the panel. |
+| `backtest_trials.jsonl` | The 28 backtests of the full run of 10-11 September 2026. | Each `python cli.py results` appends its own 28 (factor grid, random-selection controls, universe portfolios), and the deflated Sharpe ratio counts every logged trial, so the committed results are what a fresh clone reproduces. Never prune it: deflating against a count that omits trials understates overfitting. |
+| `prices/` (not committed) | Adjusted daily closes and volumes. | Yahoo Finance via yfinance, to a pinned end date (`PRICE_END` in `src/config.py`): 1,905 trading days from 1 January 2019 to 10 September 2026. The earlier universe's 1,588 symbols were downloaded on 10 September 2026; the 1,003 added in November returned data for the same calendar. Four of those are earlier companies whose symbol has since changed (HEG is now HEGAM); their returns agree with the September download on every day both have. `python cli.py prices` fetches only symbols missing from the panel. When the panel is read, 229 daily moves beyond ±40% (in 116 symbols, out of 3.5 million stock-days) are removed as data errors; see Known limits. |
 
 ## Known limits
 
@@ -30,6 +30,15 @@ which comes from Yahoo Finance and is downloaded with `python cli.py prices`.
   companies that were large at the end of the sample.
 - 58 equities in the universe have no prices: all listed after the panel's end
   date, between 15 September and 11 November 2026.
+- Yahoo's panel contains moves no NSE price band allows: prints of +9,411% that
+  reverse three days later, splits and demergers it never adjusted, and level
+  shifts on 1 January. `src/data/price_store.py` removes every close-to-close
+  move beyond ±40% (twice the widest band outside the derivatives segment) and
+  rescales the earlier prices, as a split adjustment would. A few genuine moves
+  go with them, such as YES Bank's and IndusInd Bank's 45-58% days in March 2020.
+- 213 symbols have prices from before the listing date in NSE's list, for
+  example companies that moved up from NSE's SME platform or relisted after
+  insolvency. Those earlier prices are kept.
 - The audit covers the largest unattributed purchasers and every close name; a
   small subsidiary with a name unlike its parent's, outside the top 60, would
   still be missed.
