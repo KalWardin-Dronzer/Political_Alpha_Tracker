@@ -75,3 +75,23 @@ def test_event_days_must_be_trading_days():
     close, volume, companies, connected = panel()
     with pytest.raises(ValueError):
         EventStudy(close.drop(pd.Timestamp("2024-03-15")), volume, companies, connected)
+
+
+def test_drift_is_described_for_pairs_whose_buyer_trades_more_and_for_the_rest():
+    close, volume, companies, connected = panel(seed=3)
+    larger, smaller = [f"B{i}" for i in range(6)], [f"B{i}" for i in range(6, 12)]
+    volume[larger] *= 10        # trade more than any control
+    volume[smaller] /= 10       # trade less than any control
+    rets = close.pct_change()
+    day0 = close.index.get_loc(pd.Timestamp("2024-03-15"))
+    rets.iloc[day0 - 10: day0, [close.columns.get_loc(s) for s in larger]] += 0.01
+    close = 100 * (1 + rets.fillna(0)).cumprod()
+
+    d = EventStudy(close, volume, companies, connected).drift()
+    assert (d["n_pairs"], d["n_larger"], d["n_rest"]) == (12, 6, 6)
+    assert list(d["path"].index) == list(range(-10, 0)) and len(d["band"]) == 10
+    assert d["car_larger"] - d["car_rest"] > 0.05      # the drift sits in the larger buyers' pairs
+    assert abs(d["car_rest"]) < 0.06
+    # Equal-sized halves: the whole portfolio's drift is the average of the two.
+    assert d["path"].iloc[-1] == pytest.approx((d["car_larger"] + d["car_rest"]) / 2)
+    assert np.isfinite(d["top_tenth"]) and np.isfinite(d["bottom_half"])

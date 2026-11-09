@@ -5,10 +5,11 @@ TEST A — Is the small/mid-cap universe premium real?
 
 THE QUESTION
 ------------
-Phase 2 found that random 40-name portfolios drawn from the liquidity-screened
-universe earned Sharpe 1.39-1.55, against Nifty Midcap 100 at 0.787. If that
-gap is real it is a strategy needing no alpha at all: low turnover, held past
-12 months for the lower tax rate, nothing to forecast and nothing to overfit.
+The controls study (results/controls.txt) finds that random 40-name portfolios
+drawn from the liquidity-screened universe, held from April 2020, earn higher
+Sharpe ratios than the Nifty Midcap 100 over the same days. If that gap is real
+it is a strategy needing no alpha at all: low turnover, held past 12 months for
+the lower tax rate, nothing to forecast and nothing to overfit.
 
 Three reasons it might be an artifact, each tested here:
 
@@ -35,7 +36,13 @@ Three reasons it might be an artifact, each tested here:
 The investable version needs a year of history before its first pick, so it
 starts in April 2020, at the bottom of the COVID crash. Criterion (c) compares
 it with the index over the same days; an earlier version used 2019-2026 for
-the index, which flattered the portfolio.
+the index, which flattered the portfolio. Its Sharpe ratios include the
+survivorship drag, as the rule below requires; until November 2026 the drag was
+subtracted from its annual returns only, which moved no verdict.
+
+The index series come from Yahoo Finance each time the study runs. If one
+cannot be downloaded the study stops: an earlier version read a failed download
+as an index that never moved, and every comparison against it passed.
 
 Costs are applied to the equal-weight basket, because maintaining equal weights
 is not free, and the survivorship drag from the delisting registry is
@@ -110,31 +117,66 @@ def mdd(r):
     return float((c / c.cummax() - 1).min())
 
 
+class IndexDownloadError(RuntimeError):
+    """Yahoo Finance returned no prices for an index."""
+
+
 def index_returns(ticker, start, end):
+    """Daily returns of an index from Yahoo Finance.
+
+    Raises IndexDownloadError rather than returning an empty series: an empty
+    series has a Sharpe ratio of zero here, so every comparison against it
+    would pass, and so would the verdict.
+    """
     try:
-        h = yf.Ticker(ticker).history(start=start, end=end)[["Close"]]
-        if h.empty:
-            return pd.Series(dtype=float)
-        h.index = h.index.tz_localize(None)
-        return h["Close"].pct_change().dropna()
-    except Exception:
-        return pd.Series(dtype=float)
+        h = yf.Ticker(ticker).history(start=start, end=end)
+    except Exception as e:
+        raise IndexDownloadError(f"{ticker}: the download failed ({e})") from e
+    if h.empty or "Close" not in h.columns:
+        raise IndexDownloadError(f"{ticker}: Yahoo Finance returned no prices from {start} to {end}")
+    h = h[["Close"]]
+    h.index = h.index.tz_localize(None)
+    return h["Close"].pct_change().dropna()
+
+
+def point_in_time_screen(adv_history: pd.DataFrame, index, columns,
+                         floor: float = 1.0, top: int = 100):
+    """(in the universe, among its `top` most traded) for each day and stock.
+
+    A stock is in the universe on day t if its traded value over the previous
+    year (at least a month of it) averaged `floor` Rs crore a day, judged from
+    sessions before t: `adv_history` is PriceStore.adv_history(252), shifted a
+    day here so that day t's own trading does not count.
+    """
+    known = adv_history.shift(1).reindex(index=index, columns=columns)
+    liquid = known >= floor
+    largest = known.where(liquid).rank(axis=1, ascending=False, method="first") <= top
+    return liquid, largest
+
+
+def over_days(returns: pd.Series, days) -> pd.Series:
+    """`returns` on `days` only, so that two Sharpe ratios cover the same window."""
+    return returns.loc[returns.index.intersection(days)]
 
 
 def main():
+    try:
+        return _main()
+    except IndexDownloadError as e:
+        print(f"\nSTOPPED: {e}. Every comparison here needs the index, so nothing is concluded.")
+        logger.error(str(e))
+        return 1
+
+
+def _main():
     store = PriceStore()
     px = store.close()
     if px.empty:
-        logger.error("Price panel empty. Run: python build_price_panel.py")
+        logger.error("Price panel empty. Run: python cli.py prices")
         return 1
     px.index = pd.to_datetime(px.index)
 
-    # Point in time: on day t a stock is in the universe if its traded value
-    # over the previous year (at least a month of it) averaged Rs 1 crore, and
-    # in the top 100 if it ranked there by the same measure.
-    known = store.adv_history(252).shift(1).reindex(index=px.index, columns=px.columns)
-    liquid = known >= 1.0
-    top100 = known.where(liquid).rank(axis=1, ascending=False, method="first") <= 100
+    liquid, top100 = point_in_time_screen(store.adv_history(252), px.index, px.columns)
     rets = px.pct_change(fill_method=None)
     removed = remove_impossible_moves(store.close(clean=False))[1]
 
@@ -155,7 +197,7 @@ def main():
     print(f"panel: {px.shape[1]} symbols | in the universe on a given day (ADV >= Rs 1 crore over the "
           f"previous year, point in time): median {int(daily[daily > 0].median())}, from "
           f"{daily[daily > 0].index[0].date()} | largest-100 subset for the size decomposition")
-    print(f"impossible daily moves removed from the panel: {len(removed)} "
+    print(f"implausible daily moves removed from the panel: {len(removed)} "
           f"(beyond +/-{MAX_DAILY_MOVE:.0%}, in {removed.index.get_level_values(1).nunique()} symbols)")
     print(f"survivorship drag applied: -{drag_annual*100:.3f}%/yr "
           f"({bias.n_failures} failures / {bias.universe_size} reconstructed universe)")
@@ -231,10 +273,10 @@ def main():
             continue
         sm = r.summary()
         days = r.returns.index if days is None else days.union(r.returns.index)
-        net_sr = sm["sharpe_net"]
+        net_sr = sharpe(r.returns - drag_daily)
         net_ann = sm["annual_return_net_pct"] / 100 - drag_annual
         inv.append((seed, net_sr, net_ann, sm["annual_turnover_x"], sm["max_drawdown_pct"]))
-        print(f"  seed {seed}: SR {net_sr:>6.3f} | net ann (after survivorship) "
+        print(f"  seed {seed}: SR (after survivorship) {net_sr:>6.3f} | net ann (after survivorship) "
               f"{net_ann*100:>6.2f}% | turnover {sm['annual_turnover_x']:>4.2f}x | "
               f"maxDD {sm['max_drawdown_pct']:>7.2f}%")
 
@@ -246,13 +288,13 @@ def main():
         print(f"  window {days[0].date()} .. {days[-1].date()}")
 
     # The index over the portfolios' own days, not the whole panel.
-    mid_inv = mid_full.loc[mid_full.index.intersection(days)] if days is not None else mid_c
+    mid_inv = over_days(mid_full, days) if days is not None else mid_c
 
     # ── Verdict ──
     print()
     print("=" * 92)
     cond_a = bool(verdict_rows) and all(r[3] > 0 for r in verdict_rows)
-    cond_b = neg == 0
+    cond_b = bool(rows) and neg == 0
     cond_c = bool(inv) and float(np.mean([x[1] for x in inv])) > sharpe(mid_inv)
     print("PRE-DECLARED VERDICT")
     print(f"  (a) beats midcap index in EVERY sub-period ......... {cond_a}")

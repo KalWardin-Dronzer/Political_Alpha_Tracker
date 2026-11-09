@@ -150,3 +150,51 @@ class EventStudy:
         return {"n_buyers": len(buyers), "n_controls": len(controls), "n_pairs": n_pairs,
                 "sigma": sigma, "mu": mu, "estimation_days": len(est),
                 "results": pd.DataFrame(rows), "abnormal": abnormal}
+
+    def drift(self, event: str = PRIMARY_EVENT, before: int = 10, last_week: int = 5) -> dict:
+        """What the matched portfolio did before an event: a description, not a test.
+
+        - how many pairs have a buyer that traded more than its control over the
+          estimation window;
+        - the cumulative abnormal return from day -`before` to day -1, and the
+          days on which it lies outside the 95% band drawn in the README figure;
+        - that cumulative abnormal return for the pairs whose buyer traded more
+          and for the rest, each against its own estimation-window mean;
+        - over days -`last_week` to -1, the average return of the most traded
+          tenth and of the least traded half of all stocks with complete prices.
+        """
+        rets = self.close.pct_change(fill_method=None)
+        adv = self.adv()
+        pairs = self.match()
+        at = self.pos[event]
+
+        def abnormal(group):
+            diff = rets[[b for b, _ in group]].mean(axis=1) - rets[[c for _, c in group]].mean(axis=1)
+            est = diff.iloc[self.est]
+            return diff - est.mean(), float(est.std(ddof=1)), len(est) - 1
+
+        whole, sigma, df = abnormal(pairs)
+        days = list(range(-before, 0))
+        path = pd.Series(whole.iloc[at - before: at].cumsum().to_numpy(), index=days)
+        band = stats.t.ppf(0.975, df) * sigma * np.sqrt(np.arange(1, before + 1))
+        peak_day = int(path.abs().idxmax())
+
+        larger = [(b, c) for b, c in pairs if adv[b] > adv[c]]
+        rest = [(b, c) for b, c in pairs if adv[b] <= adv[c]]
+
+        def car(group):
+            return float(abnormal(group)[0].iloc[at - before: at].sum()) if group else float("nan")
+
+        traded = adv.reindex(self.eligible()).dropna()
+        traded = traded[traded > 0]
+        rank = traded.rank(method="first", ascending=False)
+        week = (1 + rets.iloc[at - last_week: at][traded.index]).prod() - 1
+        return {"event": event, "before": before, "last_week": last_week,
+                "n_pairs": len(pairs), "n_larger": len(larger), "n_rest": len(rest),
+                "path": path, "band": band,
+                "outside": [d for d, p, b in zip(days, path, band) if abs(p) > b],
+                "peak_day": peak_day, "peak": float(path[peak_day]),
+                "car_larger": car(larger), "car_rest": car(rest),
+                "n_market": len(traded),
+                "top_tenth": float(week[rank <= len(traded) / 10].mean()),
+                "bottom_half": float(week[rank > len(traded) / 2].mean())}

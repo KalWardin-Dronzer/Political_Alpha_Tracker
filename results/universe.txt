@@ -2,7 +2,7 @@
 TEST A — IS THE SMALL/MID-CAP UNIVERSE PREMIUM REAL?
 ============================================================================================
 panel: 2591 symbols | in the universe on a given day (ADV >= Rs 1 crore over the previous year, point in time): median 1198, from 2019-01-30 | largest-100 subset for the size decomposition
-impossible daily moves removed from the panel: 229 (beyond +/-40%, in 116 symbols)
+implausible daily moves removed from the panel: 229 (beyond +/-40%, in 116 symbols)
 survivorship drag applied: -0.284%/yr (59 failures / 2705 reconstructed universe)
 equal-weight maintenance cost applied: -0.42%/yr
 
@@ -45,13 +45,13 @@ windows where the universe did NOT beat the midcap index: 2/10
 --------------------------------------------------------------------------------------------
 PART 3 — INVESTABLE version: 40 names, ANNUAL rebalance, full costs
 --------------------------------------------------------------------------------------------
-  seed 1: SR  1.506 | net ann (after survivorship)  31.99% | turnover 1.07x | maxDD  -25.74%
-  seed 2: SR  1.328 | net ann (after survivorship)  27.37% | turnover 1.07x | maxDD  -31.82%
-  seed 3: SR  1.460 | net ann (after survivorship)  31.83% | turnover 1.09x | maxDD  -30.07%
-  seed 4: SR  1.578 | net ann (after survivorship)  34.29% | turnover 1.09x | maxDD  -29.17%
-  seed 5: SR  1.303 | net ann (after survivorship)  27.53% | turnover 1.07x | maxDD  -35.13%
+  seed 1: SR (after survivorship)  1.492 | net ann (after survivorship)  31.99% | turnover 1.07x | maxDD  -25.74%
+  seed 2: SR (after survivorship)  1.314 | net ann (after survivorship)  27.37% | turnover 1.07x | maxDD  -31.82%
+  seed 3: SR (after survivorship)  1.446 | net ann (after survivorship)  31.83% | turnover 1.09x | maxDD  -30.07%
+  seed 4: SR (after survivorship)  1.564 | net ann (after survivorship)  34.29% | turnover 1.09x | maxDD  -29.17%
+  seed 5: SR (after survivorship)  1.289 | net ann (after survivorship)  27.53% | turnover 1.07x | maxDD  -35.13%
 
-  mean SR 1.435 (sd 0.117) | mean net annual 30.60%
+  mean SR 1.421 (sd 0.117) | mean net annual 30.60%
   window 2020-04-29 .. 2026-09-10
 
 ============================================================================================

@@ -5,22 +5,24 @@ THE PROBLEM THIS EXISTS FOR
 ---------------------------
 The price panel is built from the CURRENT company table, so it contains only
 companies that still exist. Every company that failed between 2019 and 2026 is
-absent by construction — a check of the panel found exactly zero dead price
-series out of 1,588 symbols. A backtest over that panel is asking "how did the
+absent by construction (a check of the September 2026 panel of 1,588 symbols
+found no dead price series). A backtest over that panel is asking "how did the
 survivors do", which is not a question anyone can trade.
 
 NSE publishes the delisted-securities list, and it shows 114 companies delisted
-during the panel window, 113 of them missing from the panel. 59 were
+during the panel window, 112 of them missing from the panel. 59 were
 liquidations or compulsory delistings — failures where the equity was wiped —
 and 51 were voluntary delistings, which are typically buyouts near or above the
-market price.
+market price; the other 4 left a trading platform or were delisted by gazette
+notification.
 
 WHAT CAN AND CANNOT BE FIXED
 ----------------------------
 Cannot: reconstruct the missing price history. yfinance purges delisted
-tickers — of the 114, only 17 return any data, and most of those are frozen
-series that flatline at a last traded price. Free reconstruction is not
-available, and inventing plausible paths would be fabricating data.
+tickers — when checked in September 2026, only 17 of the 114 returned any data,
+and most of those were frozen series that flatline at a last traded price.
+Free reconstruction is not available, and inventing plausible paths would be
+fabricating data.
 
 Can, and this module does:
   1. Keep the real NSE delisting record (symbol, date, type) as project data.
@@ -101,7 +103,7 @@ class DelistingRegistry:
         reg = DelistingRegistry()
         reg.refresh()                      # fetch from NSE, cache locally
         reg.delisted_by("2022-01-01")      # symbols already gone by then
-        reg.bias_estimate(1588, 2019, 2026)
+        reg.bias_estimate(2591, "2019-01-01", "2026-09-10")
     """
 
     def __init__(self, path: Path = DELISTED_FILE):

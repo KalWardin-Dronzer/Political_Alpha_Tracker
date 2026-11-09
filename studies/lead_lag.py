@@ -58,7 +58,7 @@ The declared design screens and size-matches companies on traded value over
 the panel's last year, which judges liquidity after the fact. A second check,
 added after the first run and not part of the decision rules, repeats the group
 level with traded value over the panel's first year (2019) instead. The price
-panel itself is now cleaned of impossible daily moves (src.data.price_store);
+panel itself is now cleaned of implausible daily moves (src.data.price_store);
 the first run, on uncleaned prices, is in the git history (commit ce5f11f).
 """
 

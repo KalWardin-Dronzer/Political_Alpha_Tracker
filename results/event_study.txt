@@ -18,6 +18,12 @@ Events (day 0 = first trading session that could react):
   primary test (names, [0,+1]): CAR +0.37%, p = 0.443 -> no detectable reaction; the test could detect 1.34% with 80% power
   Holm-adjusted p across the three events at [0,+1]: verdict 0.653, names 0.885, parties 0.920
 
+=== BEFORE THE NAMES WERE PUBLISHED, group level (a description added after the first run, not a test)
+  buyers traded more than their controls over the estimation window in 63 of 103 pairs (61%)
+  cumulative abnormal return from day -10: +3.04% at day -2, +2.41% at day -1; outside the 95% band on days -3, -2, -1
+  days -10 to -1: +3.78% in the 63 pairs whose buyer traded more, +0.26% in the other 40
+  days -5 to -1, average return of the 1807 stocks with complete prices: most traded tenth -3.84%, least traded half -7.75%
+
 === ENTITY LEVEL, matched controls (check): 93 buyers, 93 controls
     event   window      CAR         95% interval      p     MDE
   verdict  [-5,-1]   -0.98% [ -2.53%,  +0.57%]  0.214   2.20%

@@ -6,7 +6,7 @@ import pytest
 
 import studies.leadlag_rule as rule
 from src.research.factor_backtest import CostModel
-from studies.leadlag_rule import basket_groups, trading_costs
+from studies.leadlag_rule import basket_groups, paired_bootstrap, trading_costs
 
 
 def test_baskets_use_only_the_traded_value_known_at_the_time(monkeypatch):
@@ -34,3 +34,13 @@ def test_holding_from_the_first_period_pays_the_buy_side():
     costs = CostModel()
     charged = trading_costs(pd.Series([1.0, 1.0, 1.0]), costs)
     assert list(charged) == pytest.approx([costs.buy_pct(), 0.0, 0.0])
+
+
+def test_the_paired_bootstrap_gives_the_same_interval_on_every_run():
+    """Regression: the bootstrap was once unseeded, so its interval changed on every run."""
+    rng = np.random.default_rng(1)
+    bh = pd.Series(rng.normal(0.01, 0.05, 90))
+    rule = bh * (rng.random(90) > 0.4)
+    first, second = paired_bootstrap(rule, bh, n_boot=300), paired_bootstrap(rule, bh, n_boot=300)
+    assert np.array_equal(first, second)
+    assert not np.array_equal(first, paired_bootstrap(rule, bh, n_boot=300, seed=7))

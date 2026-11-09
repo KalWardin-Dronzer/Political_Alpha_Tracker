@@ -19,6 +19,13 @@ Reported for every configuration:
   * performance against the equal-weight universe, which is the benchmark
     that actually matters: beating it is the entire justification for
     running a strategy instead of just buying the universe
+
+The best configuration's Sharpe ratio is also shown in five consecutive
+sub-periods. They are in sample, because the configuration was chosen on the
+whole window: they show whether its result comes from one stretch, not how it
+would do out of sample. (Until November 2026 this section was labelled as
+purged, embargoed out-of-sample folds; with fixed factor weights nothing is
+trained on the other folds, so purging changed nothing.)
 """
 
 import json
@@ -35,10 +42,11 @@ _ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
 if _ROOT not in _sys.path:
     _sys.path.insert(0, _ROOT)
 
+import numpy as np
+
 from src.data.price_store import PriceStore
 from src.research.factor_backtest import (
-    FactorBacktest, TrialLog, bootstrap_sharpe_ci,
-    deflated_sharpe_ratio, purged_folds,
+    FactorBacktest, TrialLog, bootstrap_sharpe_ci, deflated_sharpe_ratio,
 )
 
 logging.basicConfig(level=logging.WARNING, format="%(message)s")
@@ -67,7 +75,7 @@ CAPITAL = 500_000
 def main():
     store = PriceStore()
     if store.close().empty:
-        logger.error("Price panel empty. Run: python build_price_panel.py")
+        logger.error("Price panel empty. Run: python cli.py prices")
         return 1
 
     bt = FactorBacktest(store, capital=CAPITAL)
@@ -131,21 +139,19 @@ def main():
         print("  >> Below the 0.95 bar: not distinguishable from the best of "
               f"{n_trials} noise draws.")
 
-    print("\n--- Purged, embargoed folds (out-of-sample stability) ---")
-    folds = purged_folds(best.returns.index, n_folds=5, purge_days=21, embargo_days=21)
-    for f in folds:
-        seg = best.returns.loc[f["test"]]
-        sr = (seg.mean() / seg.std() * (252 ** 0.5)) if seg.std() else 0.0
-        print(f"  fold {f['fold']}  {f['test_start']} .. {f['test_end']}  "
-              f"n={len(seg):>4}  Sharpe {sr:>7.3f}")
+    print("\n--- Five consecutive sub-periods (in sample: the configuration was chosen on all of them) ---")
+    bounds = np.linspace(0, len(best.returns), 6).astype(int)
     sharpes = []
-    for f in folds:
-        seg = best.returns.loc[f["test"]]
+    for i in range(5):
+        seg = best.returns.iloc[bounds[i]:bounds[i + 1]]
+        sr = (seg.mean() / seg.std() * (252 ** 0.5)) if seg.std() else 0.0
         if seg.std():
-            sharpes.append(seg.mean() / seg.std() * (252 ** 0.5))
+            sharpes.append(sr)
+        print(f"  {i + 1}  {seg.index[0].date()} .. {seg.index[-1].date()}  "
+              f"n={len(seg):>4}  Sharpe {sr:>7.3f}")
     if sharpes:
         pos = sum(1 for s in sharpes if s > 0)
-        print(f"  folds with positive Sharpe: {pos}/{len(sharpes)}")
+        print(f"  sub-periods with a positive Sharpe ratio: {pos}/{len(sharpes)}")
 
     print("\n" + "=" * 78)
     verdict = (

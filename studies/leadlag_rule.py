@@ -83,6 +83,35 @@ def trading_costs(pos: pd.Series, costs: CostModel) -> pd.Series:
     return (change > 0) * costs.buy_pct() + (change < 0) * costs.sell_pct()
 
 
+def sharpe_ratio(r: pd.Series, ppy: int) -> float:
+    return r.mean() / r.std() * math.sqrt(ppy) if r.std() else 0.0
+
+
+def paired_bootstrap(rule: pd.Series, bh: pd.Series, ppy: int = 12, n_boot: int = 2000,
+                     block: int = 6, seed: int = 42) -> np.ndarray:
+    """Bootstrap draws of the rule's Sharpe ratio minus buy-and-hold's.
+
+    A stationary block bootstrap (mean block length `block` periods) that
+    resamples the same periods for both series, because the rule has to beat
+    buy-and-hold over the same weeks or months. Seeded, so the interval is the
+    same on every run; an earlier version was not.
+    """
+    rng = np.random.default_rng(seed)
+    n, diffs = len(rule), []
+    for _ in range(n_boot):
+        idx, pstop = [], 1.0 / block
+        while len(idx) < n:
+            start = rng.integers(0, n)
+            while len(idx) < n:
+                idx.append(start % n)
+                start += 1
+                if rng.random() < pstop:
+                    break
+        i = np.array(idx[:n])
+        diffs.append(sharpe_ratio(pd.Series(rule.values[i]), ppy) - sharpe_ratio(pd.Series(bh.values[i]), ppy))
+    return np.array(diffs)
+
+
 def basket_groups(known: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Leader and peer membership for each period from the traded value known
     at its start: leaders are the N_LEADERS highest, peers the rest above
@@ -191,25 +220,10 @@ def main():
     rule = (pos * a["peer"] - trading_costs(pos, costs)).dropna()
     bh = a["peer"].loc[rule.index]
 
-    def _sr(x):
-        return x.mean() / x.std() * math.sqrt(12) if x.std() else 0.0
-
-    rng = np.random.default_rng(42)
-    n, block, diffs = len(rule), 6, []
-    for _ in range(2000):
-        idx, pstop = [], 1.0 / block
-        while len(idx) < n:
-            start = rng.integers(0, n)
-            while len(idx) < n:
-                idx.append(start % n)
-                start += 1
-                if rng.random() < pstop:
-                    break
-        i = np.array(idx[:n])
-        diffs.append(_sr(pd.Series(rule.values[i])) - _sr(pd.Series(bh.values[i])))
-    d = np.array(diffs)
+    n = len(rule)
+    d = paired_bootstrap(rule, bh, ppy=12)
     lo, hi = np.quantile(d, [0.025, 0.975])
-    obs = _sr(rule) - _sr(bh)
+    obs = sharpe_ratio(rule, 12) - sharpe_ratio(bh, 12)
     ret_rule = (1 + rule).prod() ** (12 / n) - 1
     ret_bh = (1 + bh).prod() ** (12 / n) - 1
     print(f"  observed Sharpe difference : {obs:+.3f}")

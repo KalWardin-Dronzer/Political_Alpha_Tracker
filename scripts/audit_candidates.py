@@ -12,8 +12,8 @@ Three groups of purchasers that the rules leave unattributed or doubtful:
    normalised name two listed companies share).
 
 Purchasers already in the audit are left out, so an empty list means every
-candidate has a decision. Decisions, with a source for each, are written into
-data/match_audit.csv by hand.
+candidate has a decision. Each decision goes into data/match_audit.csv with
+its source.
 """
 
 import pandas as pd

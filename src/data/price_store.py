@@ -46,7 +46,7 @@ BATCH_PAUSE_SEC = 0.4
 # A close-to-close move larger than this is treated as a data error. NSE's
 # widest daily price band for stocks outside the derivatives segment is 20%.
 # The Yahoo panel holds moves no band allows: prints of +9,411% that reverse
-# three days later, splits and demergers it never adjusted (Vedanta -65% on its
+# on the next trading day, splits and demergers it never adjusted (Vedanta -65% on its
 # 2026 demerger), and level shifts on 1 January. A few genuine moves go with
 # them: YES Bank and IndusInd Bank moved 45-58% on some days in March 2020.
 MAX_DAILY_MOVE = 0.40
@@ -223,7 +223,7 @@ class PriceStore:
     # Access
     # ──────────────────────────────────────────
     def close(self, clean: bool = True) -> pd.DataFrame:
-        """Adjusted closes: DatetimeIndex x symbol, with impossible moves removed
+        """Adjusted closes: DatetimeIndex x symbol, with implausible moves removed
         (see remove_impossible_moves) unless clean=False."""
         if not clean or not CLOSE_FILE.exists():
             return self._read(CLOSE_FILE)

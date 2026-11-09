@@ -17,9 +17,15 @@ DECISION RULES (declared 2026-11-09, before the study was run)
 - The [0,+5] and pre-event [-5,-1] windows, the entity-level definition and the
   market-adjusted portfolio are reported as checks and descriptions.
 
-After the first run the price panel was cleaned of impossible daily moves
+After the first run the price panel was cleaned of implausible daily moves
 (src.data.price_store), which changes these numbers slightly; the first run,
 on uncleaned prices, is in the git history (commit ce5f11f).
+
+ADDED AFTER THE FIRST RUN: a description of the two weeks before the names
+were published (EventStudy.drift): how many buyers trade more than their
+controls, the drift and the days it leaves the 95% band, the drift for the
+pairs whose buyer trades more and for the rest, and how the most and least
+traded stocks moved in the last week. It is not a test and has no decision rule.
 """
 
 import logging
@@ -52,11 +58,28 @@ def table(result: dict) -> None:
               f"[{100 * r['lo']:>+6.2f}%, {100 * r['hi']:>+6.2f}%] {r['p']:>6.3f} {100 * r['mde']:>6.2f}%")
 
 
-def run(store, companies, level: str, market_adjusted: bool = False) -> dict:
+def make_study(store, companies, level: str) -> EventStudy:
     table_ = connections(level=level)
     connected = set(table_.index[table_["connected"]])
-    study = EventStudy(store.close(), store.volume(), companies, connected)
-    return study.run(market_adjusted=market_adjusted)
+    return EventStudy(store.close(), store.volume(), companies, connected)
+
+
+def run(store, companies, level: str, market_adjusted: bool = False) -> dict:
+    return make_study(store, companies, level).run(market_adjusted=market_adjusted)
+
+
+def describe_drift(d: dict) -> None:
+    """Print EventStudy.drift(): a description, not a test."""
+    outside = ", ".join(str(day) for day in d["outside"]) or "none"
+    print(f"  buyers traded more than their controls over the estimation window in {d['n_larger']} "
+          f"of {d['n_pairs']} pairs ({d['n_larger'] / d['n_pairs']:.0%})")
+    print(f"  cumulative abnormal return from day -{d['before']}: {100 * d['peak']:+.2f}% at day "
+          f"{d['peak_day']}, {100 * d['path'].iloc[-1]:+.2f}% at day -1; outside the 95% band on days {outside}")
+    print(f"  days -{d['before']} to -1: {100 * d['car_larger']:+.2f}% in the {d['n_larger']} pairs whose "
+          f"buyer traded more, {100 * d['car_rest']:+.2f}% in the other {d['n_rest']}")
+    print(f"  days -{d['last_week']} to -1, average return of the {d['n_market']} stocks with complete "
+          f"prices: most traded tenth {100 * d['top_tenth']:+.2f}%, least traded half "
+          f"{100 * d['bottom_half']:+.2f}%")
 
 
 def main():
@@ -70,7 +93,8 @@ def main():
         print(f"  {e.key:>8}  {e.day0}  {e.label}")
     print()
 
-    primary = run(store, companies, "group")
+    study = make_study(store, companies, "group")
+    primary = study.run()
     print(f"=== GROUP LEVEL, matched controls (primary): {primary['n_pairs']} buyer-control pairs; "
           f"estimation window {primary['estimation_days']} days, daily sd of the difference "
           f"{100 * primary['sigma']:.2f}%")
@@ -87,6 +111,11 @@ def main():
           f"{100 * p['mde']:.2f}% with 80% power")
     print("  Holm-adjusted p across the three events at " + PRIMARY_WINDOW + ": " +
           ", ".join(f"{k} {v:.3f}" for k, v in holm.items()))
+
+    print()
+    print("=== BEFORE THE NAMES WERE PUBLISHED, group level (a description added after the first run, "
+          "not a test)")
+    describe_drift(study.drift(PRIMARY_EVENT))
 
     for label, level, market in (("ENTITY LEVEL, matched controls (check)", "entity", False),
                                  ("GROUP LEVEL, market-adjusted (check)", "group", True)):

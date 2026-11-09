@@ -14,11 +14,10 @@ high-conviction event with many small, simultaneous, independent bets.
 THE THREE FACTORS
 -----------------
 1. Residual momentum (12 months, skipping the most recent month).
-   Raw momentum in a small universe mostly measures sector drift — exactly the
-   confound that made the project's own n=7 event study uninterpretable, where
-   every "connected" name happened to be pharma. Regressing out the market
-   before ranking leaves the idiosyncratic component. Skipping the most recent
-   month keeps momentum from colliding with the reversal factor below.
+   Raw momentum in a small universe mostly measures sector drift. Regressing
+   out the market before ranking leaves the idiosyncratic component. Skipping
+   the most recent month keeps momentum from colliding with the reversal
+   factor below.
 
 2. Short-term reversal (1 week), negated.
    Documented as strongest in the least liquid names — the tier where retail
@@ -41,9 +40,9 @@ KNOWN LIMITATION
 ----------------
 Residual momentum here regresses on the market only, not the full Fama-French
 three-factor model. SMB and HML need historical book value and point-in-time
-market cap, neither of which this project has yet (market cap is populated for
-93 of 1,589 companies, and today's value applied to history would be
-look-ahead). Market-residual is the honest version of what the data supports.
+market cap, neither of which this project has (today's market cap applied to
+history would be look-ahead). Market-residual is the honest version of what the
+data supports.
 """
 
 import logging

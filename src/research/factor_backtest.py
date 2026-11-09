@@ -2,13 +2,8 @@
 Political Alpha Tracker — Factor Strategy Backtest & Validation (Phase 2)
 
 Simulates the long-only cross-sectional factor strategy and then tries hard to
-prove its result is luck.
-
-WHY THIS IS SEPARATE FROM src/backtest.py
------------------------------------------
-That module event-studies discrete announcements. This one simulates a
-continuously rebalanced portfolio, which needs turnover accounting, per-trade
-costs and a daily return series. Different shape, different failure modes.
+prove its result is luck. A continuously rebalanced portfolio needs turnover
+accounting, per-trade costs and a daily return series.
 
 THE THREE THINGS THAT MAKE A BACKTEST HONEST
 --------------------------------------------
@@ -27,9 +22,6 @@ THE THREE THINGS THAT MAKE A BACKTEST HONEST
 3. A TRIAL COUNT. Every parameter combination tested is a chance to find noise
    that looks like signal. The deflated Sharpe ratio corrects for how many were
    tried — but only for the ones you actually logged. See TrialLog.
-
-Purging and embargo are applied when splitting folds so that a training fold
-cannot contain observations whose forward-return window overlaps the test fold.
 """
 
 import json
@@ -58,8 +50,8 @@ TRADING_DAYS = 252
 @dataclass
 class CostModel:
     """
-    NSE equity delivery costs. Rates mirror src/portfolio_manager.py so the
-    backtest and the paper trader cannot drift apart.
+    NSE equity delivery costs: securities transaction tax, exchange and SEBI
+    fees, stamp duty, GST on the fees, the flat depository charge and slippage.
     """
     stt: float = 0.001            # 0.1% each side
     exchange_txn: float = 0.0000297
@@ -312,43 +304,6 @@ def deflated_sharpe_ratio(returns: pd.Series, n_trials: int,
     }
 
 
-def purged_folds(dates: pd.DatetimeIndex, n_folds: int = 6,
-                 purge_days: int = 21, embargo_days: int = 21) -> list[dict]:
-    """
-    Split a date index into folds, purging and embargoing around each test fold.
-
-    Purge: drop training observations whose forward-return window overlaps the
-    test fold. Embargo: additionally drop training observations immediately
-    AFTER the test fold, since serial correlation leaks backwards too. Without
-    both, a "walk-forward" test is quietly contaminated.
-    """
-    dates = pd.DatetimeIndex(dates).sort_values()
-    n = len(dates)
-    if n < n_folds * 2:
-        return []
-
-    bounds = np.linspace(0, n, n_folds + 1).astype(int)
-    folds = []
-    for i in range(n_folds):
-        lo, hi = bounds[i], bounds[i + 1]
-        test = dates[lo:hi]
-        if len(test) == 0:
-            continue
-        purge_lo = test[0] - pd.Timedelta(days=purge_days)
-        embargo_hi = test[-1] + pd.Timedelta(days=embargo_days)
-        train = dates[(dates < purge_lo) | (dates > embargo_hi)]
-        folds.append({
-            "fold": i,
-            "test_start": str(test[0].date()),
-            "test_end": str(test[-1].date()),
-            "n_train": len(train),
-            "n_test": len(test),
-            "train": train,
-            "test": test,
-        })
-    return folds
-
-
 # ──────────────────────────────────────────────────────────────
 # The backtest
 # ──────────────────────────────────────────────────────────────
@@ -373,8 +328,8 @@ class FactorBacktest:
         Simulate the strategy.
 
         Signals are computed from the close of the rebalance date and executed
-        at the NEXT session's close (T+1), matching src/backtest.py and removing
-        any possibility of trading on information not yet available.
+        at the NEXT session's close (T+1), removing any possibility of trading
+        on information not yet available.
 
         `selection` controls how names are picked from the eligible universe:
 
@@ -393,7 +348,7 @@ class FactorBacktest:
 
         prices = self.store.close()
         if prices.empty:
-            raise ValueError("Price panel empty — run build_price_panel.py first")
+            raise ValueError("Price panel empty — run: python cli.py prices")
         prices.index = pd.to_datetime(prices.index)
 
         if start:

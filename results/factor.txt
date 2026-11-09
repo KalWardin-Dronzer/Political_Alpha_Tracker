@@ -52,13 +52,13 @@ Sharpe vs equal-weight universe: +0.188
 }
   >> Below the 0.95 bar: not distinguishable from the best of 36 noise draws.
 
---- Purged, embargoed folds (out-of-sample stability) ---
-  fold 0  2022-09-15 .. 2023-07-03  n= 197  Sharpe   0.149
-  fold 1  2023-07-04 .. 2024-04-24  n= 198  Sharpe   3.390
-  fold 2  2024-04-25 .. 2025-02-06  n= 198  Sharpe   1.192
-  fold 3  2025-02-07 .. 2025-11-27  n= 198  Sharpe   0.363
-  fold 4  2025-11-28 .. 2026-09-10  n= 198  Sharpe   1.010
-  folds with positive Sharpe: 5/5
+--- Five consecutive sub-periods (in sample: the configuration was chosen on all of them) ---
+  1  2022-09-15 .. 2023-07-03  n= 197  Sharpe   0.149
+  2  2023-07-04 .. 2024-04-24  n= 198  Sharpe   3.390
+  3  2024-04-25 .. 2025-02-06  n= 198  Sharpe   1.192
+  4  2025-02-07 .. 2025-11-27  n= 198  Sharpe   0.363
+  5  2025-11-28 .. 2026-09-10  n= 198  Sharpe   1.010
+  sub-periods with a positive Sharpe ratio: 5/5
 
 ==============================================================================
 PHASE 2 GATE: DO NOT PROCEED

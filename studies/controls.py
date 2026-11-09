@@ -6,16 +6,17 @@ Phase 2 diagnostics — is the factor model earning its complexity?
 Two questions, both raised by the Phase 2 grid:
 
 1. CONTROL: does picking names by factor score beat picking them at RANDOM
-   from the same eligible universe? The grid showed the factor strategy adding
-   only +0.057 Sharpe over equal-weighting the universe, which is close enough
-   to zero that the honest next question is whether the model is doing anything
-   at all. Random selection is the control that answers it. Several seeds are
-   run, because a single random draw is itself a coin flip.
+   from the same eligible universe? The grid's factor portfolios beat
+   equal-weighting the universe by little (results/factor.txt), so the honest
+   next question is whether the model is doing anything at all. Random
+   selection is the control that answers it, for the grid's 40-name, 63-day
+   configuration. Several seeds are run, because a single random draw is
+   itself a coin flip.
 
-2. SAMPLE: the grid's best configuration only traded from 2022-09 (989 days,
-   16 rebalances) because the momentum warm-up consumed the early history.
-   The panel reaches back to 2019. A longer window will not make a weak signal
-   strong, but it will narrow a confidence interval that ran [0.046, 2.295].
+2. SAMPLE: the grid's configurations only trade from September 2022, because
+   the momentum warm-up consumes the early history. The panel reaches back to
+   2019. A longer window will not make a weak signal strong, but it will narrow
+   a wide confidence interval.
 
 Every run is logged as a trial, controls included — they are draws from the
 same search and deflating against a count that excludes them would understate
@@ -65,7 +66,7 @@ def _row(label, s, extra=""):
 def main():
     store = PriceStore()
     if store.close().empty:
-        logger.error("Price panel empty. Run: python build_price_panel.py")
+        logger.error("Price panel empty. Run: python cli.py prices")
         return 1
 
     bt = FactorBacktest(store, capital=500_000)

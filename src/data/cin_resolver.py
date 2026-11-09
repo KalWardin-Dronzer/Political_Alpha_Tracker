@@ -1,31 +1,20 @@
 """
 Political Alpha Tracker — Name to CIN Resolver
 
-WHY THIS MODULE HAD TO BE WRITTEN
----------------------------------
-Nothing in this project could obtain a CIN. That was not obvious:
-EntityResolver.resolve_company_cin() looks like a resolver, but its index is
-built only from companies that ALREADY have a CIN --
-
-    for c in companies:
-        if normalized and c.get("cin"):      # <- only pre-existing CINs
-            self._company_name_index[normalized] = c
-
--- so it can only ever return one of the 48 CINs already on file, and its fuzzy
-branch could return the WRONG company's CIN for an unresolved name. Meanwhile
-MCAResolver consumes a CIN to fetch directors, and WatchlistGenerator carries a
-hardcoded ten-entry PSU dictionary. UniverseManager inserts cin="".
-
-That is why CIN coverage sat at 48/1589 (3%), which in turn capped the political
-graph at 20 connected companies and left every test of the political hypothesis
-underpowered.
+WHY THIS EXISTS
+---------------
+A listed company is keyed by its CIN where it has one (src.data.companies),
+and the donor-to-CIN table links purchasers to companies by CIN. The earlier
+company store had CINs for only 48 of its 1,589 companies; with this resolver,
+1,472 of them have one (data/company_ids.csv). `python cli.py cins` runs it for the
+companies still without one and writes the candidates to a file for review; it
+never edits data/companies.csv.
 
 THE SOURCE
 ----------
-Zaubacorp's company search, already scraped elsewhere in this project for
-director data. Its result list pairs each company name with its CIN in the link
-href, so a match can be verified by NAME rather than by taking whatever came
-back first.
+Zaubacorp's company search. Its result list pairs each company name with its
+CIN in the link href, so a match can be verified by NAME rather than by taking
+whatever came back first.
 
 TWO THINGS MAKE THIS TRACTABLE
 ------------------------------
