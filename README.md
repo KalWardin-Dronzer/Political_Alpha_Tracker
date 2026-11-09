@@ -106,11 +106,12 @@ November 2026, this version (the first run on the rebuilt data is kept in commit
 3. The old README read "the placebo is significant and the buyers are not" as "the effect is size, not
    politics". A difference in significance is not a significant difference; the difference is now tested
    directly, and on the rebuilt data the placebo is not significant at weekly lag 1 either (p = 0.15).
-4. Yahoo's price panel holds 229 daily moves beyond ±40%, which no NSE price band allows: a print of
-   +9,411% reversed on the next trading day, splits and demergers it never adjusted, level shifts at the
-   turn of a year. In an equal-weight basket rebalanced daily, a print that reverses does not cancel out. They
-   are now removed, with earlier prices rescaled as a split adjustment would; the findings are the same
-   with a 50% limit.
+4. Yahoo's price panel holds 229 daily moves beyond ±40%, twice NSE's widest band outside the derivatives
+   segment: a print of +9,411% reversed on the next trading day, splits and demergers it never adjusted,
+   level shifts at the turn of a year. In an equal-weight basket rebalanced daily, a print that reverses
+   does not cancel out. They are now removed, with earlier prices rescaled as a split adjustment would. A
+   few genuine moves go with them, such as YES Bank's and IndusInd Bank's in March 2020; the findings are
+   the same with a 50% limit.
 5. The universe and trading-rule studies picked stocks by traded value over the panel's last year, so
    they held the stocks that had become liquid by 2026: winners, chosen in advance. With that screen and
    the uncleaned prices the universe's Sharpe ratio was 1.37; it is 0.99 with neither, which removes most
@@ -139,7 +140,7 @@ Yahoo Finance daily prices ─ src/data/price_store.py ────────�
 |---|---|
 | `src/data/build_companies.py` | Builds the universe from NSE's equity list and index files, with NSE's sector classification |
 | `src/connections.py` | Attributes each bond to a listed company, directly or through a subsidiary, and totals them per company |
-| `src/data/price_store.py` | The daily price panel: removes impossible moves and gives point-in-time traded value |
+| `src/data/price_store.py` | The daily price panel: removes daily moves beyond ±40% and gives point-in-time traded value |
 | `src/research/lead_lag.py` | Splits each sector into bond buyers, size-matched placebo leaders and peers |
 | `src/research/event_study.py` | Matched buyer-minus-control portfolios around the 2024 disclosures |
 | `src/research/factor_backtest.py` | NSE delivery costs with slippage, stationary block bootstrap, deflated Sharpe ratio, purged and embargoed folds, and an append-only log of every backtest run |
