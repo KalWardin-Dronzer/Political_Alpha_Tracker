@@ -1,28 +1,28 @@
-liquid universe 1170   leaders (top 100 by ADV) 100   peers 1070
+liquid universe 1701   leaders (top 100 by ADV) 100   peers 1601
 round-trip cost 0.422%  (incl 10bps slippage/side)
 
 === weekly ===
-  BUY & HOLD peer basket            SR  1.196  ann   27.97%  maxDD  -42.37%  n=401
-  rule: long when lead[t-1] >  0.0%   SR  1.039  ann   17.09%  maxDD  -46.11%  invested   62%  switches   184  vs B&H -0.156
-  rule: long when lead[t-1] >  0.5%   SR  0.956  ann   14.08%  maxDD  -36.24%  invested   55%  switches   208  vs B&H -0.240
-  rule: long when lead[t-1] >  1.0%   SR  1.110  ann   15.09%  maxDD  -27.71%  invested   47%  switches   200  vs B&H -0.086
-  rule: long when lead[t-1] >  2.0%   SR  1.062  ann   11.59%  maxDD  -17.75%  invested   29%  switches   160  vs B&H -0.133
-  same rule GROSS of costs          SR  1.345  ann   23.12%   <- signal before friction
+  BUY & HOLD peer basket            SR  1.246  ann   29.06%  maxDD  -42.96%  n=401
+  rule: long when lead[t-1] >  0.0%   SR  1.261  ann   20.48%  maxDD  -29.51%  invested   62%  switches   186  vs B&H +0.015  <-- beats buy&hold
+  rule: long when lead[t-1] >  0.5%   SR  1.305  ann   19.63%  maxDD  -26.69%  invested   54%  switches   200  vs B&H +0.060  <-- beats buy&hold
+  rule: long when lead[t-1] >  1.0%   SR  1.391  ann   18.60%  maxDD  -20.45%  invested   46%  switches   196  vs B&H +0.146  <-- beats buy&hold
+  rule: long when lead[t-1] >  2.0%   SR  1.170  ann   12.80%  maxDD  -13.22%  invested   30%  switches   166  vs B&H -0.075
+  same rule GROSS of costs          SR  1.584  ann   26.75%   <- signal before friction
 
 === monthly ===
-  BUY & HOLD peer basket            SR  1.073  ann   29.84%  maxDD  -40.23%  n=92
-  rule: long when lead[t-1] >  0.0%   SR  1.323  ann   27.36%  maxDD  -23.76%  invested   73%  switches    31  vs B&H +0.251  <-- beats buy&hold
-  rule: long when lead[t-1] >  0.5%   SR  1.170  ann   23.20%  maxDD  -23.76%  invested   68%  switches    37  vs B&H +0.097  <-- beats buy&hold
-  rule: long when lead[t-1] >  1.0%   SR  1.155  ann   20.50%  maxDD  -23.76%  invested   62%  switches    39  vs B&H +0.083  <-- beats buy&hold
-  rule: long when lead[t-1] >  2.0%   SR  1.246  ann   19.99%  maxDD  -16.57%  invested   55%  switches    43  vs B&H +0.174  <-- beats buy&hold
-  same rule GROSS of costs          SR  1.369  ann   28.44%   <- signal before friction
+  BUY & HOLD peer basket            SR  1.081  ann   29.90%  maxDD  -40.80%  n=92
+  rule: long when lead[t-1] >  0.0%   SR  1.360  ann   28.32%  maxDD  -23.87%  invested   74%  switches    29  vs B&H +0.279  <-- beats buy&hold
+  rule: long when lead[t-1] >  0.5%   SR  1.305  ann   25.91%  maxDD  -23.87%  invested   70%  switches    35  vs B&H +0.224  <-- beats buy&hold
+  rule: long when lead[t-1] >  1.0%   SR  1.307  ann   23.19%  maxDD  -23.87%  invested   64%  switches    35  vs B&H +0.226  <-- beats buy&hold
+  rule: long when lead[t-1] >  2.0%   SR  1.501  ann   23.33%  maxDD   -8.61%  invested   53%  switches    37  vs B&H +0.420  <-- beats buy&hold
+  same rule GROSS of costs          SR  1.403  ann   29.33%   <- signal before friction
 
 --- paired bootstrap of the monthly rule vs buy-and-hold ---
-  observed Sharpe difference : +0.251
-  95% CI                     : [-0.336, +0.725]
-  P(difference <= 0)         : 0.240
-  return  rule +27.36%  vs  buy&hold +29.84%
-  vol     rule 19.88%  vs  buy&hold 28.34%
+  observed Sharpe difference : +0.279
+  95% CI                     : [-0.324, +0.770]
+  P(difference <= 0)         : 0.210
+  return  rule +28.32%  vs  buy&hold +29.90%
+  vol     rule 19.90%  vs  buy&hold 28.12%
 
 ==============================================================================
 VERDICT: the Sharpe gap does NOT survive a paired bootstrap.

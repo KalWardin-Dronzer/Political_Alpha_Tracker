@@ -4,43 +4,40 @@ Trials logged before this run: 36
 DIAGNOSTIC 1 — does the factor beat random selection from the same universe?
 (top_n=40, rebalance=63d, ADV>=1.0 Cr, from 2021-06)
 ====================================================================================
-FACTOR                     SR  1.165 | net   23.79% | cost  2.30% | turn  3.34x | maxDD  -27.57% | n= 989
-LIQUIDITY-ONLY             SR  0.812 | net   13.81% | cost  0.69% | turn  1.10x | maxDD  -21.26% | n= 989
-RANDOM seed=1              SR  0.826 | net   15.30% | cost  2.51% | turn  3.90x | maxDD  -29.00% | n= 989
-RANDOM seed=2              SR  0.960 | net   18.59% | cost  2.56% | turn  3.87x | maxDD  -32.73% | n= 989
-RANDOM seed=3              SR  1.240 | net   24.44% | cost  2.69% | turn  3.88x | maxDD  -28.29% | n= 989
-RANDOM seed=4              SR  0.925 | net   17.62% | cost  2.57% | turn  3.92x | maxDD  -23.31% | n= 989
-RANDOM seed=5              SR  0.783 | net   14.44% | cost  2.51% | turn  3.92x | maxDD  -35.44% | n= 989
-RANDOM seed=6              SR  0.625 | net   10.84% | cost  2.42% | turn  3.91x | maxDD  -33.61% | n= 989
-RANDOM seed=7              SR  0.796 | net   14.56% | cost  2.46% | turn  3.85x | maxDD  -33.26% | n= 989
-RANDOM seed=8              SR  1.113 | net   21.99% | cost  2.66% | turn  3.90x | maxDD  -25.23% | n= 989
+FACTOR                     SR  1.243 | net   25.59% | cost  2.35% | turn  3.36x | maxDD  -28.36% | n= 989
+LIQUIDITY-ONLY             SR  0.718 | net   11.93% | cost  0.69% | turn  1.12x | maxDD  -21.81% | n= 989
+RANDOM seed=1              SR  0.777 | net   14.46% | cost  2.51% | turn  3.93x | maxDD  -28.00% | n= 989
+RANDOM seed=2              SR  0.848 | net   16.58% | cost  2.57% | turn  3.96x | maxDD  -30.76% | n= 989
+RANDOM seed=3              SR  1.003 | net   19.35% | cost  2.63% | turn  3.95x | maxDD  -30.91% | n= 989
+RANDOM seed=4              SR  0.649 | net   11.83% | cost  2.48% | turn  3.97x | maxDD  -38.70% | n= 989
+RANDOM seed=5              SR  0.875 | net   16.70% | cost  2.60% | turn  3.99x | maxDD  -35.51% | n= 989
+RANDOM seed=6              SR  0.683 | net   11.87% | cost  2.48% | turn  3.96x | maxDD  -37.86% | n= 989
+RANDOM seed=7              SR  0.669 | net   12.14% | cost  2.49% | turn  3.97x | maxDD  -30.31% | n= 989
+RANDOM seed=8              SR  0.863 | net   15.99% | cost  2.56% | turn  3.95x | maxDD  -36.42% | n= 989
 ------------------------------------------------------------------------------------
-RANDOM control: Sharpe mean 0.909, sd 0.196, range [0.625, 1.240]
-Annual return  mean 17.22%
+RANDOM control: Sharpe mean 0.796, sd 0.124, range [0.649, 1.003]
+Annual return  mean 14.87%
 
-Factor Sharpe 1.165 vs random mean 0.909  ->  edge +0.256 (+1.31 SD of the random distribution)
-Random draws that matched or beat the factor: 1/8
-  >> The factor model is NOT clearly distinguishable from random
-     selection within this universe. The return is the universe's,
-     not the signal's.
+Factor Sharpe 1.243 vs random mean 0.796  ->  edge +0.447 (+3.61 SD of the random distribution)
+Random draws that matched or beat the factor: 0/8
 
 ====================================================================================
 DIAGNOSTIC 2 — the longest window the panel supports
 ====================================================================================
-FACTOR (from 2019)         SR  1.421 | net   31.30% | cost  2.37% | turn  3.26x | maxDD  -32.68% | n=1583
+FACTOR (from 2019)         SR  1.380 | net   30.15% | cost  2.34% | turn  3.25x | maxDD  -30.93% | n=1583
   window: 2020-04-29 .. 2026-09-10, 26 rebalances
-RANDOM (2019) seed=1       SR  1.388 | net   30.94% | cost  2.87% | turn  3.93x | maxDD  -32.31% | n=1583
-RANDOM (2019) seed=2       SR  1.554 | net   33.43% | cost  2.91% | turn  3.92x | maxDD  -25.60% | n=1583
-RANDOM (2019) seed=3       SR  1.434 | net   30.86% | cost  2.88% | turn  3.96x | maxDD  -27.03% | n=1583
-RANDOM (2019) seed=4       SR  1.504 | net   33.22% | cost  2.95% | turn  3.97x | maxDD  -25.56% | n=1583
-  random mean over the same window: 1.470
-  factor edge over random: -0.049
+RANDOM (2019) seed=1       SR  1.153 | net   23.93% | cost  2.77% | turn  4.02x | maxDD  -35.85% | n=1583
+RANDOM (2019) seed=2       SR  1.269 | net   26.01% | cost  2.80% | turn  4.00x | maxDD  -34.60% | n=1583
+RANDOM (2019) seed=3       SR  1.218 | net   25.52% | cost  2.79% | turn  3.99x | maxDD  -34.51% | n=1583
+RANDOM (2019) seed=4       SR  1.199 | net   24.90% | cost  2.81% | turn  4.04x | maxDD  -38.77% | n=1583
+  random mean over the same window: 1.210
+  factor edge over random: +0.170
 
 --- Bootstrap CI, long window ---
 {
-  "sharpe": 1.422,
-  "ci_low": 0.513,
-  "ci_high": 2.328,
+  "sharpe": 1.38,
+  "ci_low": 0.469,
+  "ci_high": 2.35,
   "method": "bca",
   "n_boot": 1000,
   "block_size": 20,
@@ -49,12 +46,12 @@ RANDOM (2019) seed=4       SR  1.504 | net   33.22% | cost  2.95% | turn  3.97x 
 
 --- Deflated Sharpe, long window (51 cumulative trials) ---
 {
-  "dsr": 0.8936,
-  "sharpe_annual": 1.421,
+  "dsr": 0.8733,
+  "sharpe_annual": 1.38,
   "expected_max_noise_sharpe_annual": 0.911,
   "n_trials": 51,
-  "skew": -0.491,
-  "kurtosis": 5.172,
+  "skew": -0.567,
+  "kurtosis": 4.909,
   "n_obs": 1583,
   "passes": false
 }
