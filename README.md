@@ -2,7 +2,7 @@
 
 **Did Indian companies that bought electoral bonds behave differently in the stock market?**
 
-I matched all 18,871 electoral bonds in the March 2024 disclosure (Rs 12,155 crore, April 2019 to
+I matched all 18,871 electoral bonds in the March 2024 disclosure (Rs 12,155.5 crore, April 2019 to
 January 2024) to NSE's 2,645 listed equities, counting bonds bought through majority-owned subsidiaries.
 Then I tested two things: a published finding that politically connected firms' returns lead their
 peers', and whether buyers' share prices moved when their names became public. Neither shows up, and
@@ -51,9 +51,9 @@ p ≥ 0.65).
 The figure shows more than the windows do: over the two weeks before the names came out, buyers drifted
 about 3% above their controls, beyond the 95% band (the declared check for days -5 to -1 caught +1.2%,
 p = 0.12). Those were weeks in which small stocks fell further than large ones (in the last week the most
-traded tenth of the market lost 4.0%, the bottom half 7.6%), and the drift sits in the pairs whose buyer
-is larger than its control: +4.7% for that half of the pairs, +0.2% for the better-matched half. It looks
-like size the matching did not remove rather than a reaction, since the names were not yet public.
+traded tenth of the market lost 3.8%, the least traded half 7.8%), and the drift sits in the pairs whose
+buyer trades more than its control: +3.8% over the two weeks in those 63 pairs, +0.3% in the other 40. It
+looks like size the matching did not remove rather than a reaction, since the names were not yet public.
 Measured against the whole market instead of matched controls, the same size effect would have passed for
 a significant 2.6% gain in the week before (p < 0.001).
 `python cli.py study event-study`
@@ -77,10 +77,11 @@ Both baskets are re-formed each period from trading known at the time. `python c
 
 **5. Factor models add nothing either.** The best of eight pre-declared factor portfolios (residual
 momentum, short-term reversal, low volatility) has a deflated Sharpe ratio of 0.60 against the 36 backtests
-logged, below the 0.95 bar, and its bootstrap interval includes zero. Over the longest window it trails
-random picks from the same universe by 0.03. The universe's own edge over the Nifty Midcap 100 came from
-2020 to 2022: its excess Sharpe over rolling three-year windows rose to 0.82 and then fell below zero
-(-0.28 and -0.20 in the last two). `python cli.py study factor`, `controls` and `universe`
+logged, below the 0.95 bar, and its bootstrap interval includes zero. Over the longest window a 40-name
+version trails random 40-name picks from the same universe by 0.03. The universe's own edge over the
+Nifty Midcap 100 came from 2020 to 2022: its excess Sharpe over rolling three-year windows rose to 0.82
+and then fell below zero (-0.28 and -0.20 in the last two). `python cli.py study factor`, `controls` and
+`universe`
 
 ## Data quality was the hard part
 
@@ -89,7 +90,7 @@ subsidiaries with names unlike their parent's. Names are matched after stripping
 reading a period between letters as a space and joining spaced initials; the leading word must then match
 exactly and RapidFuzz's token_sort_ratio must reach 93, and a name that two listed companies share is
 refused. The leading-word rule exists because a score alone cannot separate some unrelated companies:
-GSL Infrastructure and GTL Infrastructure score 94. A hand-checked table maps 29 spellings to a company's
+GSL Infrastructure and GTL Infrastructure score 94. A reviewed table maps 29 spellings to a company's
 CIN, and an audit file records a decision and its source for the 60 largest purchasers left unmatched and
 every close name: 26 spellings or former names, 23 subsidiaries and 227 refusals.
 
@@ -143,9 +144,9 @@ Yahoo Finance daily prices ─ src/data/price_store.py ────────�
 | `src/data/price_store.py` | The daily price panel: removes daily moves beyond ±40% and gives point-in-time traded value |
 | `src/research/lead_lag.py` | Splits each sector into bond buyers, size-matched placebo leaders and peers |
 | `src/research/event_study.py` | Matched buyer-minus-control portfolios around the 2024 disclosures |
-| `src/research/factor_backtest.py` | NSE delivery costs with slippage, stationary block bootstrap, deflated Sharpe ratio, purged and embargoed folds, and an append-only log of every backtest run |
+| `src/research/factor_backtest.py` | NSE delivery costs with slippage, stationary block bootstrap, deflated Sharpe ratio and an append-only log of every backtest run |
 | `src/data/delisting_registry.py` | Survivorship correction (0.28% a year) |
-| `src/data/cin_resolver.py` | Resolves company names to CINs through Zaubacorp and refuses weak matches; on 20 known CINs it found 16 and got none wrong |
+| `src/data/cin_resolver.py` | Resolves company names to CINs through Zaubacorp, refusing weak matches rather than guessing |
 | `src/graph.py` | The connection graph, as an interactive page and as the image above |
 | `studies/` | One script per study, each with its decision rules in its docstring; their outputs are in `results/` |
 
@@ -155,7 +156,7 @@ Yahoo Finance daily prices ─ src/data/price_store.py ────────�
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                         # 95 tests, offline
+pytest -q                         # 103 tests, offline
 python cli.py connections         # who bought bonds: offline, in seconds
 python cli.py prices              # download daily prices from Yahoo Finance
 python cli.py study lead-lag      # also: event-study, leadlag-rule, factor, controls, universe
@@ -164,7 +165,8 @@ python cli.py visualize --open    # interactive connection graph
 ```
 
 Prices end on 10 September 2026 (`PRICE_END` in `src/config.py`): 1,588 symbols were downloaded then and
-1,003 added on 9 November 2026. Yahoo revises its history, so a fresh download can differ slightly.
+1,003 added on 9 November 2026. Yahoo revises its history, so a fresh download can differ slightly. The
+universe study also downloads three Nifty indices from Yahoo each time it runs, and stops if it cannot.
 [data/README.md](data/README.md) says where every input came from.
 
 ## Layout
