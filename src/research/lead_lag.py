@@ -36,16 +36,12 @@ Placebo leaders are removed from the peer group, since a group cannot be used
 to predict itself.
 """
 
-import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
 from src.data.companies import company_key
-
-logger = logging.getLogger(__name__)
 
 MIN_CONNECTED = 2        # need a basket, not a single name
 MIN_PEERS = 4            # after removing placebo leaders
@@ -65,70 +61,13 @@ class SectorGroups:
                 and len(self.placebo) >= 1)
 
 
-@dataclass
-class LeadLagResult:
-    scope: str
-    n_obs: int
-    treatment_beta: float
-    treatment_t: float
-    placebo_beta: float
-    placebo_t: float
-    treatment_r2: float
-    placebo_r2: float
-    detail: dict = field(default_factory=dict)
-
-    @property
-    def excess_beta(self) -> float:
-        """How much more the connected group predicts than a matched control."""
-        return self.treatment_beta - self.placebo_beta
-
-    def verdict(self) -> str:
-        """A first reading of one fit. Whether the connected group predicts MORE than
-        the matched control is a test of the difference between the two coefficients
-        (studies/lead_lag.py), not a comparison of which one is significant."""
-        if self.treatment_t < 2.0:
-            return "NO EVIDENCE OF A LEAD-LAG (connected coefficient not significant)"
-        if self.placebo_t >= 2.0:
-            return "LEAD-LAG IN BOTH ARMS (test the difference before attributing it)"
-        return "LEAD-LAG IN THE CONNECTED ARM ONLY (test the difference before calling it political)"
-
-    def summary(self) -> dict:
-        return {
-            "scope": self.scope,
-            "n_obs": self.n_obs,
-            "treatment_beta": round(self.treatment_beta, 4),
-            "treatment_t": round(self.treatment_t, 2),
-            "placebo_beta": round(self.placebo_beta, 4),
-            "placebo_t": round(self.placebo_t, 2),
-            "excess_beta": round(self.excess_beta, 4),
-            "treatment_r2": round(self.treatment_r2, 4),
-            "placebo_r2": round(self.placebo_r2, 4),
-            "verdict": self.verdict(),
-        }
-
-
-def _ols_hac(y: pd.Series, X: pd.DataFrame, lags: int = 4):
-    """
-    OLS with Newey-West (HAC) standard errors.
-
-    Plain OLS t-stats overstate significance on overlapping, autocorrelated
-    return series, which is how weak lead-lag findings get published.
-    """
-    import statsmodels.api as sm
-    Xc = sm.add_constant(X, has_constant="add")
-    frame = pd.concat([y, Xc], axis=1).dropna()
-    if len(frame) < 30:
-        return None
-    yy = frame.iloc[:, 0]
-    XX = frame.iloc[:, 1:]
-    return sm.OLS(yy, XX).fit(cov_type="HAC", cov_kwds={"maxlags": lags})
-
-
 class LeadLagTest:
     """
+    Sector groups and their equal-weight return baskets; studies/lead_lag.py
+    runs the regressions on them.
+
         t = LeadLagTest(price_store, companies, connected)
         groups = t.build_groups()
-        pooled = t.run_pooled(groups)
 
     `companies` is the universe table (data/companies.csv) and `connected` the
     set of company keys that bought electoral bonds (src.connections).
@@ -203,100 +142,3 @@ class LeadLagTest:
         if not cols:
             return pd.Series(dtype=float)
         return rets[cols].mean(axis=1)
-
-    # ──────────────────────────────────────────
-    # Tests
-    # ──────────────────────────────────────────
-    def run_sector(self, g: SectorGroups, freq: str = DEFAULT_FREQ,
-                   lag: int = 1) -> Optional[LeadLagResult]:
-        rets = self._returns(freq)
-        market = rets.mean(axis=1)
-
-        conn = self._basket(rets, g.connected)
-        plac = self._basket(rets, g.placebo)
-        peer = self._basket(rets, g.peers)
-        if conn.empty or plac.empty or peer.empty:
-            return None
-
-        base = pd.DataFrame({
-            "peer_lag": peer.shift(lag),       # peers' own autocorrelation
-            "mkt_lag": market.shift(lag),      # general market lead-lag
-        })
-
-        t_fit = _ols_hac(peer.rename("peer"),
-                         base.assign(lead=conn.shift(lag)))
-        p_fit = _ols_hac(peer.rename("peer"),
-                         base.assign(lead=plac.shift(lag)))
-        if t_fit is None or p_fit is None:
-            return None
-
-        return LeadLagResult(
-            scope=g.sector,
-            n_obs=int(t_fit.nobs),
-            treatment_beta=float(t_fit.params["lead"]),
-            treatment_t=float(t_fit.tvalues["lead"]),
-            placebo_beta=float(p_fit.params["lead"]),
-            placebo_t=float(p_fit.tvalues["lead"]),
-            treatment_r2=float(t_fit.rsquared),
-            placebo_r2=float(p_fit.rsquared),
-            detail={
-                "n_connected": len(g.connected),
-                "n_placebo": len(g.placebo),
-                "n_peers": len(g.peers),
-                "connected": g.connected,
-                "placebo": g.placebo,
-            },
-        )
-
-    def run_pooled(self, groups: list[SectorGroups], freq: str = DEFAULT_FREQ,
-                   lag: int = 1) -> Optional[LeadLagResult]:
-        """
-        Pool sector-period observations into one regression.
-
-        Each sector alone has only a few hundred weekly observations; pooling
-        buys the power to distinguish a real coefficient from a noisy one.
-        Sector baskets are demeaned within sector so a sector with persistently
-        higher returns cannot masquerade as a lead-lag relationship.
-        """
-        rets = self._returns(freq)
-        market = rets.mean(axis=1)
-
-        frames = []
-        for g in groups:
-            conn = self._basket(rets, g.connected)
-            plac = self._basket(rets, g.placebo)
-            peer = self._basket(rets, g.peers)
-            if conn.empty or plac.empty or peer.empty:
-                continue
-            df = pd.DataFrame({
-                "peer": peer - peer.mean(),
-                "conn_lag": (conn - conn.mean()).shift(lag),
-                "plac_lag": (plac - plac.mean()).shift(lag),
-                "peer_lag": (peer - peer.mean()).shift(lag),
-                "mkt_lag": (market - market.mean()).shift(lag),
-            }).dropna()
-            df["sector"] = g.sector
-            frames.append(df)
-
-        if not frames:
-            return None
-        pool = pd.concat(frames, axis=0)
-
-        t_fit = _ols_hac(pool["peer"], pool[["conn_lag", "peer_lag", "mkt_lag"]]
-                         .rename(columns={"conn_lag": "lead"}))
-        p_fit = _ols_hac(pool["peer"], pool[["plac_lag", "peer_lag", "mkt_lag"]]
-                         .rename(columns={"plac_lag": "lead"}))
-        if t_fit is None or p_fit is None:
-            return None
-
-        return LeadLagResult(
-            scope=f"POOLED ({len(frames)} sectors)",
-            n_obs=int(t_fit.nobs),
-            treatment_beta=float(t_fit.params["lead"]),
-            treatment_t=float(t_fit.tvalues["lead"]),
-            placebo_beta=float(p_fit.params["lead"]),
-            placebo_t=float(p_fit.tvalues["lead"]),
-            treatment_r2=float(t_fit.rsquared),
-            placebo_r2=float(p_fit.rsquared),
-            detail={"sectors": [g.sector for g in groups]},
-        )

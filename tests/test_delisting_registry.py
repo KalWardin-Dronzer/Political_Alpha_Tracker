@@ -1,17 +1,15 @@
 """
 Tests for the delisting registry and survivorship-bias estimate.
 
-The registry's job is to stop two distinct errors:
-  * trading a name after its listing ended (look-ahead on a known outcome), and
-  * reporting a survivors-only return as if it were achievable.
-Both are tested here against a fixture rather than the live NSE file, so the
-suite does not depend on network access.
+The registry's job is to stop a survivors-only return from being reported as if
+it were achievable. It is tested here against a fixture rather than the NSE
+file, so the suite does not depend on network access.
 """
 
 import pandas as pd
 import pytest
 
-from src.data.delisting_registry import DelistingRegistry, FAILURE_KEYWORDS
+from src.data.delisting_registry import DelistingRegistry
 
 
 @pytest.fixture
@@ -38,10 +36,6 @@ def registry(tmp_path):
 
 
 class TestClassification:
-    def test_failure_keywords_cover_both_involuntary_types(self):
-        assert any("liquidation" in k for k in FAILURE_KEYWORDS)
-        assert any("compulsory" in k for k in FAILURE_KEYWORDS)
-
     def test_voluntary_delisting_is_not_a_failure(self, registry):
         df = registry.load()
         assert not bool(df.loc[df["symbol"] == "BOUGHTOUT", "is_failure"].iloc[0])
@@ -51,18 +45,7 @@ class TestClassification:
         assert bool(df.loc[df["symbol"] == "DEADCO", "is_failure"].iloc[0])
 
 
-class TestPointInTime:
-    def test_delisted_by_is_a_prefix_not_the_whole_set(self, registry):
-        """The screen must only know about delistings that had already happened."""
-        assert registry.delisted_by("2021-01-01") == {"OLDFAIL"}
-        assert registry.delisted_by("2021-07-01") == {"OLDFAIL", "DEADCO"}
-        assert registry.delisted_by("2026-01-01") == {
-            "OLDFAIL", "DEADCO", "WIPEDOUT", "BOUGHTOUT"
-        }
-
-    def test_delisting_date_itself_counts_as_gone(self, registry):
-        assert "DEADCO" in registry.delisted_by("2021-06-15")
-
+class TestWindow:
     def test_in_window_excludes_delistings_outside_it(self, registry):
         w = registry.in_window("2021-01-01", "2022-12-31")
         assert set(w["symbol"]) == {"DEADCO", "WIPEDOUT"}
@@ -103,7 +86,6 @@ class TestBiasEstimate:
         silent zero that looks like 'no bias'.
         """
         empty = DelistingRegistry(path=tmp_path / "does-not-exist.parquet")
-        assert empty.delisted_by("2024-01-01") == set()
         est = empty.bias_estimate(1588, "2019-01-01", "2026-01-01")
         assert est.n_failures == 0
         assert est.annual_drag_pct == 0.0

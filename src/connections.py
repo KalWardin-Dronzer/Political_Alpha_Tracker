@@ -166,9 +166,3 @@ def connections(bonds: pd.DataFrame = None, companies: pd.DataFrame = None,
                      .drop_duplicates("company")
                      .set_index("company")[["name", "nse_symbol", "sector", "cin", "scrip_code"]])
     return table.join(info).sort_values("total", ascending=False)
-
-
-def connected_keys(table: pd.DataFrame = None) -> set[str]:
-    """Keys of the companies that count as connected."""
-    table = connections() if table is None else table
-    return set(table.index[table["connected"]])

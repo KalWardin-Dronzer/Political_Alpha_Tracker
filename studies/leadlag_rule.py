@@ -35,22 +35,13 @@ the rule with the basket's own drift.
 
 import logging
 import math
-import sys
-
-# Allow running directly as well as through cli.py.
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
 
 import numpy as np
 import pandas as pd
 
 from src.data.price_store import PriceStore
-from src.research.factor_backtest import CostModel, bootstrap_sharpe_ci
+from src.research.factor_backtest import CostModel, cagr, max_drawdown, sharpe_ratio
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("leadlag_rule")
 
 PERIODS = {"W-FRI": ("weekly", 52), "ME": ("monthly", 12)}
@@ -65,13 +56,7 @@ def stats(r, ppy):
     r = r.dropna()
     if len(r) < 8 or r.std() == 0:
         return {"sharpe": 0.0, "ann": 0.0, "mdd": 0.0, "n": len(r)}
-    curve = (1 + r).cumprod()
-    return {
-        "sharpe": float(r.mean() / r.std() * math.sqrt(ppy)),
-        "ann": float(curve.iloc[-1] ** (ppy / len(r)) - 1),
-        "mdd": float((curve / curve.cummax() - 1).min()),
-        "n": len(r),
-    }
+    return {"sharpe": sharpe_ratio(r, ppy), "ann": cagr(r, ppy), "mdd": max_drawdown(r), "n": len(r)}
 
 
 def trading_costs(pos: pd.Series, costs: CostModel) -> pd.Series:
@@ -81,10 +66,6 @@ def trading_costs(pos: pd.Series, costs: CostModel) -> pd.Series:
     every entry AND every exit, doubling the cost.)"""
     change = pos.diff().fillna(pos)
     return (change > 0) * costs.buy_pct() + (change < 0) * costs.sell_pct()
-
-
-def sharpe_ratio(r: pd.Series, ppy: int) -> float:
-    return r.mean() / r.std() * math.sqrt(ppy) if r.std() else 0.0
 
 
 def paired_bootstrap(rule: pd.Series, bh: pd.Series, ppy: int = 12, n_boot: int = 2000,
@@ -224,8 +205,8 @@ def main():
     d = paired_bootstrap(rule, bh, ppy=12)
     lo, hi = np.quantile(d, [0.025, 0.975])
     obs = sharpe_ratio(rule, 12) - sharpe_ratio(bh, 12)
-    ret_rule = (1 + rule).prod() ** (12 / n) - 1
-    ret_bh = (1 + bh).prod() ** (12 / n) - 1
+    ret_rule = cagr(rule, 12)
+    ret_bh = cagr(bh, 12)
     print(f"  observed Sharpe difference : {obs:+.3f}")
     print(f"  95% CI                     : [{lo:+.3f}, {hi:+.3f}]")
     print(f"  P(difference <= 0)         : {(d <= 0).mean():.3f}")
@@ -256,7 +237,3 @@ def main():
         print("  to harvest it.")
     print("=" * 78)
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

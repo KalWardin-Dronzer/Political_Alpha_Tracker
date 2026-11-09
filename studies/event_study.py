@@ -29,13 +29,6 @@ traded stocks moved in the last week. It is not a test and has no decision rule.
 """
 
 import logging
-import sys
-
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
 
 from statsmodels.stats.multitest import multipletests
 
@@ -44,7 +37,6 @@ from src.data.companies import load_companies
 from src.data.price_store import PriceStore
 from src.research.event_study import EVENTS, PRIMARY_EVENT, PRIMARY_WINDOW, EventStudy
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("event_study")
 
 ALPHA = 0.05
@@ -124,7 +116,3 @@ def main():
         print(f"=== {label}: {r['n_buyers']} buyers, {r['n_controls']} controls")
         table(r)
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

@@ -84,12 +84,6 @@ class FactorSnapshot:
     def top(self, n: int = 20) -> pd.DataFrame:
         return self.scores.nlargest(n, "composite")
 
-    def summary(self) -> str:
-        return (
-            f"{self.as_of.date()}: {self.universe_size} eligible "
-            f"(screened out: {self.screened_out})"
-        )
-
 
 def _winsorize(s: pd.Series, pct: float = WINSOR_PCT) -> pd.Series:
     """Clip both tails. One bad print in an illiquid name can otherwise dominate a z-score."""
@@ -119,13 +113,8 @@ class FactorEngine:
     # act is the NEXT session's close — matching the backtester's T+1 execution.
     LAG_DAYS = 1
 
-    def __init__(self, price_store, weights: dict = None,
-                 min_adv_cr: float = MIN_ADV_CR, delisting_registry=None):
+    def __init__(self, price_store, weights: dict = None, min_adv_cr: float = MIN_ADV_CR):
         self.store = price_store
-        # Optional, but strongly recommended. Without it a panel that contains a
-        # delisted symbol can be traded after its listing ended — look-ahead of
-        # the worst kind, since the outcome is already known.
-        self.registry = delisting_registry
         self.weights = dict(weights or DEFAULT_WEIGHTS)
         self.min_adv_cr = min_adv_cr
 
@@ -208,15 +197,6 @@ class FactorEngine:
         rejected["stale"] = int((~recent).sum())
 
         eligible = enough_history.intersection(live)
-
-        # Point-in-time delisting screen.
-        if self.registry is not None:
-            gone = self.registry.delisted_by(as_of)
-            before = len(eligible)
-            eligible = eligible.difference(gone)
-            rejected["delisted"] = int(before - len(eligible))
-        else:
-            rejected["delisted"] = 0
 
         # as_of is required here — without it the screen uses future volume.
         adv = self.store.adv_cr(VOL_LOOKBACK, as_of=as_of)

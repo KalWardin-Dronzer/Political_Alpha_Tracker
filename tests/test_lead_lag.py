@@ -11,10 +11,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.research.lead_lag import (
-    LeadLagTest, SectorGroups, LeadLagResult,
-    MIN_CONNECTED, MIN_PEERS,
-)
+from src.research.lead_lag import LeadLagTest
 
 
 class FakeStore:
@@ -111,39 +108,6 @@ class TestGroupConstruction:
         groups = LeadLagTest(FakeStore(px), universe(rows),
                              {"CIN-C0"}).build_groups()
         assert groups == []      # 1 connected < MIN_CONNECTED
-
-
-class TestRegression:
-    def test_runs_and_reports_both_arms(self):
-        store, companies, connected, _ = make_setup()
-        t = LeadLagTest(store, companies, connected)
-        r = t.run_sector(t.build_groups()[0])
-        assert r is not None
-        assert r.n_obs > 30
-        # Both arms must be populated — a missing placebo makes the result unreadable.
-        assert r.treatment_beta is not None and r.placebo_beta is not None
-
-    def test_random_data_yields_no_lead_lag(self):
-        """On independent random walks the verdict must be the null."""
-        store, companies, connected, _ = make_setup(seed=99)
-        t = LeadLagTest(store, companies, connected)
-        r = t.run_sector(t.build_groups()[0])
-        assert r.verdict().startswith("NO EVIDENCE")
-
-
-class TestVerdictLogic:
-    def _mk(self, tb, tt, pb, pt):
-        return LeadLagResult("x", 500, tb, tt, pb, pt, 0.01, 0.01)
-
-    def test_insignificant_treatment_is_the_null(self):
-        assert self._mk(0.3, 1.2, 0.0, 0.1).verdict().startswith("NO EVIDENCE")
-
-    def test_a_significant_placebo_does_not_settle_the_question(self):
-        """Both arms significant: the verdict must defer to the difference test."""
-        assert "test the difference" in self._mk(0.20, 3.0, 0.18, 2.5).verdict()
-
-    def test_connected_only_is_not_yet_political(self):
-        assert "test the difference" in self._mk(0.40, 3.0, 0.05, 0.4).verdict()
 
 
 class TestDifferenceTest:

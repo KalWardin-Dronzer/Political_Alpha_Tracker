@@ -61,32 +61,18 @@ Anything less is a FAIL, and the honest conclusion is an index fund.
 """
 
 import logging
-import math
-import sys
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
-# Allow running this file directly (python studies/<name>.py) as well
-# as through cli.py. Without this the repo root is not on sys.path and the
-# `src` package cannot be imported — a regression introduced when these scripts
-# moved out of the repo root.
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
-
 from src.data.price_store import MAX_DAILY_MOVE, PriceStore, remove_impossible_moves
 from src.data.delisting_registry import DelistingRegistry
-from src.research.factor_backtest import CostModel, FactorBacktest, TrialLog
+from src.research.factor_backtest import (
+    TRADING_DAYS, CostModel, FactorBacktest, TrialLog, cagr, sharpe_ratio,
+)
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
-logging.getLogger("yfinance").disabled = True
 logger = logging.getLogger("universe_test")
-
-TRADING_DAYS = 252
 
 SUBPERIODS = [
     ("pre-COVID",        "2019-01-01", "2020-02-15"),
@@ -97,24 +83,6 @@ SUBPERIODS = [
 ]
 
 INDICES = {"Nifty Midcap 100": "^NSMIDCP", "Nifty 500": "^CRSLDX", "Nifty 50": "^NSEI"}
-
-
-def sharpe(r):
-    r = r.dropna()
-    return float(r.mean() / r.std() * math.sqrt(TRADING_DAYS)) if len(r) > 2 and r.std() else 0.0
-
-
-def ann(r):
-    r = r.dropna()
-    return float((1 + r).prod() ** (TRADING_DAYS / len(r)) - 1) if len(r) else 0.0
-
-
-def mdd(r):
-    r = r.dropna()
-    if r.empty:
-        return 0.0
-    c = (1 + r).cumprod()
-    return float((c / c.cummax() - 1).min())
 
 
 class IndexDownloadError(RuntimeError):
@@ -221,13 +189,13 @@ def _main():
         ew_big = rets[seg].where(top100[seg]).mean(axis=1) - ew_cost_daily - drag_daily
 
         idx = {k: index_returns(v, s, e) for k, v in INDICES.items()}
-        s_all, s_big = sharpe(ew_all), sharpe(ew_big)
-        s_mid = sharpe(idx["Nifty Midcap 100"])
+        s_all, s_big = sharpe_ratio(ew_all), sharpe_ratio(ew_big)
+        s_mid = sharpe_ratio(idx["Nifty Midcap 100"])
         excess = s_all - s_mid
-        verdict_rows.append((name, s_all, s_mid, excess, ann(ew_all), ann(idx["Nifty Midcap 100"])))
+        verdict_rows.append((name, s_all, s_mid, excess, cagr(ew_all), cagr(idx["Nifty Midcap 100"])))
 
         print(f"{name:<20}{s_all:>13.3f}{s_big:>12.3f}{s_mid:>11.3f}"
-              f"{sharpe(idx['Nifty 500']):>10.3f}{sharpe(idx['Nifty 50']):>9.3f}   {excess:>+9.3f}")
+              f"{sharpe_ratio(idx['Nifty 500']):>10.3f}{sharpe_ratio(idx['Nifty 50']):>9.3f}   {excess:>+9.3f}")
 
     print()
     print("annualised returns, same rows:")
@@ -250,7 +218,7 @@ def _main():
     for i in range(0, len(common) - win, 126):
         a, b = ew_c.iloc[i:i + win], mid_c.iloc[i:i + win]
         rows.append((common[i].date(), common[i + win - 1].date(),
-                     sharpe(a), sharpe(b), sharpe(a) - sharpe(b)))
+                     sharpe_ratio(a), sharpe_ratio(b), sharpe_ratio(a) - sharpe_ratio(b)))
     print(f"{'window start':>14}{'window end':>14}{'EW SR':>9}{'Mid SR':>9}{'excess':>9}")
     for st, en, sa, sb, ex in rows:
         print(f"{str(st):>14}{str(en):>14}{sa:>9.3f}{sb:>9.3f}{ex:>+9.3f}")
@@ -273,7 +241,7 @@ def _main():
             continue
         sm = r.summary()
         days = r.returns.index if days is None else days.union(r.returns.index)
-        net_sr = sharpe(r.returns - drag_daily)
+        net_sr = sharpe_ratio(r.returns - drag_daily)
         net_ann = sm["annual_return_net_pct"] / 100 - drag_annual
         inv.append((seed, net_sr, net_ann, sm["annual_turnover_x"], sm["max_drawdown_pct"]))
         print(f"  seed {seed}: SR (after survivorship) {net_sr:>6.3f} | net ann (after survivorship) "
@@ -295,12 +263,12 @@ def _main():
     print("=" * 92)
     cond_a = bool(verdict_rows) and all(r[3] > 0 for r in verdict_rows)
     cond_b = bool(rows) and neg == 0
-    cond_c = bool(inv) and float(np.mean([x[1] for x in inv])) > sharpe(mid_inv)
+    cond_c = bool(inv) and float(np.mean([x[1] for x in inv])) > sharpe_ratio(mid_inv)
     print("PRE-DECLARED VERDICT")
     print(f"  (a) beats midcap index in EVERY sub-period ......... {cond_a}")
     print(f"  (b) beats it in EVERY rolling 3y window ............ {cond_b}")
     print(f"  (c) investable 40-name annual version beats index .. {cond_c}"
-          f"   (index SR {sharpe(mid_inv):.3f} over the same days)")
+          f"   (index SR {sharpe_ratio(mid_inv):.3f} over the same days)")
     print()
     if cond_a and cond_b and cond_c:
         print("  PASS — the universe premium looks real and implementable.")
@@ -310,7 +278,3 @@ def _main():
     print("=" * 92)
     print(f"\ntrials logged to date: {TrialLog().count()}")
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

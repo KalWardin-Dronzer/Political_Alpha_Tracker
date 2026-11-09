@@ -30,26 +30,14 @@ trained on the other folds, so purging changed nothing.)
 
 import json
 import logging
-import sys
-
-# Allow running this file directly (python studies/<name>.py) as well
-# as through cli.py. Without this the repo root is not on sys.path and the
-# `src` package cannot be imported — a regression introduced when these scripts
-# moved out of the repo root.
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
 
 import numpy as np
 
 from src.data.price_store import PriceStore
 from src.research.factor_backtest import (
-    FactorBacktest, TrialLog, bootstrap_sharpe_ci, deflated_sharpe_ratio,
+    FactorBacktest, TrialLog, bootstrap_sharpe_ci, deflated_sharpe_ratio, sharpe_ratio,
 )
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("validate")
 
 # ── Pre-declared grid. Do not edit between runs to chase a result. ──
@@ -144,7 +132,7 @@ def main():
     sharpes = []
     for i in range(5):
         seg = best.returns.iloc[bounds[i]:bounds[i + 1]]
-        sr = (seg.mean() / seg.std() * (252 ** 0.5)) if seg.std() else 0.0
+        sr = sharpe_ratio(seg)
         if seg.std():
             sharpes.append(sr)
         print(f"  {i + 1}  {seg.index[0].date()} .. {seg.index[-1].date()}  "
@@ -163,7 +151,3 @@ def main():
     print("  and net Sharpe above the equal-weight universe.")
     print("=" * 78)
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

@@ -1,1 +1,1 @@
-"""Backtesting and statistical validation. Never used by the live path."""
+"""Backtesting and statistical validation."""

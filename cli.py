@@ -62,7 +62,6 @@ def cmd_prices(args):
     from src.data.companies import load_companies
     from src.data.price_store import PriceStore
 
-    logging.getLogger("yfinance").disabled = True
     store = PriceStore()
     symbols = sorted({s for s in load_companies()["nse_symbol"] if s})
     if not args.all:
@@ -198,6 +197,8 @@ def build_parser():
 
 
 def main():
+    logging.basicConfig(level=logging.WARNING, format="%(message)s")
+    logging.getLogger("yfinance").disabled = True
     args = build_parser().parse_args()
     return args.fn(args)
 

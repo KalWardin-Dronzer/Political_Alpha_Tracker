@@ -10,9 +10,7 @@ check that the resolver declines rather than guesses.
 Search is mocked throughout — the suite must not depend on Zaubacorp.
 """
 
-import pytest
-
-from src.data.cin_resolver import CinResolver, CinMatch, normalize, CIN_RE
+from src.data.cin_resolver import CinResolver, normalize
 
 
 class StubResolver(CinResolver):
@@ -81,7 +79,7 @@ class TestRefusal:
         r = StubResolver({"Aurobindo Pharma Limited": [
             ("U99999PY1986PTC000469", "AUROBINDO PAHRMA PRIVATE LIMITED")]})
         m = r.resolve("Aurobindo Pharma Limited")
-        assert not m.resolved
+        assert m.cin is None
         assert "listed" in m.reason.lower()
 
     def test_one_letter_acronym_difference_is_refused(self):
@@ -104,7 +102,7 @@ class TestRefusal:
             ("L32204WB1993PLC060443", "ETL INFRASTRUCTURE FINANCE LIMITED"),
         ]})
         m = r.resolve("GTL Infrastructure Limited")
-        assert not m.resolved, "accepted a one-letter-different acronym"
+        assert m.cin is None, "accepted a one-letter-different acronym"
         assert "leading word" in m.reason
 
     def test_score_threshold_still_refuses_a_same_head_mismatch(self):
@@ -113,7 +111,7 @@ class TestRefusal:
             ("L24239DL1978PLC009181", "JAGSONPAL FINANCE AND LEASING LIMITED"),
         ]})
         m = r.resolve("Jagsonpal Pharmaceuticals Limited")
-        assert not m.resolved
+        assert m.cin is None
         assert "threshold" in m.reason
 
     def test_apostrophe_name_still_matches_after_the_head_guard(self):
@@ -124,17 +122,17 @@ class TestRefusal:
         r = StubResolver({"Divis Laboratories": [
             ("L24110TG1990PLC011854", "DIVIS LABORATORIES LIMITED")]})
         m = r.resolve("Divi's Laboratories Limited")
-        assert m.resolved, f"apostrophe handling regressed: {m.reason}"
+        assert m.cin is not None, f"apostrophe handling regressed: {m.reason}"
         assert m.cin == "L24110TG1990PLC011854"
 
     def test_returns_none_on_no_results_at_all(self):
         m = StubResolver({}).resolve("Nonexistent Trading Co Limited")
-        assert not m.resolved
+        assert m.cin is None
         assert "no search results" in m.reason
 
     def test_empty_name_is_refused_without_searching(self):
         r = StubResolver({})
-        assert not r.resolve("").resolved
+        assert r.resolve("").cin is None
         assert r.queries == []
 
 
@@ -145,7 +143,6 @@ class TestResolution:
         m = r.resolve("Alkem Laboratories Limited")
         assert m.cin == "L00305MH1973PLC174201"
         assert m.score >= 88
-        assert CIN_RE.match(m.cin)
 
     def test_prefers_the_listed_company_over_a_private_namesake(self):
         r = StubResolver({"Acme Steel Limited": [
@@ -162,7 +159,7 @@ class TestResolution:
             "Britannia Industries": [("L15412WB1918PLC002964", "BRITANNIA INDUSTRIES LIMITED")],
         })
         m = r.resolve("Britannia Industries Limited")
-        assert m.resolved
+        assert m.cin is not None
         assert m.cin == "L15412WB1918PLC002964"
         # It must have tried the full name first.
         assert r.queries[0] == "Britannia Industries Limited"
@@ -177,17 +174,11 @@ class TestResolution:
         r = StubResolver({"Divis Laboratories Limited": [
             ("L24110TG1990PLC011854", "DIVI&#39;S LABORATORIES LIMITED")]})
         m = r.resolve("Divi's Laboratories Limited")
-        assert m.resolved, f"HTML entity broke the match: {m.reason}"
+        assert m.cin is not None, f"HTML entity broke the match: {m.reason}"
         assert m.cin == "L24110TG1990PLC011854"
 
     def test_listed_only_can_be_disabled(self):
         r = StubResolver({"Some Private Firm Limited": [
             ("U27100MH2001PTC123456", "SOME PRIVATE FIRM LIMITED")]}, listed_only=False)
         m = r.resolve("Some Private Firm Limited")
-        assert m.resolved and m.cin.startswith("U")
-
-    def test_batch_returns_one_result_per_input(self):
-        r = StubResolver({"A Limited": [("L11111MH2000PLC000001", "A LIMITED")]})
-        out = r.resolve_batch(["A Limited", "Unknown Co Limited"])
-        assert len(out) == 2
-        assert out[0].resolved and not out[1].resolved
+        assert m.cin is not None and m.cin.startswith("U")

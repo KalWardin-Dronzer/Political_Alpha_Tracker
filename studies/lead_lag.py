@@ -63,14 +63,6 @@ the first run, on uncleaned prices, is in the git history (commit ce5f11f).
 """
 
 import logging
-import sys
-
-# Allow running this file directly as well as through cli.py.
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
 
 import pandas as pd
 import statsmodels.api as sm
@@ -81,7 +73,6 @@ from src.data.companies import load_companies
 from src.data.price_store import PriceStore
 from src.research.lead_lag import LeadLagTest
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("lead_lag")
 
 # Pre-declared. Do not edit between runs to chase a result.
@@ -224,7 +215,3 @@ def report(store, companies, connected, adv=None) -> int:
     best = min(fits, key=lambda f: f[1]["treatment"]["mde"])
     print(f"  smallest detectable treatment coefficient (80% power): {best[1]['treatment']['mde']:.3f} ({best[0]})")
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

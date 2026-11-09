@@ -25,27 +25,14 @@ the multiple-testing problem.
 
 import json
 import logging
-import math
-import sys
 
 import numpy as np
-
-# Allow running this file directly (python studies/<name>.py) as well
-# as through cli.py. Without this the repo root is not on sys.path and the
-# `src` package cannot be imported — a regression introduced when these scripts
-# moved out of the repo root.
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
 
 from src.data.price_store import PriceStore
 from src.research.factor_backtest import (
     FactorBacktest, TrialLog, bootstrap_sharpe_ci, deflated_sharpe_ratio,
 )
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger("diagnostics")
 
 TOP_N = 40
@@ -163,7 +150,3 @@ def main():
         print("  DO NOT PROCEED with the factor model as the primary signal.")
     print("=" * 84)
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

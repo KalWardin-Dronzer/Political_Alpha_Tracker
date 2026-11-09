@@ -4,12 +4,6 @@ The README figures, each in a light and a dark variant.
     python cli.py results      (writes them to results/figures/)
 """
 
-import os as _os
-import sys as _sys
-_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
-if _ROOT not in _sys.path:
-    _sys.path.insert(0, _ROOT)
-
 from pathlib import Path
 
 import pandas as pd
@@ -22,6 +16,7 @@ from src.connections import connections
 from src.data.companies import load_companies
 from src.data.price_store import PriceStore
 from src.graph import THEMES, build_graph, save_png
+from src.research.factor_backtest import sharpe_ratio
 from src.research.lead_lag import LeadLagTest
 from studies.lead_lag import GRID, pooled_fit
 from studies.leadlag_rule import weekly_curves
@@ -119,15 +114,10 @@ def event_chart(result: dict, mode: str, path: Path) -> Path:
     return _save(fig, path, t_["surface"])
 
 
-def _sharpe(weekly) -> float:
-    weekly = weekly.dropna()
-    return float(weekly.mean() / weekly.std() * 52 ** 0.5)
-
-
 def rule_chart(curves, mode: str, path: Path) -> Path:
     """Growth of Rs 1 for the weekly rule gross and net of costs, and for buy-and-hold."""
     fig, ax, t = _axes(mode)
-    sharpe = {column: _sharpe(curves[column]) for column in curves}
+    sharpe = {column: sharpe_ratio(curves[column], 52) for column in curves}
     blue, orange, aqua = SERIES[mode]
     growth = (1 + curves.fillna(0)).cumprod()
     for column, color, label in (("gross", blue, "Rule, before costs"),
@@ -179,8 +169,3 @@ def save_all(directory) -> list[Path]:
         written.append(event_chart(event, mode, directory / f"event-study-{mode}.png"))
         written.append(rule_chart(curves, mode, directory / f"leadlag-rule-{mode}.png"))
     return written
-
-
-if __name__ == "__main__":
-    for p in save_all(Path(_ROOT) / "results" / "figures"):
-        print(p)

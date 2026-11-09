@@ -30,7 +30,6 @@ import math
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -73,11 +72,30 @@ class CostModel:
     def round_trip_pct(self) -> float:
         return self.buy_pct() + self.sell_pct()
 
-    def dp_drag_pct(self, position_value: float) -> float:
-        """The flat DP charge expressed as a fraction of one position's value."""
-        if position_value <= 0:
-            return 0.0
-        return self.dp_charge / position_value
+
+# ──────────────────────────────────────────────────────────────
+# Return metrics, shared by the studies
+# ──────────────────────────────────────────────────────────────
+def sharpe_ratio(returns: pd.Series, periods: int = TRADING_DAYS) -> float:
+    """Annualised Sharpe ratio of periodic returns, with no risk-free rate; 0 when undefined."""
+    r = returns.dropna()
+    sd = r.std()
+    return float(r.mean() / sd * math.sqrt(periods)) if len(r) > 1 and sd > 0 else 0.0
+
+
+def cagr(returns: pd.Series, periods: int = TRADING_DAYS) -> float:
+    """Compound annual growth rate of periodic returns."""
+    r = returns.dropna()
+    return float((1 + r).prod() ** (periods / len(r)) - 1) if len(r) else 0.0
+
+
+def max_drawdown(returns: pd.Series) -> float:
+    """Largest fall of the compounded curve from its running peak, as a negative fraction."""
+    r = returns.dropna()
+    if r.empty:
+        return 0.0
+    curve = (1 + r).cumprod()
+    return float((curve / curve.cummax() - 1).min())
 
 
 # ──────────────────────────────────────────────────────────────
@@ -95,28 +113,16 @@ class BacktestResult:
 
     # ── metrics ──
     def sharpe(self, net: bool = True) -> float:
-        r = self.returns if net else self.gross_returns
-        if r.std() == 0 or r.empty:
-            return 0.0
-        return float(r.mean() / r.std() * math.sqrt(TRADING_DAYS))
+        return sharpe_ratio(self.returns if net else self.gross_returns)
 
     def annual_return(self, net: bool = True) -> float:
-        r = self.returns if net else self.gross_returns
-        if r.empty:
-            return 0.0
-        return float((1 + r).prod() ** (TRADING_DAYS / len(r)) - 1)
+        return cagr(self.returns if net else self.gross_returns)
 
     def max_drawdown(self) -> float:
-        if self.returns.empty:
-            return 0.0
-        curve = (1 + self.returns).cumprod()
-        return float((curve / curve.cummax() - 1).min())
+        return max_drawdown(self.returns)
 
     def benchmark_sharpe(self) -> float:
-        b = self.benchmark
-        if b.empty or b.std() == 0:
-            return 0.0
-        return float(b.mean() / b.std() * math.sqrt(TRADING_DAYS))
+        return sharpe_ratio(self.benchmark)
 
     def annual_turnover(self) -> float:
         if self.turnover.empty or self.returns.empty:

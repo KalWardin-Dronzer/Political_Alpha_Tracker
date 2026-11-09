@@ -56,8 +56,6 @@ _RESULT_RE = re.compile(
     re.I,
 )
 
-CIN_RE = re.compile(r"^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$")
-
 # Below this name-similarity score the match is refused. A wrong CIN corrupts
 # the attribution silently; a missing one merely leaves a gap that is visible.
 MATCH_THRESHOLD = 88
@@ -79,10 +77,6 @@ class CinMatch:
     score: float
     n_candidates: int
     reason: str = ""
-
-    @property
-    def resolved(self) -> bool:
-        return self.cin is not None
 
 
 def normalize(name: str) -> str:
@@ -292,13 +286,3 @@ class CinResolver:
 
         return CinMatch(company_name, best_cin, best_name, best_score,
                         len(candidates), "matched")
-
-    def resolve_batch(self, names: list[str]) -> list[CinMatch]:
-        out = []
-        for i, n in enumerate(names, 1):
-            m = self.resolve(n)
-            out.append(m)
-            if i % 25 == 0:
-                got = sum(1 for x in out if x.resolved)
-                logger.info(f"  resolved {got}/{i}")
-        return out
