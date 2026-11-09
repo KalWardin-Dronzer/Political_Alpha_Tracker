@@ -128,7 +128,7 @@ class TestRegression:
         store, companies, connected, _ = make_setup(seed=99)
         t = LeadLagTest(store, companies, connected)
         r = t.run_sector(t.build_groups()[0])
-        assert "NO LEAD-LAG" in r.verdict() or r.verdict() == "AMBIGUOUS"
+        assert r.verdict().startswith("NO EVIDENCE")
 
 
 class TestVerdictLogic:
@@ -136,10 +136,47 @@ class TestVerdictLogic:
         return LeadLagResult("x", 500, tb, tt, pb, pt, 0.01, 0.01)
 
     def test_insignificant_treatment_is_the_null(self):
-        assert "NO LEAD-LAG" in self._mk(0.3, 1.2, 0.0, 0.1).verdict()
+        assert self._mk(0.3, 1.2, 0.0, 0.1).verdict().startswith("NO EVIDENCE")
 
-    def test_matched_control_predicting_equally_is_a_size_effect(self):
-        assert self._mk(0.20, 3.0, 0.18, 2.5).verdict() == "SIZE EFFECT (matched control predicts just as well)"
+    def test_a_significant_placebo_does_not_settle_the_question(self):
+        """Both arms significant: the verdict must defer to the difference test."""
+        assert "test the difference" in self._mk(0.20, 3.0, 0.18, 2.5).verdict()
 
-    def test_political_effect_requires_beating_the_control(self):
-        assert self._mk(0.40, 3.0, 0.05, 0.4).verdict() == "POLITICAL LEAD-LAG SURVIVES THE CONTROL"
+    def test_connected_only_is_not_yet_political(self):
+        assert "test the difference" in self._mk(0.40, 3.0, 0.05, 0.4).verdict()
+
+
+class TestDifferenceTest:
+    """The stacked regression behind studies/lead_lag.py."""
+
+    @staticmethod
+    def _pool(seed=0, extra=0.0, n_sectors=4, n_periods=400):
+        rng = np.random.default_rng(seed)
+        frames = []
+        dates = pd.bdate_range("2020-01-03", periods=n_periods, freq="W-FRI")
+        common = rng.normal(0, 0.02, n_periods)   # both leaders share this, as size does
+        for s in range(n_sectors):
+            conn = common + rng.normal(0, 0.02, n_periods)
+            plac = common + rng.normal(0, 0.02, n_periods)
+            peer = 0.3 * common + extra * conn + rng.normal(0, 0.02, n_periods)
+            frames.append(pd.DataFrame({"peer": peer, "conn_lag": conn, "plac_lag": plac,
+                                        "peer_lag": rng.normal(0, 0.02, n_periods),
+                                        "mkt_lag": rng.normal(0, 0.02, n_periods), "date": dates}))
+        return pd.concat(frames, ignore_index=True)
+
+    def test_point_estimates_equal_the_separate_fits(self):
+        import statsmodels.api as sm
+        from studies.lead_lag import stacked_difference
+        pool = self._pool()
+        fit = stacked_difference(pool)
+        sep = {col: sm.OLS(pool["peer"], sm.add_constant(pool[[col, "peer_lag", "mkt_lag"]])).fit().params[col]
+               for col in ("conn_lag", "plac_lag")}
+        assert fit.params["lead"] == pytest.approx(sep["plac_lag"])
+        assert fit.params["lead_x_treat"] == pytest.approx(sep["conn_lag"] - sep["plac_lag"])
+
+    def test_detects_a_real_difference_and_not_a_shared_one(self):
+        from studies.lead_lag import stacked_difference
+        shared = stacked_difference(self._pool(seed=1, extra=0.0))
+        assert shared.pvalues["lead_x_treat"] > 0.05      # same leader effect in both arms
+        extra = stacked_difference(self._pool(seed=1, extra=0.4))
+        assert extra.params["lead_x_treat"] > 0 and extra.pvalues["lead_x_treat"] < 0.01

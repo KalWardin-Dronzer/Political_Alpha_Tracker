@@ -2,6 +2,7 @@
 Political Alpha Tracker: do Indian listed companies that bought electoral
 bonds behave differently in the stock market?
 
+    python cli.py companies          rebuild the listed-company universe from NSE's lists
     python cli.py connections        which listed companies bought bonds
     python cli.py prices             download the daily price panel (Yahoo Finance)
     python cli.py study lead-lag     run one study (see `study --help`)
@@ -16,6 +17,7 @@ import sys
 
 STUDIES = {
     "lead-lag": "lead_lag",          # political peer lead-lag, with a placebo arm
+    "event-study": "event_study",    # did prices move when the buyers were revealed?
     "leadlag-rule": "leadlag_rule",  # can the size lead-lag be traded after costs?
     "factor": "factor",              # pre-declared factor grid with deflated Sharpe
     "controls": "controls",          # factor selection against random selection
@@ -50,17 +52,27 @@ def cmd_connections(args):
     return 0
 
 
+def cmd_companies(args):
+    from src.data.build_companies import main
+    return main()
+
+
 def cmd_prices(args):
+    from src.config import PRICE_END
     from src.data.companies import load_companies
     from src.data.price_store import PriceStore
 
     logging.getLogger("yfinance").disabled = True
+    store = PriceStore()
     symbols = sorted({s for s in load_companies()["nse_symbol"] if s})
+    if not args.all:
+        have = set(store.close().columns)
+        symbols = [s for s in symbols if s not in have]
     if args.limit:
         symbols = symbols[: args.limit]
-    print(f"downloading {len(symbols)} NSE symbols from {args.start} ...")
-    store = PriceStore()
-    store.update(symbols, start=args.start)
+    print(f"downloading {len(symbols)} NSE symbols, {args.start} to {PRICE_END} (exclusive) ...")
+    if symbols:
+        store.update(symbols, start=args.start, end=PRICE_END)
     print(f"panel: {store.coverage()}")
     return 0
 
@@ -156,8 +168,13 @@ def build_parser():
     c.add_argument("--top", type=int, default=15, help="largest buyers to list")
     c.set_defaults(fn=cmd_connections)
 
-    pr = sub.add_parser("prices", help="download the daily price panel")
+    co = sub.add_parser("companies", help="rebuild data/companies.csv from the committed NSE lists")
+    co.set_defaults(fn=cmd_companies)
+
+    pr = sub.add_parser("prices", help="download the daily price panel, to the pinned end date")
     pr.add_argument("--start", default="2019-01-01")
+    pr.add_argument("--all", action="store_true",
+                    help="re-download every symbol, not only those missing from the panel")
     pr.add_argument("--limit", type=int, help="only the first N symbols (smoke test)")
     pr.set_defaults(fn=cmd_prices)
 

@@ -9,7 +9,7 @@ from src.config import COMPANIES_FILE, DONOR_CINS_FILE
 
 
 def load_companies(path=COMPANIES_FILE) -> pd.DataFrame:
-    """One row per listed security: scrip code, NSE symbol, name, ISIN, CIN, sector, industry."""
+    """One row per listed company: scrip code, NSE symbol, name, ISIN, CIN, sector, industry, listing date."""
     return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
@@ -20,8 +20,10 @@ def load_donor_cins(path=DONOR_CINS_FILE) -> dict[str, str]:
 
 
 def company_key(company) -> str:
-    """A company's identity: its CIN, or its scrip code when it has none.
+    """A company's identity: its CIN, else its BSE scrip code, else its ISIN.
 
-    Share classes listed separately under one CIN are one company.
+    Share classes listed separately under one CIN are one company. Companies
+    added to the universe in November 2026 have neither a CIN nor a scrip code
+    on file, so they are keyed by ISIN.
     """
-    return company["cin"] or company["scrip_code"]
+    return company["cin"] or company["scrip_code"] or company["isin"]

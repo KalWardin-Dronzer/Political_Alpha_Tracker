@@ -1,0 +1,277 @@
+purchaser,decision,nse_symbol,relation,source
+PCBL LIMITED,same_company,PCBL,former name; renamed PCBL Chemical Limited in November 2024,https://nsearchives.nseindia.com/corporate/PCBL_06112024202705_PostapprovalIntimationtoSEnamechange.pdf
+PHILLIPS CARBON BLACK LIMITED,same_company,PCBL,"former name; renamed PCBL Limited on 29 December 2021, then PCBL Chemical",https://www.european-rubber-journal.com/article/2090647/phillips-carbon-black-changes-name-starts-new-qa-facility; https://nsearchives.nseindia.com/corporate/PCBL_06112024202705_PostapprovalIntimationtoSEnamechange.pdf
+BHARTI AIRTEL LIMITEDAIRTEL CURRE NT AC-GCO,same_company,BHARTIARTL,the company's name with a bank-account note appended,name
+BHARTI INFRATEL LIMITED,same_company,INDUSTOWER,renamed Indus Towers in December 2020 after the merger,https://www.businesstoday.in/industry/telecom/story/bharti-infratel-receives-approval-to-change-name-to-indus-towers-after-merger-281379-2020-12-13
+CENTURY TEXTILES AND INDUSTRIES LTD,same_company,ABREL,renamed Aditya Birla Real Estate in 2024,https://www.businesstoday.in/latest/corporate/story/century-textiles-rebrands-as-aditya-birla-real-estate-450021-2024-10-15
+PIRAMAL ENTERPRISES LIMITED,same_company,PIRAMALFIN,"merged into Piramal Finance (formerly Piramal Capital and Housing Finance), listed 7 November 2025",https://en.wikipedia.org/wiki/Piramal_Finance; https://www.business-standard.com/companies/news/piramal-finance-aims-aum-of-1-5-trillion-by-2028-ceo-jairam-sridharan-125110700797_1.html
+PIRAMAL ENTERPRISES LTD,same_company,PIRAMALFIN,"merged into Piramal Finance (formerly Piramal Capital and Housing Finance), listed 7 November 2025",https://en.wikipedia.org/wiki/Piramal_Finance; https://www.business-standard.com/companies/news/piramal-finance-aims-aum-of-1-5-trillion-by-2028-ceo-jairam-sridharan-125110700797_1.html
+PIRAMAL CAPITAL AND HOUSING FINANCE LTD,same_company,PIRAMALFIN,"the same company, renamed Piramal Finance",https://en.wikipedia.org/wiki/Piramal_Finance; https://www.business-standard.com/companies/news/piramal-finance-aims-aum-of-1-5-trillion-by-2028-ceo-jairam-sridharan-125110700797_1.html
+INOX LEISURE LTD,same_company,PVRINOX,"merged into PVR (now PVR INOX), effective 6 February 2023",https://zeebiz.com/markets/stocks/news-pvr-inox-merger-record-date-ratio-share-price-nse-bse-news-impact-valuation-222434
+PVR LTD,same_company,PVRINOX,renamed PVR INOX after the INOX Leisure merger,https://zeebiz.com/markets/stocks/news-pvr-inox-merger-record-date-ratio-share-price-nse-bse-news-impact-valuation-222434
+WELSPUN INDIA LIMITED,same_company,WELSPUNLIV,renamed Welspun Living in 2023; the name match had given these bonds to Welspun Corp,https://www.voguestock.in/fundamental/changename/welspun-living-ltd
+DCM SHRIRAM LIMITED,same_company,DCMSHRIRAM,"DCM Shriram Ltd, not DCM Shriram Industries; both names normalise to 'dcm shriram'",name
+DCM SHRIRAM LTD,same_company,DCMSHRIRAM,"DCM Shriram Ltd, not DCM Shriram Industries; both names normalise to 'dcm shriram'",name
+JUBILANT LIFE SCIENCES LIMITED,same_company,JUBLPHARMA,renamed Jubilant Pharmova on 1 February 2021,https://www.business-standard.com/article/news-cm/jubilant-life-sciences-renamed-jubilant-pharmova-121020101566_1.html
+GK ENERGY MARKETERS PRIVATE LIMITED,same_company,GKENERGY,former name; converted to a public company before its 2025 listing,https://www.valueresearchonline.com/ipo/369984/gk-energy-ltd/
+SARDA ENERGY AND MINERALS LTD,same_company,SARDAEN,spelling ('and' for '&'),name
+PRESTIGE ESTATES PROJECTS LTD PREST,same_company,PRESTIGE,truncated name,name
+THE SUPREME INDUSTRIES LTD,same_company,SUPREMEIND,spelling,name
+RATNAMANI METALS AND TUBES LTD,same_company,RATNAMANI,spelling ('and' for '&'),name
+ASSOCIATED ALCOHOLS BREWERIES LIMI,same_company,ASALCBR,truncated name,name
+TRIDENT LIMITED {FORMERLY ABHISHEK INDUS TRIES LIMITED},same_company,TRIDENT,the name with its former name appended,name
+MS PEARL GLOBAL INDUSTRIES LTD FORM,same_company,PGIL,truncated name,name
+TEGA INDUSTRIES LIMI,same_company,TEGA,truncated name,name
+THE SANDUR MANGANESE &AMP;AMP; IRON ORES LI,same_company,SANDUMA,'&' garbled by HTML escaping,name
+GRAUER AMP WEIL INDIA LIMITED,same_company,GRAUWEIL,'&' garbled by HTML escaping,name
+GENUS POWER,same_company,GENUSPOWER,"short form of Genus Power Infrastructures, which also bought bonds under its full name",name
+HALDIA ENERGY LIMITED,subsidiary,CESC,CESC holds 100%,"https://www.careratings.com/upload/CompanyFiles/PR/202401130120_CESC_Limited.pdf (CARE, 8 Jan 2024: subsidiaries and % ownership as on 31 Mar 2023)"
+DHARIWAL INFRASTRUCTURE LIMITED,subsidiary,CESC,CESC holds 100%,"https://www.careratings.com/upload/CompanyFiles/PR/202401130120_CESC_Limited.pdf (CARE, 8 Jan 2024: subsidiaries and % ownership as on 31 Mar 2023)"
+CRESCENT POWER LTD,subsidiary,CESC,CESC holds 67.83%,"https://www.careratings.com/upload/CompanyFiles/PR/202401130120_CESC_Limited.pdf (CARE, 8 Jan 2024: subsidiaries and % ownership as on 31 Mar 2023)"
+UTKAL ALUMINA INTERNATIONAL LIMITED,subsidiary,HINDALCO,a 100% subsidiary of Hindalco,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+UTKAL ALUMINA INTERNATIONAL LTD,subsidiary,HINDALCO,a 100% subsidiary of Hindalco,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+DLF COMMERCIAL DEVELOPERS LIMITED,subsidiary,DLF,reported as a DLF subsidiary; ownership share not published; DLF said the purchases are in its accounts,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+DLF LUXURY HOMES LIMITED,subsidiary,DLF,reported as a DLF subsidiary; ownership share not published,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+DLF GARDEN CITY INDORE PVT LTD,subsidiary,DLF,reported as a DLF subsidiary; ownership share not published,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+BHARTI TELEMEDIA LIMITED,subsidiary,BHARTIARTL,a subsidiary of Bharti Airtel,https://www.business-standard.com/companies/news/bharti-airtel-subsidiary-donated-rs-234-cr-to-bjp-via-electoral-bonds-124032200817_1.html
+MODERN ROAD MAKERS PVT. LTD.,subsidiary,IRB,one of three IRB subsidiaries that bought bonds,https://www.business-standard.com/industry/news/infra-firms-among-top-electoral-bond-donors-124031501120_1.html
+MODERN ROAD MAKERS PVT LTD,subsidiary,IRB,one of three IRB subsidiaries that bought bonds,https://www.business-standard.com/industry/news/infra-firms-among-top-electoral-bond-donors-124031501120_1.html
+IRB MP EXPRESSWAY PRIVATE LIMITED,subsidiary,IRB,one of three IRB subsidiaries that bought bonds,https://www.business-standard.com/industry/news/infra-firms-among-top-electoral-bond-donors-124031501120_1.html
+IDEAL ROAD BUILDERS PVT.LTD.,subsidiary,IRB,one of three IRB subsidiaries that bought bonds,https://www.business-standard.com/industry/news/infra-firms-among-top-electoral-bond-donors-124031501120_1.html
+ZYDUS HEALTHCARE LIMITED,subsidiary,ZYDUSLIFE,listed as a subsidiary in Zydus Lifesciences' related-party disclosures,https://www.zyduslife.com/investor/admin/uploads/18/100/Related-Party-Transactions-April-to-Sept-2023.pdf
+SUN PHARMA LABORATORIES LIMTED,subsidiary,SUNPHARMA,a wholly owned subsidiary of Sun Pharmaceutical Industries,https://www.reporters-collective.in/trc/sun-pharma-group-donated-rs-31-5-crore-to-political-parties
+SUN PHARMA LABORATORIES LTD,subsidiary,SUNPHARMA,a wholly owned subsidiary of Sun Pharmaceutical Industries,https://www.reporters-collective.in/trc/sun-pharma-group-donated-rs-31-5-crore-to-political-parties
+STAR CEMENT MEGHALAYA LIMITED,subsidiary,STARCEMENT,Star Cement holds 87.49%,https://www.icra.in/Rating/GetRationalReportFilePdf?id=126790
+UNITED PHOSPHORUS INDIA LLP,subsidiary,UPL,listed as a UPL subsidiary in UPL's related-party disclosure,https://nsearchives.nseindia.com/corporate/UPL_09052023162858_RPTdisclosureMarch2023.pdf; https://www.tofler.in/swal-corporation-limited/company/U24110MH1979PLC136661
+SWAL CORPORATION LIMITED,subsidiary,UPL,acquired by UPL in 2005; registered at UPL's office,https://nsearchives.nseindia.com/corporate/UPL_09052023162858_RPTdisclosureMarch2023.pdf; https://www.tofler.in/swal-corporation-limited/company/U24110MH1979PLC136661
+ECL FINANCE LTD,subsidiary,EDELWEISS,a subsidiary of Edelweiss Financial Services,https://cdn1.edelweissfin.com/wp-content/uploads/2021/08/ECL-Finance-Limited.pdf
+PANACEA BIOTEC PHARMA LTD PHARMACEU,subsidiary,PANACEABIO,a 100% subsidiary of Panacea Biotec,https://nsearchives.nseindia.com/corporate/PANACEABIO_28122024125712_IntimationForFurtherInvestmentByMaterialSubsidiaryInPanaceaBiotecInc.pdf
+PRESTIGE PROJECTS PVT LTD,subsidiary,PRESTIGE,a subsidiary of Prestige Estates Projects,https://www.indiabonds.com/bonduni/issuer-notes/prestige-projects-private-limited-ine757o07049
+LUCINA LAND DEVELOPMENT LIMITED,subsidiary,EMBDL,"a wholly owned subsidiary of Embassy Developments, formerly Indiabulls Real Estate (same ISIN); status at the May 2019 purchase inferred, no contrary evidence",https://www.gripinvest.in/blog/company-profile-lucina-land-development-limited-embassy-backed-investment
+A B C INDIA LIMITED,not_attributed,,A B C India Ltd is not ABC Industries India Ltd; 'India' and 'Industries' are both stripped as boilerplate,name
+GUJARAT FLUORO CHEMICALS LIMITED,not_attributed,,"bought in April-May 2019 by the pre-demerger company, later renamed GFL Ltd; the company listed as Gujarat Fluorochemicals since October 2019 was then Inox Fluorochemicals",https://gfl.co.in/Gfl_History.php
+SEPC POWER PVT LTD OPERATION RETEN,not_attributed,,"a Megha group company, unrelated to SEPC Ltd",https://www.reporters-collective.in/trc/megha-group-donated-rs-1232-crore
+WESTERN UP POWER TRANSMISSION COMPANY LI MITED,not_attributed,,controlled by the unlisted Megha group,https://scroll.in/article/1065211/top-buyers-of-electoral-bonds-include-lottery-king-infrastructure-giant-mining-group-vedanta
+QWIKSUPPLYCHAINPRIVATELIMITED,not_attributed,,"Reliance-linked, but Reliance says it is not a subsidiary of any Reliance entity",https://scroll.in/article/1065211/top-buyers-of-electoral-bonds-include-lottery-king-infrastructure-giant-mining-group-vedanta
+ESSEL MINING AND INDS LTD,not_attributed,,an Aditya Birla group company; no listed parent found,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+BIRLACARBONINDIAPRIVATELIMITED,not_attributed,,an Aditya Birla group company; no listed parent found,https://theprint.in/india/directly-via-proxy-or-through-subsidiaries-how-indias-biggest-corporates-bought-electoral-bonds/2002339
+INTERGLOBE AIR TRANSPORT LIMITED,not_attributed,,an InterGlobe group company; not shown to be an InterGlobe Aviation subsidiary,name
+EDELWEISS HOUSING FINANCE LTD.,not_attributed,,Edelweiss Financial held 30% directly when these bonds were bought (May 2019); majority ownership then not established,https://eclfinance.edelweissfin.com/download/10
+EDELWEISS RURAL CORPORATE SERVICE,not_attributed,,an Edelweiss group company; ownership not established,name
+LCCPROJECTSPRIVATELIMITED,not_attributed,,"same name as LCC Projects Ltd, listed 17 September 2026 (after the price panel ends); conversion from a private company not confirmed",https://groww.in/ipo/lcc-projects-ipo
+SIGMA ADVANCED SYSTEMS PRIVATE LIMI,not_attributed,,a private company; not shown to be the listed Sigma Advanced Systems,name
+VEDANTA ELECTRICALS PRIVATE LIMITED,not_attributed,,a different company from Vedanta Ltd,name
+INOX AIR PRODUCTS LTD,not_attributed,,a different company from INOX India,name
+SOM DISTILLERIES PVT LTD,not_attributed,,a private company; not shown to be part of the listed Som Distilleries & Breweries,name
+MINDA KYORAKU LTD,not_attributed,,a joint venture; majority ownership by a listed company not established,name
+PREMIER PHOTOVOLTAIC MEDAK (P)LTD,not_attributed,,possibly a Premier Energies company; ownership not verified,name
+PENNAR RENEWABLES PVT LTD( NEW ERA,not_attributed,,possibly a Pennar group company; ownership not verified,name
+GEOJIT INVESTMENT SERVICES LTD,not_attributed,,possibly a Geojit company; ownership not verified (largest bond Rs 1 lakh),name
+PRESTIGE GARDEN ESTATES PRIVATE LIM,not_attributed,,possibly a Prestige subsidiary; ownership not verified,name
+PRESTIGE NOTTING HILL INVESTMENTS,not_attributed,,a Prestige group entity; ownership not verified,name
+PRESTIGE HABITAT VENTURES,not_attributed,,a Prestige group entity; ownership not verified,name
+PRESTIGE SOUTHCITY HOLDINGS,not_attributed,,a Prestige group entity; ownership not verified,name
+PRESTIGE PROPERTY MANAGEMENT AND SE,not_attributed,,a Prestige group entity; ownership not verified,name
+FUTURE GAMING AND HOTEL SERVICES PR,not_attributed,,no listed company or listed parent identified (name resembles BLS E-Services Limited (BLSE)),name
+MEGHA ENGINEERING AND INFRASTRUCTURES LI MITED,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+KEVENTER FOODPARK INFRA LIMITED,not_attributed,,no listed company or listed parent identified (name resembles OM INFRA LIMITED (OMINFRAL)),name
+MADANLAL LTD.,not_attributed,,no listed company or listed parent identified (name resembles Mafatlal Industries Limited (MAFATIND)),name
+YASHODA SUPER SPECIALITY HOSPITAL,not_attributed,,no listed company or listed parent identified (name resembles K M C Speciality Hospitals (India) Limited (KMCSHIL)),name
+MKJ ENTERPRISES LIMITED,not_attributed,,no listed company or listed parent identified (name resembles S.J.S. Enterprises Limited (SJS)),name
+B G SHIRKE CONSTRUCTION TECHNOLOGY PVT L TD,not_attributed,,no listed company or listed parent identified (name resembles Semac Construction Limited (SEMAC)),name
+CHENNAI GREEN WOODS PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles KD Green Industries Limited (KDGREEN)),name
+RUNGTA SONS P LTD,not_attributed,,no listed company or listed parent identified (name resembles Tarsons Products Limited (TARSONS)),name
+FUTURE GAMING AND HOTEL SERVICES PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles BLS E-Services Limited (BLSE)),name
+AVEES TRADING FINANCE PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles L&T Finance Limited (LTF)),name
+PRARAMBH SECURITIES PVT LTDPROPRIET,not_attributed,,no listed company or listed parent identified (name resembles LKP Securities Limited (LKPSEC)),name
+MEGHA ENGINEERING & INFRASTRUCTURES LIMITED,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+MEGHA ENGINEERING AND INFRASTRUCTURES LTD,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+FUTURE GAMING AND HOTEL SERVICES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles BLS E-Services Limited (BLSE)),name
+MKJ ENTERPRISES LTD,not_attributed,,no listed company or listed parent identified (name resembles S.J.S. Enterprises Limited (SJS)),name
+RASHMI CEMENT LTD,not_attributed,,no listed company or listed parent identified (name resembles JK Lakshmi Cement Limited (JKLAKSHMI)),name
+SRI SIDDHARTH INFRATECH AND SERVICES I P,not_attributed,,no listed company or listed parent identified (name resembles PNC Infratech Limited (PNCINFRA)),name
+INFINA FINANCE PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles L&T Finance Limited (LTF)),name
+MS S N MOHANTY,not_attributed,,no listed company or listed parent identified (name resembles AYM Syntex Limited (AYMSYNTEX)),name
+NAVAYUGA ENGINEERING COMPANY LIMITED,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+RITHWIK PROJECTS PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles LCC Projects Limited (LCCPROJECT)),name
+SASMAL INFRASTRUCTURE PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+TRANSWAYS EXIM PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles M.K. Exim (India) Limited (MKEXIM)),name
+LAXMI CIVIL ENGINEERING SERVICES PR,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+PHL FINIVEST PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+SHIRDI SAI ELECTRICALS LTD,not_attributed,,no listed company or listed parent identified (name resembles Bajaj Electricals Limited (BAJAJELEC)),name
+SAFAL GOYAL REALTY LLP,not_attributed,,no listed company or listed parent identified (name resembles Emami Realty Limited (EMAMIREAL)),name
+NEXG DEVICES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Neogen Chemicals Limited (NEOGEN)),name
+LAKSHMI NIWAS MITTAL,not_attributed,,no listed company or listed parent identified (name resembles Lakshmi Mills Company Limited (LAKSHMIMIL)),name
+KAMNA CREDITS AND PROMOTORS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles India Motor Parts and Accessories Limited (IMPAL)),name
+HONEYWELL PROPERTIES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Godrej Properties Limited (GODREJPROP)),name
+HETERO DRUGS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Beta Drugs Limited (BETA)),name
+APARNA FARMS AND ESTATES LLP,not_attributed,,no listed company or listed parent identified (name resembles Max Estates Limited (MAXESTATES)),name
+WESTWELL GASES PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Sejal Glass Limited (SEJALLTD)),name
+PENGUIN TRADING & AGENCIES LIMITED,not_attributed,,no listed company or listed parent identified (name resembles AIA Engineering Limited (AIAENG)),name
+RASHMI METALIKS LTD,not_attributed,,no listed company or listed parent identified (name resembles JK Lakshmi Cement Limited (JKLAKSHMI)),name
+KAYPEE ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles PTL Enterprises Limited (PTL)),name
+MSN PHARMACHEM PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Marksans Pharma Limited (MARKSANS)),name
+HETERO LABS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles HALEOS LABS LIMITED (HALEOSLABS)),name
+MAATHA PROJECTS LLP,not_attributed,,no listed company or listed parent identified (name resembles LCC Projects Limited (LCCPROJECT)),name
+LAXMIDAS VALLABHDAS ASMITA MERCHA,not_attributed,,no listed company or listed parent identified (name resembles Amagi Media Labs Limited (AMAGI)),name
+PRATHMESH CONSTRUCTION,not_attributed,,no listed company or listed parent identified (name resembles Semac Construction Limited (SEMAC)),name
+K R RAJA JT,not_attributed,,no listed company or listed parent identified (name resembles Amara Raja Energy & Mobility Limited (ARE&M)),name
+AVEES TRADING & FINANCE PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles L&T Finance Limited (LTF)),name
+HES INFRA PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles OM INFRA LIMITED (OMINFRAL)),name
+L7 HITECH PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Hitech Corporation Limited (HITECHCORP)),name
+SIDDHI TRADING,not_attributed,,no listed company or listed parent identified (name resembles Shree Tirupati Balajee Agro Trading Company Limited (BALAJEE)),name
+K RAHEJA CORP PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles JK Tyre & Industries Limited (JKTYRE)),name
+HH IRON AND STEEL PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Sunflag Iron And Steel Company Limited (SUNFLAG)),name
+INTAS PHARMACEUTICALS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles SMS Pharmaceuticals Limited (SMSPHARMA)),name
+INTERGLOBE REAL ESTATE VENTURES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles BMW Ventures Limited (BMWVENTLTD)),name
+BKC PROPERTIES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Ansal Properties & Infrastructure Limited (ANSALAPI)),name
+KOYA AND COMPANY CONSTRUCTION LTD,not_attributed,,no listed company or listed parent identified (name resembles Garuda Construction and Engineering Limited (GARUDA)),name
+TELLAPUR TECHNOCITY PRIVATE LIMI,not_attributed,,no listed company or listed parent identified (name resembles Le Travenues Technology Limited (IXIGO)),name
+ULTRATECHCEMENTSLTD,not_attributed,,no listed company or listed parent identified (name resembles Andhra Cements Limited (ACL)),name
+RAY CONSTRUCTIONS LTD,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+BALU IRON AND STEEL COMPANY,not_attributed,,no listed company or listed parent identified (name resembles Sunflag Iron And Steel Company Limited (SUNFLAG)),name
+AKSENTT TECH SERVICES LIMITED (UNITY TEL ECOM INFRASTRUCTURE),not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+MY HOME INFRASTRUCTURES PRIVATE LI,not_attributed,,no listed company or listed parent identified (name resembles Nila Infrastructures Limited (NILAINFRA)),name
+SANDHYA CONSTRUCTIONS & ESTATES PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+SATEC ENVIR ENGINEERING (I) PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+JAI BHARAT TECHNICAL SERVICES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Jai Corp Limited (JAICORPLTD)),name
+GVPR ENGINEERS LTD,not_attributed,,no listed company or listed parent identified (name resembles Engineers India Limited (ENGINERSIN)),name
+APCO INFRATECH PRIVATE LTD,not_attributed,,no listed company or listed parent identified (name resembles PNC Infratech Limited (PNCINFRA)),name
+ACE URBAN DEVELOPERS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Urban Company Limited (URBANCO)),name
+SNEHA KINETIC POWER PROJECTS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Power Mech Projects Limited (POWERMECH)),name
+NARA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+MSN LABORATORIES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Zim Laboratories Limited (ZIMLAB)),name
+NAVAYUGA ENGINEERING CO LTD,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+SELENE CONSTRUCTIONS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+BRIGHT STAR INVESTMENTS PVT.LTD,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+CHANDRAJYOTI ESTATE DEVELOPERS PVT.,not_attributed,,no listed company or listed parent identified (name resembles HB Estate Developers Limited (HBESD)),name
+ENAM HOLDINGS PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Kama Holdings Limited (KAMAHOLD)),name
+APL HEALTHCARE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Anlon Healthcare Limited (AHCL)),name
+ATHENA INFRASTRUCTURE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+BHARAT BIOTECH INTERNATIONAL LIMITED,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+APCO INFRATECH PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles PNC Infratech Limited (PNCINFRA)),name
+MY HOME INFRASTRUCTURES PVT LTD MY,not_attributed,,no listed company or listed parent identified (name resembles Nila Infrastructures Limited (NILAINFRA)),name
+INDUSTRIAL TECHNO MAN POWER SUPPLY AND SERVICES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Man Industries (India) Limited (MANINDS)),name
+MICHIGAN ENGINEERS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Engineers India Limited (ENGINERSIN)),name
+UNIPRO TECHNO INFRASTRUCTURE PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+MOHIT MINERALS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Mohit Industries Limited (MOHITIND)),name
+SOMASILA SOLAR POWER LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+NANDI ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles Adani Enterprises Limited (ADANIENT)),name
+GAJA ENGINEERING PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Ajax Engineering Limited (AJAXENGG)),name
+SHANKARANARAYANA CONSTRUCTIONS PVT,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+RENUKA INVESTMENTS AND FINANCE LTD,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+RENUKESHWAR INVESTMENTS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+MOHIT MINERALS LTD,not_attributed,,no listed company or listed parent identified (name resembles Mohit Industries Limited (MOHITIND)),name
+RAJAPUSHPA ASSET MANAGEMENT LLP,not_attributed,,no listed company or listed parent identified (name resembles UTI Asset Management Company Limited (UTIAMC)),name
+D S ENGINEERING WORKSHOP LLP,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+D S ENGINEERING WORKS LLP,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+DERIVE INVESTMENTS,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+FASTWAY TRANSMISSIONS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Pix Transmissions Limited (PIXTRANS)),name
+NSL RENEWABLE POWER PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Servotech Renewable Power System Limited (SERVOTECH)),name
+ORIENTAL SOUTH DELHI HOTELS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Oriental Hotels Limited (ORIENTHOT)),name
+ANBEE CONSTRUCTIONS LLP,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+INFRASTRUCTURE LOGISTICS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+PRB SECURITIES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Prime Securities Limited (PRIMESECU)),name
+MSPL LTD,not_attributed,,no listed company or listed parent identified (name resembles SPL Industries Limited (SPLIL)),name
+ACHINTYA SOLAR POWER PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+JAI GANESH ISPAT AND FERRO ALLOYS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Jai Corp Limited (JAICORPLTD)),name
+M S VARAS INTERNATIONAL PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+PRAGATI ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles PTL Enterprises Limited (PTL)),name
+ALOK NARAYAN PANDEY,not_attributed,,no listed company or listed parent identified (name resembles Alok Industries Limited (ALOKINDS)),name
+PRAKASH BALWANT MENGANE,not_attributed,,no listed company or listed parent identified (name resembles Prakash Industries Limited (PRAKASH)),name
+LOUISIANA INVESTMENT FINANCE PVT,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+SHYAM STEEL MANUFACTURING LTD. (FLY SOVA ISPAT LTD.),not_attributed,,no listed company or listed parent identified (name resembles SEL Manufacturing Company Limited (SELMC)),name
+D R INTERNATIONAL PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+ABHIJIT INTERNATIONAL,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+DILIP RAMANLAL THACKER,not_attributed,,no listed company or listed parent identified (name resembles Thacker & Company Limited (THACKER)),name
+PRAKASH DISTILLERY & CHEMICAL CO (P) LT D,not_attributed,,no listed company or listed parent identified (name resembles Prakash Industries Limited (PRAKASH)),name
+BMW INFRASTRUCTURE LLP,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+KALPTARU INVESTMENTS PVT.LTD. PROP,not_attributed,,no listed company or listed parent identified (name resembles SIL Investments Limited (SILINV)),name
+SPECO INFRASTRUCTURES,not_attributed,,no listed company or listed parent identified (name resembles Simplex Infrastructures Limited (SIMPLEXINF)),name
+PRUDHVI CONSTRUCTIONS PRIVATE LIMIT,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+K K RESOURCES PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Gujarat Natural Resources Limited (GNRL)),name
+RT RENEWABLE ENERGY PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Indian Renewable Energy Development Agency Limited (IREDA)),name
+R N CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+VISHVARUPA SOLAR POWER PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+PUJA COAL PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Coal India Limited (COALINDIA)),name
+MAITHRI LABORATORIES (PVT) LTD,not_attributed,,no listed company or listed parent identified (name resembles Zim Laboratories Limited (ZIMLAB)),name
+CROCHET TRADE AND INVESTMENT PVT L,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+AARISH SOLAR POWER PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+MOUNT EVEREST BREWERIES LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Everest Industries Limited (EVERESTIND)),name
+CROCHET TRADE AND INVESTMENT PVT LT,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+SUNIL ENGINEERING AND SYSTEMS,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+INTERNATIONAL TRADING CORPORATION,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+BSCPL INFRASTRUCTURE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles MBL Infrastructure Limited (MBLINFRA)),name
+SPECO INFRASTRUCTURE,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+JBM INDUSTRIES LIMITED,not_attributed,,no listed company or listed parent identified (name resembles JBM Auto Limited (JBMA)),name
+BELLWEY INTERNATIONAL CO,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+AMBUJA HOUSING AND URBAN INFRASTRUCTURE CO. LTD.,not_attributed,,no listed company or listed parent identified (name resembles Urban Company Limited (URBANCO)),name
+ACHINTYA SOLAR POWER PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+BHAGYANAGAR INFRA PROJECTS,not_attributed,,no listed company or listed parent identified (name resembles Bhagyanagar India Limited (BHAGYANGR)),name
+AALAYA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+DOYEN ENGINEERING SERVICES PRIVATE,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+J B ENTERPRISE,not_attributed,,no listed company or listed parent identified (name resembles Apollo Hospitals Enterprise Limited (APOLLOHOSP)),name
+JNS INSTRUMENTS LTD,not_attributed,,no listed company or listed parent identified (name resembles Rishabh Instruments Limited (RISHABH)),name
+GREENKO SOLAR POWER (DHARAMAVARAM) LTD,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+DYNERE ENGINEERING PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles M & B Engineering Limited (MBEL)),name
+FOR M/S SRI NIDHI CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+DIVYASREE NSL INFRASTRUCTURE PRIVATE LIM ITED,not_attributed,,no listed company or listed parent identified (name resembles GTL Infrastructure Limited (GTLINFRA)),name
+GRINIBHRIT SOLAR POWER PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+SUNDARAM INDUSTRIES PVT LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Sundaram Clayton Limited (SUNCLAY)),name
+S R C CHEMICALS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles J.G.Chemicals Limited (JGCHEM)),name
+SLICK SOFTWARE SOLUTIONS PRIVATE LI,not_attributed,,no listed company or listed parent identified (name resembles FCS Software Solutions Limited (FCSSOFT)),name
+SUVARCHAS SOLAR POWER PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+HITECH SYSTEMS & SERVICES LTD,not_attributed,,no listed company or listed parent identified (name resembles Hitech Corporation Limited (HITECHCORP)),name
+FORTUNE ESTATE DEVELOPERS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles HB Estate Developers Limited (HBESD)),name
+SRI SIDDARTHA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+KARTHIKEYA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+THE GANGES MANUFACTURING CO LTD,not_attributed,,no listed company or listed parent identified (name resembles SEL Manufacturing Company Limited (SELMC)),name
+VIPUL CHAMPAKLAL SHAH,not_attributed,,no listed company or listed parent identified (name resembles Vipul Limited (VIPULLTD)),name
+SSALASAR FINANCIAL ADVISORY SERVICE PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles JM Financial Limited (JMFINANCIL)),name
+SRI DEVELOPERS,not_attributed,,no listed company or listed parent identified (name resembles Sri Lotus Developers and Realty Limited (LOTUSDEV)),name
+SR DEVELOPERS,not_attributed,,no listed company or listed parent identified (name resembles Arkade Developers Limited (ARKADE)),name
+HARINAGAR SUGAR MILLS LTD,not_attributed,,no listed company or listed parent identified (name resembles K.M.Sugar Mills Limited (KMSUGAR)),name
+S.P. SINGLA CONSTRUCTIONS PRIVATE LTD.,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+PLUTO FINANCE PRIVATE LTD.,not_attributed,,no listed company or listed parent identified (name resembles L&T Finance Limited (LTF)),name
+AMD ENGINEERING CONSULTANTS,not_attributed,,no listed company or listed parent identified (name resembles AMD Industries Limited (AMDIND)),name
+SAN LOGISTICS,not_attributed,,no listed company or listed parent identified (name resembles Snowman Logistics Limited (SNOWMAN)),name
+VENUS FINANCIAL CONSULTANTS PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles JM Financial Limited (JMFINANCIL)),name
+VARAS INTERNATIONAL PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+BOSE CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+JAI SUSPENSION SYSTEMS LLP,not_attributed,,no listed company or listed parent identified (name resembles Jai Corp Limited (JAICORPLTD)),name
+GANDHI SECURITIES INVESTMENT,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+SUNDRAM INDUSTRIES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Sundram Fasteners Limited (SUNDRMFAST)),name
+VS TOWERS CONTRACTORS PRIVATE LIM,not_attributed,,no listed company or listed parent identified (name resembles SRM Contractors Limited (SRM)),name
+SALASAR FINANCIAL ADVISORY SERVICES,not_attributed,,no listed company or listed parent identified (name resembles DCM Financial Services Limited (DCMFINSERV)),name
+M/SGAURAV INTERNATIONAL,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+CHANDA INVESTMENT TRADING CO. PVT,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+VARAS INTERNATIONAL PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles ABM International Limited (ABMINTLLTD)),name
+VIDITVA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+SILVER LINE INVESTMENT COMPANY,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+VPL OIL MARKETING PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Indian Oil Corporation Limited (IOC)),name
+ARIHANT ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles Parin Enterprises Limited (PARIN)),name
+JAI SUSPENSION SYSTEMS L L P,not_attributed,,no listed company or listed parent identified (name resembles Jai Corp Limited (JAICORPLTD)),name
+JANAM ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles Jaykay Enterprises Limited (JAYKAY)),name
+DEEP IRON AND STEEL PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Deep Industries Limited (DEEPINDS)),name
+ALMIGHTY FINANCE AND INVESTMENT P,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+SAN BEVERAGES PVT LTD,not_attributed,,no listed company or listed parent identified (name resembles Varun Beverages Limited (VBL)),name
+RUPA H SHAH,not_attributed,,no listed company or listed parent identified (name resembles Rupa & Company Limited (RUPA)),name
+CONFIDENT FINANCIAL CONSULTANCY PRI,not_attributed,,no listed company or listed parent identified (name resembles JM Financial Limited (JMFINANCIL)),name
+SIDHANT INVESTMENT ADVISORY PRIVATE,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+PLUTO FINANCE PRIVATE LTD,not_attributed,,no listed company or listed parent identified (name resembles L&T Finance Limited (LTF)),name
+HUNSANKODILLI SOLAR POWER PROJECT LLP,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+SOPANRAO BALKRISHNA DHASAL AGRO PRODUCTS LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Balkrishna Industries Limited (BALKRISIND)),name
+RAMESH KRISHNA ENGINEERS PRIVATE LIMITED,not_attributed,,no listed company or listed parent identified (name resembles Engineers India Limited (ENGINERSIN)),name
+HIREHALLI SOLAR POWER PROJECT LLP,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+MADAMAGERI SOLAR POWER PROJECT LLP,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+EVEREST ENTERPRISE,not_attributed,,no listed company or listed parent identified (name resembles Everest Industries Limited (EVERESTIND)),name
+CHIKKAHALLI SOLAR POWER PROJECT LLP,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+PERFECT INVESTMENT CONSULTANCY PRIV,not_attributed,,no listed company or listed parent identified (name resembles BF Investment Limited (BFINVEST)),name
+ALOK KUMAR SOMANI,not_attributed,,no listed company or listed parent identified (name resembles Alok Industries Limited (ALOKINDS)),name
+S K SUPPLY CHAIN SOLUTIONS,not_attributed,,no listed company or listed parent identified (name resembles TVS Supply Chain Solutions Limited (TVSSCS)),name
+MANITHEJ ENTERPRISES,not_attributed,,no listed company or listed parent identified (name resembles PTL Enterprises Limited (PTL)),name
+PREMIER PLASTIC INDUSTRIES,not_attributed,,no listed company or listed parent identified (name resembles Premier Limited (PREMIER)),name
+SRI VIGNEWARA CONSTRUCTIONS,not_attributed,,no listed company or listed parent identified (name resembles KNR Constructions Limited (KNRCON)),name
+CHENNAMANAGATHIHALLI SOLAR POWER PROJECT,not_attributed,,no listed company or listed parent identified (name resembles Solar Industries India Limited (SOLARINDS)),name
+ATUL KUMAR SINGH,not_attributed,,no listed company or listed parent identified (name resembles Atul Limited (ATUL)),name
+VIKRAM KUMAR KHAITAN,not_attributed,,no listed company or listed parent identified (name resembles Khaitan (India) Limited (KHAITANLTD)),name

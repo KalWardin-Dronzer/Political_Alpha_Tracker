@@ -112,3 +112,48 @@ class TestConnections:
     def test_unmatched_purchasers_are_left_out(self):
         table = connections(bonds(("SOMEONE ELSE ENTIRELY", CRORE, "2020-01-02")), UNIVERSE, {})
         assert table.empty
+
+
+class TestMatchingFixes:
+    def test_a_period_between_letters_is_a_space(self):
+        """'DR.REDDY'S' became the single token 'drreddys' and failed the leading-word rule."""
+        universe = companies(("500124", "Dr. Reddy's Laboratories Limited", "", "Healthcare"))
+        assert normalize("DR.REDDY'S LABORATORIES LTD") == normalize("Dr. Reddy's Laboratories Limited")
+        matches, _ = match_names(["DR.REDDY'S LABORATORIES LTD", "J.K.CEMENT LTD."], universe)
+        assert matches == {"DR.REDDY'S LABORATORIES LTD": "500124"}
+
+    def test_a_name_two_listed_companies_share_is_refused(self):
+        """'DCM Shriram' and 'DCM Shriram Industries' both normalise to 'dcm shriram'; the
+        old matcher silently gave the bonds to whichever came last."""
+        universe = companies(("1", "DCM Shriram Limited", "L1", "Commodities"),
+                             ("2", "DCM Shriram Industries Limited", "L2", "Commodities"))
+        matches, rejected = match_names(["DCM SHRIRAM LIMITED"], universe)
+        assert matches == {} and rejected[0][0] == "DCM SHRIRAM LIMITED"
+
+
+def audit(*rows):
+    """Audit decisions: (purchaser, decision, nse_symbol)."""
+    return pd.DataFrame([(p, d, s, "", "") for p, d, s in rows],
+                        columns=["purchaser", "decision", "nse_symbol", "relation", "source"])
+
+
+class TestAudit:
+    def test_same_company_is_attributed_at_both_levels(self):
+        trail = audit(("ABC INDS FORMERLY XYZ", "same_company", "500002"))
+        for level in ("entity", "group"):
+            table = connections(bonds(("ABC INDS FORMERLY XYZ", CRORE, "2021-01-05")), UNIVERSE, {}, trail, level)
+            assert bool(table.loc["L00002MH1990PLC000002", "connected"])
+
+    def test_a_subsidiary_counts_at_group_level_only(self):
+        trail = audit(("LUPIN SUBSIDIARY PVT LTD", "subsidiary", "500005"))
+        purchases = bonds(("LUPIN SUBSIDIARY PVT LTD", CRORE, "2021-01-05"))
+        assert connections(purchases, UNIVERSE, {}, trail, "entity").empty
+        group = connections(purchases, UNIVERSE, {}, trail, "group")
+        assert group.loc["L24100MH1983PLC029442", "via_subsidiary"] == CRORE
+
+    def test_not_attributed_overrides_a_name_match(self):
+        """The audit can veto a strict match that names the wrong company."""
+        purchases = bonds(("ABC INDUSTRIES LTD", CRORE, "2021-01-05"))
+        assert not connections(purchases, UNIVERSE, {}, audit(), "group").empty
+        trail = audit(("ABC INDUSTRIES LTD", "not_attributed", ""))
+        assert connections(purchases, UNIVERSE, {}, trail, "group").empty

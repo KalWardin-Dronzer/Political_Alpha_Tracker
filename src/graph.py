@@ -193,13 +193,14 @@ def save_png(G: nx.Graph, path, dark: bool = True, labels: int = 10) -> Path:
                     color=theme["ink"] if bold else theme["muted"])
 
     n_companies = len(companies)
+    n_labelled = sum(1 for n in companies if G.nodes[n].get("sector"))
     ax.set_title(f"{n_companies} listed companies that bought electoral bonds, by sector",
                  color=theme["ink"], fontsize=13, loc="left", pad=12)
     ax.set_aspect("equal")
     ax.margins(0.12)
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8, color=theme[k], label=t)
                for k, t in (("company", "listed company (area grows with amount bought)"),
-                            ("sector", "sector (only 40 of the 73 have a label)"),
+                            ("sector", f"sector ({n_labelled} of the {n_companies} have a label)"),
                             ("bonds", BONDS))]
     legend = ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.0),
                        ncol=3, frameon=False, fontsize=9)

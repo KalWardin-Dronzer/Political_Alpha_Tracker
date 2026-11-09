@@ -27,9 +27,10 @@ So every regression is run twice:
 
 The placebo leaders are drawn from the same sector and matched on traded value,
 so they resemble the connected group in everything except the political
-connection. If the two coefficients are similar, the lead-lag is a size and
-liquidity effect and political connection adds nothing. This is the same logic
-as the random-selection control that settled the factor model.
+connection. Political connection adds something only if the treatment
+coefficient exceeds the placebo's by more than chance allows, which
+studies/lead_lag.py tests directly; a significant placebo next to an
+insignificant treatment is not, by itself, evidence that the two differ.
 
 Placebo leaders are removed from the peer group, since a group cannot be used
 to predict itself.
@@ -82,13 +83,14 @@ class LeadLagResult:
         return self.treatment_beta - self.placebo_beta
 
     def verdict(self) -> str:
+        """A first reading of one fit. Whether the connected group predicts MORE than
+        the matched control is a test of the difference between the two coefficients
+        (studies/lead_lag.py), not a comparison of which one is significant."""
         if self.treatment_t < 2.0:
-            return "NO LEAD-LAG (connected group does not predict peers)"
-        if self.placebo_t >= 2.0 and abs(self.excess_beta) < 0.15:
-            return "SIZE EFFECT (matched control predicts just as well)"
-        if self.excess_beta > 0.15 and self.treatment_t >= 2.0:
-            return "POLITICAL LEAD-LAG SURVIVES THE CONTROL"
-        return "AMBIGUOUS"
+            return "NO EVIDENCE OF A LEAD-LAG (connected coefficient not significant)"
+        if self.placebo_t >= 2.0:
+            return "LEAD-LAG IN BOTH ARMS (test the difference before attributing it)"
+        return "LEAD-LAG IN THE CONNECTED ARM ONLY (test the difference before calling it political)"
 
     def summary(self) -> dict:
         return {

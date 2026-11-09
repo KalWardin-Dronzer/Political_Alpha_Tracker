@@ -9,47 +9,48 @@ Kim, Kim, Pantzalis & Park (Financial Analysts Journal, 2018) report that
 returns of politically connected firms LEAD those of their non-connected peers:
 political information reaches connected prices first and comparable competitors'
 prices later. If it holds on NSE, the tradeable leg is the PEER, not the
-connected winner — the opposite of what this project was built to do.
+connected winner.
 
-WHY EVERY REGRESSION RUNS TWICE
--------------------------------
-Connected firms here are mostly large, liquid names. Large-cap returns are known
-to lead small-cap returns for liquidity and information-diffusion reasons alone,
-so the naive regression would produce a positive coefficient whether or not
-politics has anything to do with it.
+TWO ARMS, AND A TEST OF THE DIFFERENCE
+--------------------------------------
+Connected firms here are mostly large, liquid names, and large-cap returns lead
+small-cap returns for liquidity reasons alone, so each specification is fitted
+for two leaders:
 
   TREATMENT  peers ~ lagged CONNECTED returns
   PLACEBO    peers ~ lagged size-matched UNCONNECTED returns
 
-Placebo leaders come from the same sector and are matched on traded value, so
-they resemble the connected group in everything but the political connection. If
-the two coefficients are similar, the lead-lag is a size effect.
+Whether political connection adds anything is a question about the DIFFERENCE
+between the two coefficients, so it is tested directly: both arms are stacked in
+one fully interacted regression, clustered by period, whose interaction term is
+the treatment coefficient minus the placebo coefficient, with a standard error
+that accounts for the two arms sharing their dates. An earlier version read
+"the placebo is significant and the treatment is not" as "the effect is size,
+not politics"; a difference in significance is not a significant difference.
 
-STANDARD ERRORS ARE CLUSTERED BY PERIOD, NOT JUST HAC
------------------------------------------------------
+STANDARD ERRORS ARE CLUSTERED BY PERIOD
+---------------------------------------
 The sector baskets share the same calendar dates, so pooled observations are not
-independent. HAC alone overstated significance here: monthly lag-2 read t=2.84
-under HAC and t=2.36 once clustered. Clustering is the honest number.
+independent. Every coefficient's standard error is clustered by date.
 
-THE GRID IS FIXED IN THIS FILE
-------------------------------
-Four specifications, all reported, none dropped. Searching frequencies and lags
-until one looks good and reporting only that is how a null becomes a discovery.
+POWER
+-----
+Each estimate is reported with its minimum detectable effect: the true
+coefficient this test would detect with 80% probability at the 5% level,
+(1.96 + 0.84) x its standard error. A non-significant result says little about
+effects smaller than that.
 
-RESULT ON RECORD (2026-10-31, 73 connected companies, 36 in the test)
----------------------------------------------------------------------
-0 of 4 specifications significant; the best, monthly lag-2, reads beta 0.078,
-t 0.82, p 0.41. The PLACEBO is significant at weekly lag-1 (beta 0.078, t 2.47).
-
-History: monthly lag-2 read beta 0.18, t 2.36, p 0.019 on an early 20-company
-graph. It fell to t 0.87 once false matches were removed and the test held 30
-connected companies (placebo t 2.87), and it stays insignificant now that every
-bond counts: the old graph kept only each company's last bond, which hid four
-real buyers, three of them in sectors this test uses.
-
-That is the cleanest available refutation: the diffusion mechanism is real, it is
-size and liquidity, and political connection adds nothing on top of it. A genuine
-effect strengthens as power rises; this one dissolved as the connected group grew.
+THE GRID AND THE DECISION RULES ARE FIXED IN THIS FILE (declared 2026-11-09,
+before the rebuilt data were run)
+---------------------------------------------------------------------------
+Four specifications, all reported. Political connection is said to
+- LEAD peers if the treatment coefficient is positive with a Holm-adjusted
+  two-sided p below 0.05 in at least one specification;
+- add to the size effect if the treatment-minus-placebo difference is positive
+  with a Holm-adjusted two-sided p below 0.05 in at least one specification.
+Otherwise the result is "no evidence", stated with the 95% intervals. The
+primary definition of a connected company is group level (src.connections);
+entity level is reported as a check.
 """
 
 import logging
@@ -64,6 +65,7 @@ if _ROOT not in _sys.path:
 
 import pandas as pd
 import statsmodels.api as sm
+from statsmodels.stats.multitest import multipletests
 
 from src.connections import connections
 from src.data.companies import load_companies
@@ -76,20 +78,16 @@ logger = logging.getLogger("lead_lag")
 # Pre-declared. Do not edit between runs to chase a result.
 GRID = [("W-FRI", "weekly", 1), ("W-FRI", "weekly", 2),
         ("ME", "monthly", 1), ("ME", "monthly", 2)]
+ALPHA = 0.05
+MDE_Z = 1.96 + 0.8416   # 5% two-sided test, 80% power
+LEVELS = ("group", "entity")
 
-SIG_T = 2.0
 
-
-def pooled_fit(t: LeadLagTest, groups, freq: str, lag: int):
-    """
-    Pool sector-period observations and fit both arms with period-clustered SEs.
-
-    Baskets are demeaned within sector so a sector with persistently higher
-    returns cannot masquerade as a lead-lag relationship.
-    """
+def _pool(t: LeadLagTest, groups, freq: str, lag: int) -> pd.DataFrame | None:
+    """Sector-period observations, baskets demeaned within sector so a sector with
+    persistently higher returns cannot masquerade as a lead-lag relationship."""
     rets = t._returns(freq)
     market = rets.mean(axis=1)
-
     frames = []
     for g in groups:
         conn = t._basket(rets, g.connected)
@@ -106,18 +104,48 @@ def pooled_fit(t: LeadLagTest, groups, freq: str, lag: int):
         }).dropna()
         df["date"] = df.index
         frames.append(df)
-    if not frames:
-        return None
+    return pd.concat(frames) if frames else None
 
-    pool = pd.concat(frames)
+
+def _estimate(fit, term: str) -> dict:
+    beta, se = float(fit.params[term]), float(fit.bse[term])
+    return {"beta": beta, "se": se, "t": float(fit.tvalues[term]), "p": float(fit.pvalues[term]),
+            "lo": beta - 1.96 * se, "hi": beta + 1.96 * se, "mde": MDE_Z * se}
+
+
+def stacked_difference(pool: pd.DataFrame):
+    """Both arms in one regression, every coefficient interacted with the arm, clustered by date.
+
+    The coefficient on `lead` is the placebo arm's and `lead_x_treat` is treatment
+    minus placebo; the point estimates equal the two separate fits.
+    """
+    arms = []
+    for col, treat in (("conn_lag", 1.0), ("plac_lag", 0.0)):
+        arms.append(pd.DataFrame({
+            "peer": pool["peer"], "date": pool["date"], "treat": treat,
+            "lead": pool[col], "peer_lag": pool["peer_lag"], "mkt_lag": pool["mkt_lag"],
+        }))
+    long = pd.concat(arms, ignore_index=True)
+    X = pd.DataFrame({
+        "const": 1.0, "treat": long["treat"],
+        "lead": long["lead"], "lead_x_treat": long["lead"] * long["treat"],
+        "peer_lag": long["peer_lag"], "peer_lag_x_treat": long["peer_lag"] * long["treat"],
+        "mkt_lag": long["mkt_lag"], "mkt_lag_x_treat": long["mkt_lag"] * long["treat"],
+    })
+    return sm.OLS(long["peer"], X).fit(cov_type="cluster", cov_kwds={"groups": long["date"].values})
+
+
+def pooled_fit(t: LeadLagTest, groups, freq: str, lag: int):
+    """Treatment, placebo and their difference for one specification, clustered by period."""
+    pool = _pool(t, groups, freq, lag)
+    if pool is None:
+        return None
     out = {"rows": len(pool), "periods": pool["date"].nunique()}
     for col, arm in (("conn_lag", "treatment"), ("plac_lag", "placebo")):
         X = sm.add_constant(pool[[col, "peer_lag", "mkt_lag"]])
-        fit = sm.OLS(pool["peer"], X).fit(
-            cov_type="cluster", cov_kwds={"groups": pool["date"].values})
-        out[arm] = {"beta": float(fit.params[col]),
-                    "t": float(fit.tvalues[col]),
-                    "p": float(fit.pvalues[col])}
+        fit = sm.OLS(pool["peer"], X).fit(cov_type="cluster", cov_kwds={"groups": pool["date"].values})
+        out[arm] = _estimate(fit, col)
+    out["difference"] = _estimate(stacked_difference(pool), "lead_x_treat")
     return out
 
 
@@ -126,11 +154,17 @@ def main():
     if store.close().empty:
         logger.error("Price panel empty. Run: python cli.py prices")
         return 1
-    table = connections()
-    connected = set(table.index[table["connected"]])
-    print(f"connected companies: {len(connected)} "
-          f"(bought at least one bond of Rs 10 lakh or more)")
-    return report(store, load_companies(), connected)
+    companies = load_companies()
+    for level in LEVELS:
+        table = connections(level=level)
+        connected = set(table.index[table["connected"]])
+        print(f"=== {level.upper()} LEVEL{' (primary)' if level == LEVELS[0] else ' (check)'}: "
+              f"{len(connected)} connected companies (a bond of Rs 10 lakh or more)")
+        code = report(store, companies, connected)
+        if code:
+            return code
+        print()
+    return 0
 
 
 def report(store, companies, connected) -> int:
@@ -138,51 +172,43 @@ def report(store, companies, connected) -> int:
     t = LeadLagTest(store, companies, connected)
     groups = t.build_groups()
     if not groups:
-        logger.error("No sector has enough connected companies AND peers. "
-                     "Sector labels exist for only part of the universe.")
+        logger.error("No sector has enough connected companies AND peers.")
         return 1
 
     n_conn = sum(len(g.connected) for g in groups)
+    n_plac = sum(len(g.placebo) for g in groups)
     n_peer = sum(len(g.peers) for g in groups)
-    print(f"usable sectors: {len(groups)}   connected in test: {n_conn}   peers: {n_peer}")
+    print(f"usable sectors: {len(groups)}   connected in test: {n_conn}   placebo leaders: {n_plac}   peers: {n_peer}")
     for g in groups:
-        print(f"  {g.sector:26} connected={len(g.connected):>2} "
-              f"placebo={len(g.placebo):>2} peers={len(g.peers):>2}")
+        print(f"  {g.sector:28} connected={len(g.connected):>3} placebo={len(g.placebo):>3} peers={len(g.peers):>3}")
 
     print()
-    print("PRE-DECLARED GRID — clustered by period, all specifications reported")
-    print(f"{'freq':>8}{'lag':>5}{'rows':>7}{'periods':>9}"
-          f"{'treat b':>10}{'treat t':>9}{'treat p':>9}{'plac b':>9}{'plac t':>8}")
-    print("-" * 84)
-
-    positive_sig = []
+    print("PRE-DECLARED GRID: coefficients with 95% intervals, clustered by period")
+    print(f"{'spec':>12}{'periods':>8}  {'treatment':>26}  {'placebo':>26}  {'treatment - placebo':>28}  {'MDE treat':>9}")
+    print("-" * 118)
+    fits = []
     for freq, label, lag in GRID:
         r = pooled_fit(t, groups, freq, lag)
         if r is None:
-            print(f"{label:>8}{lag:>5}   insufficient data")
+            print(f"{label + ' ' + str(lag):>12}  insufficient data")
             continue
-        tr, pl = r["treatment"], r["placebo"]
-        print(f"{label:>8}{lag:>5}{r['rows']:>7}{r['periods']:>9}"
-              f"{tr['beta']:>10.4f}{tr['t']:>9.2f}{tr['p']:>9.4f}"
-              f"{pl['beta']:>9.4f}{pl['t']:>8.2f}")
-        if tr["t"] >= SIG_T and tr["beta"] > 0:
-            positive_sig.append((label, lag, tr["p"], pl["t"]))
+        fits.append((f"{label} lag {lag}", r))
+        cell = lambda e: f"{e['beta']:+.3f} [{e['lo']:+.3f}, {e['hi']:+.3f}] p={e['p']:.2f}"  # noqa: E731
+        print(f"{label + ' lag ' + str(lag):>12}{r['periods']:>8}  {cell(r['treatment']):>26}  "
+              f"{cell(r['placebo']):>26}  {cell(r['difference']):>28}  {r['treatment']['mde']:>9.3f}")
 
     print()
-    print(f"specifications significant AND positive: {len(positive_sig)}/{len(GRID)}")
-    if not positive_sig:
-        print("  VERDICT: no political lead-lag. If the PLACEBO column shows")
-        print("  significance where the treatment does not, the diffusion is a size")
-        print("  and liquidity effect and political connection adds nothing.")
-    else:
-        best_p = min(p for _, _, p, _ in positive_sig)
-        print(f"  best nominal p = {best_p:.4f}   "
-              f"Bonferroni x{len(GRID)} = {best_p*len(GRID):.4f}   (bar 0.05)")
-        if best_p * len(GRID) >= 0.05:
-            print("  VERDICT: does not survive correction for four specifications.")
-        else:
-            print("  VERDICT: survives correction — check the placebo arm before")
-            print("  believing it, and re-run on a larger connected set.")
+    for key, claim in (("treatment", "bond buyers lead their peers"),
+                       ("difference", "bond buyers lead peers by more than size-matched non-buyers")):
+        p_raw = [r[key]["p"] for _, r in fits]
+        reject, p_holm, _, _ = multipletests(p_raw, alpha=ALPHA, method="holm")
+        hits = [(name, ph) for (name, r), rej, ph in zip(fits, reject, p_holm) if rej and r[key]["beta"] > 0]
+        verdict = "YES" if hits else "no evidence"
+        detail = ", ".join(f"{n} (Holm p={p:.3f})" for n, p in hits) if hits else \
+            f"smallest Holm-adjusted p = {min(p_holm):.3f}"
+        print(f"  {claim}: {verdict}; {detail}")
+    best = min(fits, key=lambda f: f[1]["treatment"]["mde"])
+    print(f"  smallest detectable treatment coefficient (80% power): {best[1]['treatment']['mde']:.3f} ({best[0]})")
     return 0
 
 
