@@ -28,8 +28,14 @@ Three reasons it might be an artifact, each tested here:
      screen is point in time: a stock counts on day t if its traded value over
      the previous year averaged Rs 1 crore, judged from sessions before t. An
      earlier version screened on the panel's last year, which kept the stocks
-     that had become liquid by 2026, so it picked winners in advance and added
-     roughly 0.4 to the universe's Sharpe ratio.
+     that had become liquid by 2026 and so picked winners in advance. With that
+     screen and uncleaned prices the universe's 2019-2026 Sharpe ratio was
+     1.37; with neither, 0.99.
+
+The investable version needs a year of history before its first pick, so it
+starts in April 2020, at the bottom of the COVID crash. Criterion (c) compares
+it with the index over the same days; an earlier version used 2019-2026 for
+the index, which flattered the portfolio.
 
 Costs are applied to the equal-weight basket, because maintaining equal weights
 is not free, and the survivorship drag from the delisting registry is
@@ -215,7 +221,7 @@ def main():
     print("PART 3 — INVESTABLE version: 40 names, ANNUAL rebalance, full costs")
     print("-" * 92)
     bt = FactorBacktest(store, capital=500_000)
-    inv = []
+    inv, days = [], None
     for seed in (1, 2, 3, 4, 5):
         try:
             r = bt.run(selection="random", seed=seed, start="2019-01-01",
@@ -224,6 +230,7 @@ def main():
             print(f"  seed {seed} failed: {ex}")
             continue
         sm = r.summary()
+        days = r.returns.index if days is None else days.union(r.returns.index)
         net_sr = sm["sharpe_net"]
         net_ann = sm["annual_return_net_pct"] / 100 - drag_annual
         inv.append((seed, net_sr, net_ann, sm["annual_turnover_x"], sm["max_drawdown_pct"]))
@@ -236,19 +243,22 @@ def main():
         anns = np.array([x[2] for x in inv])
         print(f"\n  mean SR {srs.mean():.3f} (sd {srs.std(ddof=1):.3f}) | "
               f"mean net annual {anns.mean()*100:.2f}%")
+        print(f"  window {days[0].date()} .. {days[-1].date()}")
+
+    # The index over the portfolios' own days, not the whole panel.
+    mid_inv = mid_full.loc[mid_full.index.intersection(days)] if days is not None else mid_c
 
     # ── Verdict ──
     print()
     print("=" * 92)
-    cond_a = all(ex > 0 for *_x, ex in [(r[0], r[3]) for r in verdict_rows]) if verdict_rows else False
-    cond_a = all(r[3] > 0 for r in verdict_rows)
+    cond_a = bool(verdict_rows) and all(r[3] > 0 for r in verdict_rows)
     cond_b = neg == 0
-    cond_c = bool(inv) and float(np.mean([x[1] for x in inv])) > sharpe(mid_c)
+    cond_c = bool(inv) and float(np.mean([x[1] for x in inv])) > sharpe(mid_inv)
     print("PRE-DECLARED VERDICT")
     print(f"  (a) beats midcap index in EVERY sub-period ......... {cond_a}")
     print(f"  (b) beats it in EVERY rolling 3y window ............ {cond_b}")
     print(f"  (c) investable 40-name annual version beats index .. {cond_c}"
-          f"   (index SR {sharpe(mid_c):.3f})")
+          f"   (index SR {sharpe(mid_inv):.3f} over the same days)")
     print()
     if cond_a and cond_b and cond_c:
         print("  PASS — the universe premium looks real and implementable.")
