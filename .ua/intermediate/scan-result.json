@@ -1,0 +1,532 @@
+{
+  "name": "Political Alpha Tracker",
+  "description": "Research pipeline that matches India's disclosed electoral bonds to NSE-listed companies and tests whether bond buyers lead their peers' returns or moved on the disclosure, using pre-declared statistical tests.",
+  "languages": [
+    "config",
+    "csv",
+    "jsonl",
+    "markdown",
+    "python",
+    "txt",
+    "yaml"
+  ],
+  "frameworks": [
+    "pytest",
+    "GitHub Actions"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/tests.yml",
+      "language": "yaml",
+      "sizeLines": 17,
+      "fileCategory": "infra"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 198,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "cli.py",
+      "language": "python",
+      "sizeLines": 207,
+      "fileCategory": "code"
+    },
+    {
+      "path": "data/PurchaseData.csv",
+      "language": "csv",
+      "sizeLines": 19208,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/README.md",
+      "language": "markdown",
+      "sizeLines": 47,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "data/backtest_trials.jsonl",
+      "language": "jsonl",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "data/companies.csv",
+      "language": "csv",
+      "sizeLines": 2646,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/company_ids.csv",
+      "language": "csv",
+      "sizeLines": 1590,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/donor_cins.csv",
+      "language": "csv",
+      "sizeLines": 30,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/match_audit.csv",
+      "language": "csv",
+      "sizeLines": 277,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/nifty_total_market.csv",
+      "language": "csv",
+      "sizeLines": 755,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/nse_equity_list.csv",
+      "language": "csv",
+      "sizeLines": 2646,
+      "fileCategory": "data"
+    },
+    {
+      "path": "data/sectors_earlier.csv",
+      "language": "csv",
+      "sizeLines": 124,
+      "fileCategory": "data"
+    },
+    {
+      "path": "pytest.ini",
+      "language": "config",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "requirements.txt",
+      "language": "txt",
+      "sizeLines": 14,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/connections.csv",
+      "language": "csv",
+      "sizeLines": 115,
+      "fileCategory": "data"
+    },
+    {
+      "path": "results/controls.txt",
+      "language": "txt",
+      "sizeLines": 69,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/event_study.txt",
+      "language": "txt",
+      "sizeLines": 49,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/factor.txt",
+      "language": "txt",
+      "sizeLines": 67,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/lead_lag.txt",
+      "language": "txt",
+      "sizeLines": 70,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/leadlag_rule.txt",
+      "language": "txt",
+      "sizeLines": 32,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "results/universe.txt",
+      "language": "txt",
+      "sizeLines": 67,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "scripts/audit_candidates.py",
+      "language": "python",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/config.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/connections.py",
+      "language": "python",
+      "sizeLines": 168,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/bonds.py",
+      "language": "python",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/build_companies.py",
+      "language": "python",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/cin_resolver.py",
+      "language": "python",
+      "sizeLines": 288,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/companies.py",
+      "language": "python",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/delisting_registry.py",
+      "language": "python",
+      "sizeLines": 157,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/data/price_store.py",
+      "language": "python",
+      "sizeLines": 295,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/graph.py",
+      "language": "python",
+      "sizeLines": 218,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/research/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/research/event_study.py",
+      "language": "python",
+      "sizeLines": 200,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/research/factor_backtest.py",
+      "language": "python",
+      "sizeLines": 477,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/research/factor_engine.py",
+      "language": "python",
+      "sizeLines": 268,
+      "fileCategory": "code"
+    },
+    {
+      "path": "src/research/lead_lag.py",
+      "language": "python",
+      "sizeLines": 144,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/controls.py",
+      "language": "python",
+      "sizeLines": 152,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/event_study.py",
+      "language": "python",
+      "sizeLines": 118,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/factor.py",
+      "language": "python",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/figures.py",
+      "language": "python",
+      "sizeLines": 171,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/lead_lag.py",
+      "language": "python",
+      "sizeLines": 217,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/leadlag_rule.py",
+      "language": "python",
+      "sizeLines": 239,
+      "fileCategory": "code"
+    },
+    {
+      "path": "studies/universe.py",
+      "language": "python",
+      "sizeLines": 280,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_bonds.py",
+      "language": "python",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_build_companies.py",
+      "language": "python",
+      "sizeLines": 44,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_cin_resolver.py",
+      "language": "python",
+      "sizeLines": 184,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_connections.py",
+      "language": "python",
+      "sizeLines": 159,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_delisting_registry.py",
+      "language": "python",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_event_study.py",
+      "language": "python",
+      "sizeLines": 97,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_factor_backtest.py",
+      "language": "python",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_factor_engine.py",
+      "language": "python",
+      "sizeLines": 206,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_lead_lag.py",
+      "language": "python",
+      "sizeLines": 146,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_leadlag_rule.py",
+      "language": "python",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_price_store.py",
+      "language": "python",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_universe.py",
+      "language": "python",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    }
+  ],
+  "totalFiles": 60,
+  "filteredByIgnore": 3,
+  "estimatedComplexity": "moderate",
+  "importMap": {
+    ".github/workflows/tests.yml": [],
+    "README.md": [],
+    "cli.py": [],
+    "data/PurchaseData.csv": [],
+    "data/README.md": [],
+    "data/backtest_trials.jsonl": [],
+    "data/companies.csv": [],
+    "data/company_ids.csv": [],
+    "data/donor_cins.csv": [],
+    "data/match_audit.csv": [],
+    "data/nifty_total_market.csv": [],
+    "data/nse_equity_list.csv": [],
+    "data/sectors_earlier.csv": [],
+    "pytest.ini": [],
+    "requirements.txt": [],
+    "results/connections.csv": [],
+    "results/controls.txt": [],
+    "results/event_study.txt": [],
+    "results/factor.txt": [],
+    "results/lead_lag.txt": [],
+    "results/leadlag_rule.txt": [],
+    "results/universe.txt": [],
+    "scripts/audit_candidates.py": [
+      "src/connections.py",
+      "src/data/bonds.py",
+      "src/data/companies.py"
+    ],
+    "src/__init__.py": [],
+    "src/config.py": [],
+    "src/connections.py": [
+      "src/config.py",
+      "src/data/bonds.py",
+      "src/data/cin_resolver.py",
+      "src/data/companies.py"
+    ],
+    "src/data/__init__.py": [],
+    "src/data/bonds.py": [
+      "src/config.py"
+    ],
+    "src/data/build_companies.py": [
+      "src/config.py"
+    ],
+    "src/data/cin_resolver.py": [],
+    "src/data/companies.py": [
+      "src/config.py"
+    ],
+    "src/data/delisting_registry.py": [
+      "src/config.py"
+    ],
+    "src/data/price_store.py": [
+      "src/config.py"
+    ],
+    "src/graph.py": [
+      "src/connections.py"
+    ],
+    "src/research/__init__.py": [],
+    "src/research/event_study.py": [
+      "src/data/companies.py"
+    ],
+    "src/research/factor_backtest.py": [
+      "src/config.py"
+    ],
+    "src/research/factor_engine.py": [],
+    "src/research/lead_lag.py": [
+      "src/data/companies.py"
+    ],
+    "studies/__init__.py": [],
+    "studies/controls.py": [
+      "src/data/price_store.py",
+      "src/research/factor_backtest.py"
+    ],
+    "studies/event_study.py": [
+      "src/connections.py",
+      "src/data/companies.py",
+      "src/data/price_store.py",
+      "src/research/event_study.py"
+    ],
+    "studies/factor.py": [
+      "src/data/price_store.py",
+      "src/research/factor_backtest.py"
+    ],
+    "studies/figures.py": [
+      "src/connections.py",
+      "src/data/companies.py",
+      "src/data/price_store.py",
+      "src/graph.py",
+      "src/research/factor_backtest.py",
+      "src/research/lead_lag.py",
+      "studies/lead_lag.py",
+      "studies/leadlag_rule.py"
+    ],
+    "studies/lead_lag.py": [
+      "src/connections.py",
+      "src/data/companies.py",
+      "src/data/price_store.py",
+      "src/research/lead_lag.py"
+    ],
+    "studies/leadlag_rule.py": [
+      "src/data/price_store.py",
+      "src/research/factor_backtest.py"
+    ],
+    "studies/universe.py": [
+      "src/data/delisting_registry.py",
+      "src/data/price_store.py",
+      "src/research/factor_backtest.py"
+    ],
+    "tests/__init__.py": [],
+    "tests/test_bonds.py": [
+      "src/data/bonds.py"
+    ],
+    "tests/test_build_companies.py": [
+      "src/config.py",
+      "src/data/build_companies.py",
+      "src/data/companies.py"
+    ],
+    "tests/test_cin_resolver.py": [
+      "src/data/cin_resolver.py"
+    ],
+    "tests/test_connections.py": [
+      "src/config.py",
+      "src/connections.py"
+    ],
+    "tests/test_delisting_registry.py": [
+      "src/data/delisting_registry.py"
+    ],
+    "tests/test_event_study.py": [
+      "src/research/event_study.py"
+    ],
+    "tests/test_factor_backtest.py": [
+      "src/research/factor_backtest.py"
+    ],
+    "tests/test_factor_engine.py": [
+      "src/research/factor_engine.py"
+    ],
+    "tests/test_lead_lag.py": [
+      "src/research/lead_lag.py"
+    ],
+    "tests/test_leadlag_rule.py": [
+      "src/research/factor_backtest.py",
+      "studies/leadlag_rule.py"
+    ],
+    "tests/test_price_store.py": [
+      "src/data/price_store.py"
+    ],
+    "tests/test_universe.py": [
+      "studies/universe.py"
+    ]
+  },
+  "contentDigest": "e90895723abfeba921ef884a54c9cdc128c835620c0c2ea55d5b6bb2cd72c60e"
+}
