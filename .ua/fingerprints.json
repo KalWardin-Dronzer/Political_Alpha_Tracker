@@ -1,0 +1,3383 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "facdbe93e409589fcf74c621bcc558082a648529",
+  "generatedAt": "2026-11-10T06:14:47.838Z",
+  "files": {
+    ".github/workflows/tests.yml": {
+      "filePath": ".github/workflows/tests.yml",
+      "contentHash": "eb7e0836d689e8558203554bb15fff0638265c33db8b458435521bf98834bbc3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": false
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "655e149c383042fbb6e651faf19b67a833f4c16ae83b2f438c347bcaa75b403a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 199,
+      "hasStructuralAnalysis": false
+    },
+    "cli.py": {
+      "filePath": "cli.py",
+      "contentHash": "b7f489daaab8f2cfda3582c265040b98127a41bb693c699e49184404344ff9fa",
+      "functions": [
+        {
+          "name": "cmd_connections",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "cmd_companies",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "cmd_prices",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "cmd_study",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "cmd_results",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 18
+        },
+        {
+          "name": "cmd_visualize",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "cmd_trials",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "cmd_cins",
+          "params": [
+            "args"
+          ],
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "build_parser",
+          "params": [],
+          "exported": true,
+          "lineCount": 36
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "argparse",
+          "specifiers": [
+            "argparse"
+          ]
+        },
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextlib"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        }
+      ],
+      "exports": [
+        "cmd_connections",
+        "cmd_companies",
+        "cmd_prices",
+        "cmd_study",
+        "cmd_results",
+        "cmd_visualize",
+        "cmd_trials",
+        "cmd_cins",
+        "build_parser",
+        "main"
+      ],
+      "totalLines": 208,
+      "hasStructuralAnalysis": true
+    },
+    "data/PurchaseData.csv": {
+      "filePath": "data/PurchaseData.csv",
+      "contentHash": "ff0da0c9b58263b24765bff3b5963435bd58489b14620aa8948c273b30060c06",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 19209,
+      "hasStructuralAnalysis": false
+    },
+    "data/README.md": {
+      "filePath": "data/README.md",
+      "contentHash": "d0122526a915d763bf284c98685784d15df07f28ffa5f5f1a2244e360dd9f6b8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 48,
+      "hasStructuralAnalysis": false
+    },
+    "data/backtest_trials.jsonl": {
+      "filePath": "data/backtest_trials.jsonl",
+      "contentHash": "ae5c64df7c0643f5728508a12db546b6ac6b42500e9839f9c061faba40d0bde3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": false
+    },
+    "data/companies.csv": {
+      "filePath": "data/companies.csv",
+      "contentHash": "ab5e7e9cd7586c382ce2558721765116298864f518f759a92acce526f2927fe3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2647,
+      "hasStructuralAnalysis": false
+    },
+    "data/company_ids.csv": {
+      "filePath": "data/company_ids.csv",
+      "contentHash": "9e998f39df2a3ebb134bc69c46d7e05c36c38a5778c4f333edefbc9864c07e97",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1591,
+      "hasStructuralAnalysis": false
+    },
+    "data/donor_cins.csv": {
+      "filePath": "data/donor_cins.csv",
+      "contentHash": "d5817af228e1e94c8983277ba2de992e32b3f0ad09c50f6f7d6308ae23fd1f5b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": false
+    },
+    "data/match_audit.csv": {
+      "filePath": "data/match_audit.csv",
+      "contentHash": "6a3aadb5dd945916fb536939215a3e0f813a9f6107da53750b87c2a42797b544",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 278,
+      "hasStructuralAnalysis": false
+    },
+    "data/nifty_total_market.csv": {
+      "filePath": "data/nifty_total_market.csv",
+      "contentHash": "55a44446dca69b7bf4b7ff58bf45532c31b19c73b79a9f949bb745936c0ebd1d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 756,
+      "hasStructuralAnalysis": false
+    },
+    "data/nse_equity_list.csv": {
+      "filePath": "data/nse_equity_list.csv",
+      "contentHash": "2c05ea3dbe51b6b727b8dce4973cee9fc2a0064bd1ac869328c825e5acece75e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2647,
+      "hasStructuralAnalysis": false
+    },
+    "data/sectors_earlier.csv": {
+      "filePath": "data/sectors_earlier.csv",
+      "contentHash": "080de23c0da3a6d806733512e42bf1c7d6bfaaa10d2dc85e6bcbeccb33ff89fc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 125,
+      "hasStructuralAnalysis": false
+    },
+    "pytest.ini": {
+      "filePath": "pytest.ini",
+      "contentHash": "64d7028174b897e8ea6d2d985909ebee3c3fa292ebd56bc9aa262485e33b8a87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": false
+    },
+    "requirements.txt": {
+      "filePath": "requirements.txt",
+      "contentHash": "32d0aab366b2b34a2848e285fd4028110f1bb05f4ba0e39a809f07e83ff23a3e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 15,
+      "hasStructuralAnalysis": false
+    },
+    "results/connections.csv": {
+      "filePath": "results/connections.csv",
+      "contentHash": "6681d3232b1bc252d26d3330f0760644deffaa3db96e7940a1b18d63f00690d1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 116,
+      "hasStructuralAnalysis": false
+    },
+    "results/controls.txt": {
+      "filePath": "results/controls.txt",
+      "contentHash": "d01d22f2397f1e77e0c0623f0f469229465f0f07795f4312c1f34c988810df84",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": false
+    },
+    "results/event_study.txt": {
+      "filePath": "results/event_study.txt",
+      "contentHash": "d6946af3d4e0eb7e325c4674ac3fcd818a4c22dd8e6385d6d0005ed93688663d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 50,
+      "hasStructuralAnalysis": false
+    },
+    "results/factor.txt": {
+      "filePath": "results/factor.txt",
+      "contentHash": "0f8bdfbed87357f6ef3fada1b75c80c38465b59f4a896c533526302cb584bacf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 68,
+      "hasStructuralAnalysis": false
+    },
+    "results/lead_lag.txt": {
+      "filePath": "results/lead_lag.txt",
+      "contentHash": "b1dcf35978bb6b251e2c1a7bf0eeda52b1de8b923fab241a994745ab637162b1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": false
+    },
+    "results/leadlag_rule.txt": {
+      "filePath": "results/leadlag_rule.txt",
+      "contentHash": "e39ba38e02680d1cd462220930643652c1ea7540fa704462399c5d4b9a0aaa37",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": false
+    },
+    "results/universe.txt": {
+      "filePath": "results/universe.txt",
+      "contentHash": "6d8d92880664c7d1bcad16dfccb4bcfaa58e0e741d2da737cff7ea7ab3e5c87f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 68,
+      "hasStructuralAnalysis": false
+    },
+    "scripts/audit_candidates.py": {
+      "filePath": "scripts/audit_candidates.py",
+      "contentHash": "b6b34cd2d522d3862c03116dd245097803555131da3eaf7ae5008485ae957217",
+      "functions": [
+        {
+          "name": "candidates",
+          "params": [
+            "bonds",
+            "companies",
+            "audit"
+          ],
+          "returnType": "tuple[pd.DataFrame, float]",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "rapidfuzz",
+          "specifiers": [
+            "fuzz",
+            "process"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "attribute",
+            "load_match_audit",
+            "match_names",
+            "normalize"
+          ]
+        },
+        {
+          "source": "src.data.bonds",
+          "specifiers": [
+            "load_bond_purchases"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "load_companies",
+            "load_donor_cins"
+          ]
+        }
+      ],
+      "exports": [
+        "candidates",
+        "main"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "src/__init__.py": {
+      "filePath": "src/__init__.py",
+      "contentHash": "6d2b9e0c83c90c0362b4c61a3a92cca147f2260e433aab9dd088dbf557a8228b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "src/config.py": {
+      "filePath": "src/config.py",
+      "contentHash": "d42288d5c0da8cb198588ebca88be03cb719b74ba92db5ac8589ddfc67a70dfe",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "src/connections.py": {
+      "filePath": "src/connections.py",
+      "contentHash": "0bd950380283a22fd87f7ab2762154dd5be94d72a1a61b85f34cf1724a5094f6",
+      "functions": [
+        {
+          "name": "normalize",
+          "params": [
+            "name"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "load_match_audit",
+          "params": [
+            "path"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "match_names",
+          "params": [
+            "donor_names",
+            "companies",
+            "threshold"
+          ],
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "attribute",
+          "params": [
+            "bonds",
+            "companies",
+            "donor_cins",
+            "audit",
+            "level"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 38
+        },
+        {
+          "name": "connections",
+          "params": [
+            "bonds",
+            "companies",
+            "donor_cins",
+            "audit",
+            "level"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "rapidfuzz",
+          "specifiers": [
+            "fuzz",
+            "process"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "ATTRIBUTION_LEVEL",
+            "MATCH_AUDIT_FILE",
+            "MATCH_THRESHOLD",
+            "MIN_BOND"
+          ]
+        },
+        {
+          "source": "src.data.bonds",
+          "specifiers": [
+            "load_bond_purchases"
+          ]
+        },
+        {
+          "source": "src.data.cin_resolver",
+          "specifiers": [
+            "_first_token",
+            "_strip_boilerplate"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "company_key",
+            "load_companies",
+            "load_donor_cins"
+          ]
+        }
+      ],
+      "exports": [
+        "normalize",
+        "load_match_audit",
+        "match_names",
+        "attribute",
+        "connections"
+      ],
+      "totalLines": 169,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/__init__.py": {
+      "filePath": "src/data/__init__.py",
+      "contentHash": "e040b5ca7d39f500ec74267820db8dee7f147eec42b09cb6b7bafdbe32001657",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/bonds.py": {
+      "filePath": "src/data/bonds.py",
+      "contentHash": "39eddee75a8227b7e0c1a34b5552bfe67a6cf7dc7b046fffca340b19082bb900",
+      "functions": [
+        {
+          "name": "load_bond_purchases",
+          "params": [
+            "path"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "BOND_PURCHASES_FILE"
+          ]
+        }
+      ],
+      "exports": [
+        "load_bond_purchases"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/build_companies.py": {
+      "filePath": "src/data/build_companies.py",
+      "contentHash": "ab4ded318fe6f68da88b1bbab815ed128b66a9450226516035e9b5758c0f9314",
+      "functions": [
+        {
+          "name": "_read",
+          "params": [
+            "path"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_lookup",
+          "params": [
+            "universe",
+            "table",
+            "column"
+          ],
+          "returnType": "pd.Series",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "build",
+          "params": [],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "COMPANIES_FILE",
+            "DATA_DIR"
+          ]
+        }
+      ],
+      "exports": [
+        "_read",
+        "_lookup",
+        "build",
+        "main"
+      ],
+      "totalLines": 113,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/cin_resolver.py": {
+      "filePath": "src/data/cin_resolver.py",
+      "contentHash": "86d9fd5d104030a9be60f0f671a8e9f2258288f28c38ff7a41e193ee4e4378e3",
+      "functions": [
+        {
+          "name": "normalize",
+          "params": [
+            "name"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "_first_token",
+          "params": [
+            "normalized"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [
+        {
+          "name": "CinMatch",
+          "methods": [],
+          "properties": [
+            "query",
+            "cin",
+            "matched_name",
+            "score",
+            "n_candidates",
+            "reason"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "CinResolver",
+          "methods": [
+            "__init__",
+            "_throttle",
+            "_search",
+            "query_variants",
+            "resolve"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 179
+        }
+      ],
+      "imports": [
+        {
+          "source": "html",
+          "specifiers": [
+            "html"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "requests",
+          "specifiers": [
+            "requests"
+          ]
+        },
+        {
+          "source": "rapidfuzz",
+          "specifiers": [
+            "fuzz"
+          ]
+        }
+      ],
+      "exports": [
+        "CinMatch",
+        "normalize",
+        "_first_token",
+        "CinResolver"
+      ],
+      "totalLines": 289,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/companies.py": {
+      "filePath": "src/data/companies.py",
+      "contentHash": "5402fb3e13186b168a396ccdbd0d1001eabb6bb30ef9245e5642046c2fa24856",
+      "functions": [
+        {
+          "name": "load_companies",
+          "params": [
+            "path"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "load_donor_cins",
+          "params": [
+            "path"
+          ],
+          "returnType": "dict[str, str]",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "company_key",
+          "params": [
+            "company"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "COMPANIES_FILE",
+            "DONOR_CINS_FILE"
+          ]
+        }
+      ],
+      "exports": [
+        "load_companies",
+        "load_donor_cins",
+        "company_key"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/delisting_registry.py": {
+      "filePath": "src/data/delisting_registry.py",
+      "contentHash": "d141c28c1313779ddef5de099d6cfee5a1b9726a2a1372242b48a272be17715a",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BiasEstimate",
+          "methods": [],
+          "properties": [
+            "n_failures",
+            "n_buyouts",
+            "universe_size",
+            "years",
+            "annual_failure_rate",
+            "annual_drag_pct",
+            "assumed_failure_recovery",
+            "note"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "DelistingRegistry",
+          "methods": [
+            "__init__",
+            "load",
+            "in_window",
+            "bias_estimate"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 85
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "DATA_DIR"
+          ]
+        }
+      ],
+      "exports": [
+        "BiasEstimate",
+        "DelistingRegistry"
+      ],
+      "totalLines": 158,
+      "hasStructuralAnalysis": true
+    },
+    "src/data/price_store.py": {
+      "filePath": "src/data/price_store.py",
+      "contentHash": "a4182f2777ea8136f73b74754ee5dca21ba81570081da5afd1bcc461633df434",
+      "functions": [
+        {
+          "name": "remove_impossible_moves",
+          "params": [
+            "close",
+            "limit"
+          ],
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [
+        {
+          "name": "PriceStore",
+          "methods": [
+            "__init__",
+            "_download",
+            "_field",
+            "update",
+            "_read",
+            "_write",
+            "_merge",
+            "close",
+            "volume",
+            "adv_cr",
+            "adv_history",
+            "coverage"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 223
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Iterable",
+            "Optional"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "yfinance",
+          "specifiers": [
+            "yf"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "DATA_DIR"
+          ]
+        }
+      ],
+      "exports": [
+        "remove_impossible_moves",
+        "PriceStore"
+      ],
+      "totalLines": 296,
+      "hasStructuralAnalysis": true
+    },
+    "src/graph.py": {
+      "filePath": "src/graph.py",
+      "contentHash": "32ff59a763b3f16cf80620d47613ac712e6a31569f4f11a9153e194f74b86f66",
+      "functions": [
+        {
+          "name": "build_graph",
+          "params": [
+            "table"
+          ],
+          "returnType": "nx.Graph",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "_crore",
+          "params": [
+            "rupees"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "display_name",
+          "params": [
+            "name"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "_size",
+          "params": [
+            "G",
+            "node"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "save_html",
+          "params": [
+            "G",
+            "path"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "radial_layout",
+          "params": [
+            "G"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 33
+        },
+        {
+          "name": "save_png",
+          "params": [
+            "G",
+            "path",
+            "dark",
+            "labels"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 81
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "math",
+          "specifiers": [
+            "math"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "networkx",
+          "specifiers": [
+            "nx"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "connections"
+          ]
+        }
+      ],
+      "exports": [
+        "build_graph",
+        "_crore",
+        "display_name",
+        "_size",
+        "save_html",
+        "radial_layout",
+        "save_png"
+      ],
+      "totalLines": 219,
+      "hasStructuralAnalysis": true
+    },
+    "src/research/__init__.py": {
+      "filePath": "src/research/__init__.py",
+      "contentHash": "c841bc31e334dac61dcde5bf8efbcaace5dddac9d813895d79de82b4f3c7de66",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "src/research/event_study.py": {
+      "filePath": "src/research/event_study.py",
+      "contentHash": "47b615fa248f7b59569cee932b88370d11dd6fc4fbcaffbf6d2e0265d4fe8ccf",
+      "functions": [
+        {
+          "name": "_positions",
+          "params": [
+            "index"
+          ],
+          "returnType": "dict[str, int]",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [
+        {
+          "name": "Event",
+          "methods": [],
+          "properties": [
+            "key",
+            "day0",
+            "label"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "EventStudy",
+          "methods": [
+            "__init__",
+            "eligible",
+            "adv",
+            "match",
+            "run",
+            "drift"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 126
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "scipy",
+          "specifiers": [
+            "stats"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "company_key"
+          ]
+        }
+      ],
+      "exports": [
+        "Event",
+        "_positions",
+        "EventStudy"
+      ],
+      "totalLines": 201,
+      "hasStructuralAnalysis": true
+    },
+    "src/research/factor_backtest.py": {
+      "filePath": "src/research/factor_backtest.py",
+      "contentHash": "a87fe92e3154dc7be44ff8a0a409ccb805d1aae1cba7d067f658285e57df58ad",
+      "functions": [
+        {
+          "name": "sharpe_ratio",
+          "params": [
+            "returns",
+            "periods"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "cagr",
+          "params": [
+            "returns",
+            "periods"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "max_drawdown",
+          "params": [
+            "returns"
+          ],
+          "returnType": "float",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "bootstrap_sharpe_ci",
+          "params": [
+            "returns",
+            "n_boot",
+            "block_size",
+            "ci"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 52
+        },
+        {
+          "name": "deflated_sharpe_ratio",
+          "params": [
+            "returns",
+            "n_trials",
+            "benchmark_sr"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 55
+        }
+      ],
+      "classes": [
+        {
+          "name": "CostModel",
+          "methods": [
+            "buy_pct",
+            "sell_pct",
+            "round_trip_pct"
+          ],
+          "properties": [
+            "stt",
+            "exchange_txn",
+            "sebi",
+            "stamp_duty",
+            "gst",
+            "brokerage",
+            "dp_charge",
+            "slippage"
+          ],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "BacktestResult",
+          "methods": [
+            "sharpe",
+            "annual_return",
+            "max_drawdown",
+            "benchmark_sharpe",
+            "annual_turnover",
+            "cost_drag_annual",
+            "summary"
+          ],
+          "properties": [
+            "returns",
+            "gross_returns",
+            "benchmark",
+            "turnover",
+            "n_rebalances",
+            "holdings_history",
+            "params"
+          ],
+          "exported": true,
+          "lineCount": 45
+        },
+        {
+          "name": "TrialLog",
+          "methods": [
+            "__init__",
+            "record",
+            "count",
+            "all_sharpes"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "FactorBacktest",
+          "methods": [
+            "__init__",
+            "run"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 162
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "math",
+          "specifiers": [
+            "math"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "scipy",
+          "specifiers": [
+            "stats"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "DATA_DIR"
+          ]
+        }
+      ],
+      "exports": [
+        "CostModel",
+        "sharpe_ratio",
+        "cagr",
+        "max_drawdown",
+        "BacktestResult",
+        "TrialLog",
+        "bootstrap_sharpe_ci",
+        "deflated_sharpe_ratio",
+        "FactorBacktest"
+      ],
+      "totalLines": 478,
+      "hasStructuralAnalysis": true
+    },
+    "src/research/factor_engine.py": {
+      "filePath": "src/research/factor_engine.py",
+      "contentHash": "e4c6108a9c7897d04d81a2a3e92cfbaa4af8a24883678760e8c15de0f5951111",
+      "functions": [
+        {
+          "name": "_winsorize",
+          "params": [
+            "s",
+            "pct"
+          ],
+          "returnType": "pd.Series",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_zscore",
+          "params": [
+            "s"
+          ],
+          "returnType": "pd.Series",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "FactorSnapshot",
+          "methods": [
+            "top"
+          ],
+          "properties": [
+            "as_of",
+            "scores",
+            "universe_size",
+            "screened_out"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "FactorEngine",
+          "methods": [
+            "__init__",
+            "residual_momentum",
+            "reversal",
+            "low_vol",
+            "_eligible",
+            "compute"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 164
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Optional"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        }
+      ],
+      "exports": [
+        "FactorSnapshot",
+        "_winsorize",
+        "_zscore",
+        "FactorEngine"
+      ],
+      "totalLines": 269,
+      "hasStructuralAnalysis": true
+    },
+    "src/research/lead_lag.py": {
+      "filePath": "src/research/lead_lag.py",
+      "contentHash": "0bc1a9f914852dcbf2b65b3e2a07a2d4f4b96c54c21f91f55da3215b24048c17",
+      "functions": [],
+      "classes": [
+        {
+          "name": "SectorGroups",
+          "methods": [
+            "usable"
+          ],
+          "properties": [
+            "sector",
+            "connected",
+            "placebo",
+            "peers"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "LeadLagTest",
+          "methods": [
+            "__init__",
+            "build_groups",
+            "_returns",
+            "_basket"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 81
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "company_key"
+          ]
+        }
+      ],
+      "exports": [
+        "SectorGroups",
+        "LeadLagTest"
+      ],
+      "totalLines": 145,
+      "hasStructuralAnalysis": true
+    },
+    "studies/__init__.py": {
+      "filePath": "studies/__init__.py",
+      "contentHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1,
+      "hasStructuralAnalysis": true
+    },
+    "studies/controls.py": {
+      "filePath": "studies/controls.py",
+      "contentHash": "3cc6e751c01f767da9a9554a25cf3f88951dc5bc79b7abd53ee7378cb1f18d18",
+      "functions": [
+        {
+          "name": "_row",
+          "params": [
+            "label",
+            "s",
+            "extra"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 100
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "FactorBacktest",
+            "TrialLog",
+            "bootstrap_sharpe_ci",
+            "deflated_sharpe_ratio"
+          ]
+        }
+      ],
+      "exports": [
+        "_row",
+        "main"
+      ],
+      "totalLines": 153,
+      "hasStructuralAnalysis": true
+    },
+    "studies/event_study.py": {
+      "filePath": "studies/event_study.py",
+      "contentHash": "eef571aec99136491ce55124ec1409c0785c9405d6b646fa1798882831a0296d",
+      "functions": [
+        {
+          "name": "table",
+          "params": [
+            "result"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "make_study",
+          "params": [
+            "store",
+            "companies",
+            "level"
+          ],
+          "returnType": "EventStudy",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "run",
+          "params": [
+            "store",
+            "companies",
+            "level",
+            "market_adjusted"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "describe_drift",
+          "params": [
+            "d"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 42
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "statsmodels.stats.multitest",
+          "specifiers": [
+            "multipletests"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "connections"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "load_companies"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.research.event_study",
+          "specifiers": [
+            "EVENTS",
+            "PRIMARY_EVENT",
+            "PRIMARY_WINDOW",
+            "EventStudy"
+          ]
+        }
+      ],
+      "exports": [
+        "table",
+        "make_study",
+        "run",
+        "describe_drift",
+        "main"
+      ],
+      "totalLines": 119,
+      "hasStructuralAnalysis": true
+    },
+    "studies/factor.py": {
+      "filePath": "studies/factor.py",
+      "contentHash": "104ae97ab42f2ca498004d0050a7e3008304aeb4173f7ec94915114f558b87f9",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 91
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "FactorBacktest",
+            "TrialLog",
+            "bootstrap_sharpe_ci",
+            "deflated_sharpe_ratio",
+            "sharpe_ratio"
+          ]
+        }
+      ],
+      "exports": [
+        "main"
+      ],
+      "totalLines": 154,
+      "hasStructuralAnalysis": true
+    },
+    "studies/figures.py": {
+      "filePath": "studies/figures.py",
+      "contentHash": "db25c316ecbc04533f6c54eb349165d626bdd78951e4b8c752f8ad7e43ef6c96",
+      "functions": [
+        {
+          "name": "_axes",
+          "params": [
+            "mode",
+            "figsize"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "_save",
+          "params": [
+            "fig",
+            "path",
+            "surface"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "lead_lag_chart",
+          "params": [
+            "rows",
+            "mode",
+            "path"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "event_chart",
+          "params": [
+            "result",
+            "mode",
+            "path"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "rule_chart",
+          "params": [
+            "curves",
+            "mode",
+            "path"
+          ],
+          "returnType": "Path",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "lead_lag_rows",
+          "params": [
+            "store",
+            "companies",
+            "connected"
+          ],
+          "returnType": "list[dict]",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "save_all",
+          "params": [
+            "directory"
+          ],
+          "returnType": "list[Path]",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "matplotlib",
+          "specifiers": [
+            "matplotlib"
+          ]
+        },
+        {
+          "source": "matplotlib.pyplot",
+          "specifiers": [
+            "plt"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "connections"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "load_companies"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.graph",
+          "specifiers": [
+            "THEMES",
+            "build_graph",
+            "save_png"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "sharpe_ratio"
+          ]
+        },
+        {
+          "source": "src.research.lead_lag",
+          "specifiers": [
+            "LeadLagTest"
+          ]
+        },
+        {
+          "source": "studies.lead_lag",
+          "specifiers": [
+            "GRID",
+            "pooled_fit"
+          ]
+        },
+        {
+          "source": "studies.leadlag_rule",
+          "specifiers": [
+            "weekly_curves"
+          ]
+        }
+      ],
+      "exports": [
+        "_axes",
+        "_save",
+        "lead_lag_chart",
+        "event_chart",
+        "rule_chart",
+        "lead_lag_rows",
+        "save_all"
+      ],
+      "totalLines": 172,
+      "hasStructuralAnalysis": true
+    },
+    "studies/lead_lag.py": {
+      "filePath": "studies/lead_lag.py",
+      "contentHash": "e7105ac64c456120f8561dcc42435aff25b03b28b1be94639c65693abc84aa44",
+      "functions": [
+        {
+          "name": "_pool",
+          "params": [
+            "t",
+            "groups",
+            "freq",
+            "lag"
+          ],
+          "returnType": "pd.DataFrame | None",
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "_estimate",
+          "params": [
+            "fit",
+            "term"
+          ],
+          "returnType": "dict",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "stacked_difference",
+          "params": [
+            "pool"
+          ],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "pooled_fit",
+          "params": [
+            "t",
+            "groups",
+            "freq",
+            "lag"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "report",
+          "params": [
+            "store",
+            "companies",
+            "connected",
+            "adv"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "statsmodels.api",
+          "specifiers": [
+            "sm"
+          ]
+        },
+        {
+          "source": "statsmodels.stats.multitest",
+          "specifiers": [
+            "multipletests"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "connections"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "load_companies"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.research.lead_lag",
+          "specifiers": [
+            "LeadLagTest"
+          ]
+        }
+      ],
+      "exports": [
+        "_pool",
+        "_estimate",
+        "stacked_difference",
+        "pooled_fit",
+        "main",
+        "report"
+      ],
+      "totalLines": 218,
+      "hasStructuralAnalysis": true
+    },
+    "studies/leadlag_rule.py": {
+      "filePath": "studies/leadlag_rule.py",
+      "contentHash": "10f2bc88c4312817f1327a0f7fe70b3a706225e969047a0d78436652b52c1920",
+      "functions": [
+        {
+          "name": "stats",
+          "params": [
+            "r",
+            "ppy"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "trading_costs",
+          "params": [
+            "pos",
+            "costs"
+          ],
+          "returnType": "pd.Series",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "paired_bootstrap",
+          "params": [
+            "rule",
+            "bh",
+            "ppy",
+            "n_boot",
+            "block",
+            "seed"
+          ],
+          "returnType": "np.ndarray",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "basket_groups",
+          "params": [
+            "known"
+          ],
+          "returnType": "tuple[pd.DataFrame, pd.DataFrame]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "basket_returns",
+          "params": [
+            "store",
+            "freq"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "weekly_curves",
+          "params": [
+            "store"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 104
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "math",
+          "specifiers": [
+            "math"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "CostModel",
+            "cagr",
+            "max_drawdown",
+            "sharpe_ratio"
+          ]
+        }
+      ],
+      "exports": [
+        "stats",
+        "trading_costs",
+        "paired_bootstrap",
+        "basket_groups",
+        "basket_returns",
+        "weekly_curves",
+        "main"
+      ],
+      "totalLines": 240,
+      "hasStructuralAnalysis": true
+    },
+    "studies/universe.py": {
+      "filePath": "studies/universe.py",
+      "contentHash": "39c9328fc4cf88f740b0f028bd455a995acff21d0332954628c017c52194ead5",
+      "functions": [
+        {
+          "name": "index_returns",
+          "params": [
+            "ticker",
+            "start",
+            "end"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "point_in_time_screen",
+          "params": [
+            "adv_history",
+            "index",
+            "columns",
+            "floor",
+            "top"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "over_days",
+          "params": [
+            "returns",
+            "days"
+          ],
+          "returnType": "pd.Series",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "main",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "_main",
+          "params": [],
+          "exported": true,
+          "lineCount": 142
+        }
+      ],
+      "classes": [
+        {
+          "name": "IndexDownloadError",
+          "methods": [],
+          "properties": [],
+          "exported": true,
+          "lineCount": 2
+        }
+      ],
+      "imports": [
+        {
+          "source": "logging",
+          "specifiers": [
+            "logging"
+          ]
+        },
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "yfinance",
+          "specifiers": [
+            "yf"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "MAX_DAILY_MOVE",
+            "PriceStore",
+            "remove_impossible_moves"
+          ]
+        },
+        {
+          "source": "src.data.delisting_registry",
+          "specifiers": [
+            "DelistingRegistry"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "TRADING_DAYS",
+            "CostModel",
+            "FactorBacktest",
+            "TrialLog",
+            "cagr",
+            "sharpe_ratio"
+          ]
+        }
+      ],
+      "exports": [
+        "IndexDownloadError",
+        "index_returns",
+        "point_in_time_screen",
+        "over_days",
+        "main",
+        "_main"
+      ],
+      "totalLines": 281,
+      "hasStructuralAnalysis": true
+    },
+    "tests/__init__.py": {
+      "filePath": "tests/__init__.py",
+      "contentHash": "71f6a156ee15925a957b6d5aa7a0bdd82cbddafb8b2c4cc3e350107ed8947007",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_bonds.py": {
+      "filePath": "tests/test_bonds.py",
+      "contentHash": "25b74910a994eb67c9b765c0859631c4e491a669d002b2987c621dcd84cca514",
+      "functions": [
+        {
+          "name": "test_parses_rows_and_skips_blank_ones",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "test_committed_disclosure_loads_completely",
+          "params": [],
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "src.data.bonds",
+          "specifiers": [
+            "load_bond_purchases"
+          ]
+        }
+      ],
+      "exports": [
+        "test_parses_rows_and_skips_blank_ones",
+        "test_committed_disclosure_loads_completely"
+      ],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_build_companies.py": {
+      "filePath": "tests/test_build_companies.py",
+      "contentHash": "bcafc6f459d85437a1ba2c4e676f9c719bf23954b4a2398cae39231f65f8589e",
+      "functions": [
+        {
+          "name": "test_every_industry_in_the_index_file_has_a_macro_sector",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_the_committed_universe_is_what_the_builder_makes",
+          "params": [],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "test_the_universe_is_nse_list_and_keys_are_unique_per_listing",
+          "params": [],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_earlier_companies_keep_their_keys",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "COMPANIES_FILE"
+          ]
+        },
+        {
+          "source": "src.data.build_companies",
+          "specifiers": [
+            "COMPANY_IDS_FILE",
+            "EQUITY_LIST_FILE",
+            "MACRO_SECTOR",
+            "TOTAL_MARKET_FILE",
+            "_read",
+            "build"
+          ]
+        },
+        {
+          "source": "src.data.companies",
+          "specifiers": [
+            "company_key"
+          ]
+        }
+      ],
+      "exports": [
+        "test_every_industry_in_the_index_file_has_a_macro_sector",
+        "test_the_committed_universe_is_what_the_builder_makes",
+        "test_the_universe_is_nse_list_and_keys_are_unique_per_listing",
+        "test_earlier_companies_keep_their_keys"
+      ],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_cin_resolver.py": {
+      "filePath": "tests/test_cin_resolver.py",
+      "contentHash": "b410943f147685cb091db18c39d6e7d3eb5130cd1e7e36aad615a4fad7c122dd",
+      "functions": [],
+      "classes": [
+        {
+          "name": "StubResolver",
+          "methods": [
+            "__init__",
+            "_search"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "TestNormalize",
+          "methods": [
+            "test_strips_corporate_boilerplate",
+            "test_equates_ltd_and_limited",
+            "test_handles_empty"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "TestQueryVariants",
+          "methods": [
+            "test_deletes_apostrophes_rather_than_spacing_them",
+            "test_offers_a_variant_without_the_limited_suffix",
+            "test_variants_run_from_specific_to_loose",
+            "test_no_duplicate_variants",
+            "test_very_short_fragments_are_not_emitted"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "TestRefusal",
+          "methods": [
+            "test_returns_none_when_only_unlisted_companies_match",
+            "test_one_letter_acronym_difference_is_refused",
+            "test_score_threshold_still_refuses_a_same_head_mismatch",
+            "test_apostrophe_name_still_matches_after_the_head_guard",
+            "test_returns_none_on_no_results_at_all",
+            "test_empty_name_is_refused_without_searching"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 65
+        },
+        {
+          "name": "TestResolution",
+          "methods": [
+            "test_exact_match_resolves",
+            "test_prefers_the_listed_company_over_a_private_namesake",
+            "test_falls_through_to_a_looser_variant_when_the_exact_query_is_empty",
+            "test_html_escaped_candidate_names_are_unescaped",
+            "test_listed_only_can_be_disabled"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "imports": [
+        {
+          "source": "src.data.cin_resolver",
+          "specifiers": [
+            "CinResolver",
+            "normalize"
+          ]
+        }
+      ],
+      "exports": [
+        "StubResolver",
+        "TestNormalize",
+        "TestQueryVariants",
+        "TestRefusal",
+        "TestResolution"
+      ],
+      "totalLines": 185,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_connections.py": {
+      "filePath": "tests/test_connections.py",
+      "contentHash": "8a748d43379cd8724fed9a764e4575c864d4de60639e4234b2d738b998ca4180",
+      "functions": [
+        {
+          "name": "companies",
+          "params": [
+            "*rows"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "bonds",
+          "params": [
+            "*rows"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "audit",
+          "params": [
+            "*rows"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestNameMatching",
+          "methods": [
+            "test_leading_word_rule_rejects_lookalike_that_clears_the_score",
+            "test_boilerplate_is_ignored",
+            "test_spaced_initials_are_joined",
+            "test_weak_match_is_refused",
+            "test_company_without_cin_is_keyed_by_scrip_code"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "TestConnections",
+          "methods": [
+            "test_every_bond_counts_not_just_the_last",
+            "test_small_buyer_is_not_connected",
+            "test_donor_cin_attributes_names_the_strict_match_misses",
+            "test_donor_cin_for_an_unlisted_company_is_ignored",
+            "test_bond_found_by_both_routes_counts_once",
+            "test_share_classes_under_one_cin_are_one_company",
+            "test_unmatched_purchasers_are_left_out"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 43
+        },
+        {
+          "name": "TestMatchingFixes",
+          "methods": [
+            "test_a_period_between_letters_is_a_space",
+            "test_a_name_two_listed_companies_share_is_refused"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "TestAudit",
+          "methods": [
+            "test_same_company_is_attributed_at_both_levels",
+            "test_a_subsidiary_counts_at_group_level_only",
+            "test_not_attributed_overrides_a_name_match"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "rapidfuzz",
+          "specifiers": [
+            "fuzz"
+          ]
+        },
+        {
+          "source": "src.config",
+          "specifiers": [
+            "MATCH_THRESHOLD",
+            "MIN_BOND"
+          ]
+        },
+        {
+          "source": "src.connections",
+          "specifiers": [
+            "connections",
+            "match_names",
+            "normalize"
+          ]
+        }
+      ],
+      "exports": [
+        "companies",
+        "bonds",
+        "TestNameMatching",
+        "TestConnections",
+        "TestMatchingFixes",
+        "audit",
+        "TestAudit"
+      ],
+      "totalLines": 160,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_delisting_registry.py": {
+      "filePath": "tests/test_delisting_registry.py",
+      "contentHash": "863b46bb93c81230a4cb4ed0730ce0bf8deda2205fbd3d2aae1cd2672a1d4124",
+      "functions": [
+        {
+          "name": "registry",
+          "params": [
+            "tmp_path"
+          ],
+          "exported": true,
+          "lineCount": 20
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestClassification",
+          "methods": [
+            "test_voluntary_delisting_is_not_a_failure",
+            "test_liquidation_is_a_failure"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "TestWindow",
+          "methods": [
+            "test_in_window_excludes_delistings_outside_it"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "TestBiasEstimate",
+          "methods": [
+            "test_counts_failures_and_buyouts_separately",
+            "test_universe_is_reconstructed_upward",
+            "test_drag_is_positive_when_failures_exist",
+            "test_full_recovery_assumption_zeroes_the_drag",
+            "test_drag_scales_with_failure_rate",
+            "test_missing_registry_reports_no_correction_rather_than_crashing"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 36
+        }
+      ],
+      "imports": [
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "src.data.delisting_registry",
+          "specifiers": [
+            "DelistingRegistry"
+          ]
+        }
+      ],
+      "exports": [
+        "registry",
+        "TestClassification",
+        "TestWindow",
+        "TestBiasEstimate"
+      ],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_event_study.py": {
+      "filePath": "tests/test_event_study.py",
+      "contentHash": "6cacd4f6439c3ecc9eff2c81c7c3e10e45628caa4f54ce491cfc06027d4a6faf",
+      "functions": [
+        {
+          "name": "panel",
+          "params": [
+            "seed",
+            "jump",
+            "n_buyers",
+            "n_others"
+          ],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "test_detects_a_known_reaction",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_finds_nothing_in_noise",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_controls_come_from_the_same_sector_once_each",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_estimation_window_ends_before_the_first_event",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_a_stock_with_missing_prices_is_left_out",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_event_days_must_be_trading_days",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_drift_is_described_for_pairs_whose_buyer_trades_more_and_for_the_rest",
+          "params": [],
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "src.research.event_study",
+          "specifiers": [
+            "ESTIMATION",
+            "EVENTS",
+            "EventStudy"
+          ]
+        }
+      ],
+      "exports": [
+        "panel",
+        "test_detects_a_known_reaction",
+        "test_finds_nothing_in_noise",
+        "test_controls_come_from_the_same_sector_once_each",
+        "test_estimation_window_ends_before_the_first_event",
+        "test_a_stock_with_missing_prices_is_left_out",
+        "test_event_days_must_be_trading_days",
+        "test_drift_is_described_for_pairs_whose_buyer_trades_more_and_for_the_rest"
+      ],
+      "totalLines": 98,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_factor_backtest.py": {
+      "filePath": "tests/test_factor_backtest.py",
+      "contentHash": "42161addaebb6da8e818ae5e2a92fbf7732234ccd5a14e0a37f5b4775ffab372",
+      "functions": [
+        {
+          "name": "_returns",
+          "params": [
+            "seed",
+            "n",
+            "mean"
+          ],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_the_bootstrap_interval_is_the_same_on_every_run",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "test_more_trials_deflate_the_same_sharpe_ratio_further",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "bootstrap_sharpe_ci",
+            "deflated_sharpe_ratio"
+          ]
+        }
+      ],
+      "exports": [
+        "_returns",
+        "test_the_bootstrap_interval_is_the_same_on_every_run",
+        "test_more_trials_deflate_the_same_sharpe_ratio_further"
+      ],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_factor_engine.py": {
+      "filePath": "tests/test_factor_engine.py",
+      "contentHash": "a59ce9089cc9069617ae9b2598be0c6df7f1fa9e88851d414cd5389563ee9513",
+      "functions": [
+        {
+          "name": "make_panel",
+          "params": [
+            "n_days",
+            "symbols",
+            "seed"
+          ],
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeStore",
+          "methods": [
+            "__init__",
+            "close",
+            "volume",
+            "adv_cr"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "TestScoring",
+          "methods": [
+            "test_zscore_is_standardised",
+            "test_zscore_of_constant_series_is_zero_not_nan",
+            "test_winsorize_clips_an_outlier"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "TestFactors",
+          "methods": [
+            "test_reversal_is_negated_recent_return",
+            "test_low_vol_prefers_the_calmer_name",
+            "test_residual_momentum_strips_the_common_factor",
+            "test_residual_momentum_skips_the_recent_month"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 61
+        },
+        {
+          "name": "TestEngine",
+          "methods": [
+            "test_compute_ranks_the_universe",
+            "test_composite_is_bounded",
+            "test_as_of_excludes_all_later_data",
+            "test_liquidity_floor_screens_thin_names",
+            "test_short_history_is_screened_out",
+            "test_empty_panel_raises_rather_than_returning_zeros",
+            "test_weights_are_normalised"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 64
+        }
+      ],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "src.research.factor_engine",
+          "specifiers": [
+            "FactorEngine",
+            "_zscore",
+            "_winsorize",
+            "MOMENTUM_LOOKBACK",
+            "MOMENTUM_SKIP"
+          ]
+        }
+      ],
+      "exports": [
+        "FakeStore",
+        "make_panel",
+        "TestScoring",
+        "TestFactors",
+        "TestEngine"
+      ],
+      "totalLines": 207,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_lead_lag.py": {
+      "filePath": "tests/test_lead_lag.py",
+      "contentHash": "e4b7653b453e9e9df47127b1e26ee4c2d2687f844e8c7580c939c13ac06dd9be",
+      "functions": [
+        {
+          "name": "universe",
+          "params": [
+            "rows"
+          ],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "make_setup",
+          "params": [
+            "n_days",
+            "seed"
+          ],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "classes": [
+        {
+          "name": "FakeStore",
+          "methods": [
+            "__init__",
+            "close",
+            "adv_cr"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "TestGroupConstruction",
+          "methods": [
+            "test_connected_and_peers_are_identified",
+            "test_placebo_is_disjoint_from_peers",
+            "test_placebo_is_never_connected",
+            "test_placebo_matches_connected_on_traded_value",
+            "test_sector_with_too_few_connected_is_skipped"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "TestDifferenceTest",
+          "methods": [
+            "_pool",
+            "test_point_estimates_equal_the_separate_fits",
+            "test_detects_a_real_difference_and_not_a_shared_one"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 34
+        }
+      ],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "src.research.lead_lag",
+          "specifiers": [
+            "LeadLagTest"
+          ]
+        }
+      ],
+      "exports": [
+        "FakeStore",
+        "universe",
+        "make_setup",
+        "TestGroupConstruction",
+        "TestDifferenceTest"
+      ],
+      "totalLines": 147,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_leadlag_rule.py": {
+      "filePath": "tests/test_leadlag_rule.py",
+      "contentHash": "fec5869973593fcf57cbc425c6012f58ca7b80b19e3254545de4f0512415d58c",
+      "functions": [
+        {
+          "name": "test_baskets_use_only_the_traded_value_known_at_the_time",
+          "params": [
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "test_a_round_trip_pays_buy_and_sell_once",
+          "params": [],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "test_holding_from_the_first_period_pays_the_buy_side",
+          "params": [],
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "test_the_paired_bootstrap_gives_the_same_interval_on_every_run",
+          "params": [],
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "studies.leadlag_rule",
+          "specifiers": [
+            "rule"
+          ]
+        },
+        {
+          "source": "src.research.factor_backtest",
+          "specifiers": [
+            "CostModel"
+          ]
+        },
+        {
+          "source": "studies.leadlag_rule",
+          "specifiers": [
+            "basket_groups",
+            "paired_bootstrap",
+            "trading_costs"
+          ]
+        }
+      ],
+      "exports": [
+        "test_baskets_use_only_the_traded_value_known_at_the_time",
+        "test_a_round_trip_pays_buy_and_sell_once",
+        "test_holding_from_the_first_period_pays_the_buy_side",
+        "test_the_paired_bootstrap_gives_the_same_interval_on_every_run"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_price_store.py": {
+      "filePath": "tests/test_price_store.py",
+      "contentHash": "e41d6a4b343e9ff682741201e1989dcc4e5cabcd0a645c44c26af66f522116a4",
+      "functions": [
+        {
+          "name": "_panel",
+          "params": [
+            "**columns"
+          ],
+          "returnType": "pd.DataFrame",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "test_a_bad_print_that_reverts_leaves_no_trace",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_an_unadjusted_split_is_rescaled_not_a_crash",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_moves_within_the_limit_gaps_and_other_symbols_are_kept",
+          "params": [],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "store",
+          "params": [
+            "tmp_path",
+            "monkeypatch"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "test_adv_history_is_trailing_and_waits_for_min_periods",
+          "params": [
+            "store"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "test_close_is_cleaned_by_default_and_raw_on_request",
+          "params": [
+            "store"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "price_store"
+          ]
+        },
+        {
+          "source": "src.data.price_store",
+          "specifiers": [
+            "PriceStore",
+            "remove_impossible_moves"
+          ]
+        }
+      ],
+      "exports": [
+        "_panel",
+        "test_a_bad_print_that_reverts_leaves_no_trace",
+        "test_an_unadjusted_split_is_rescaled_not_a_crash",
+        "test_moves_within_the_limit_gaps_and_other_symbols_are_kept",
+        "store",
+        "test_adv_history_is_trailing_and_waits_for_min_periods",
+        "test_close_is_cleaned_by_default_and_raw_on_request"
+      ],
+      "totalLines": 76,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_universe.py": {
+      "filePath": "tests/test_universe.py",
+      "contentHash": "34b45c866b6c3cfb7e584a31a6a9d89a92f7b12da2b3d698b13d7a2e3009745b",
+      "functions": [
+        {
+          "name": "test_the_universe_on_a_day_uses_only_traded_value_from_before_it",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "test_the_index_is_compared_over_the_portfolios_own_days",
+          "params": [],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "test_a_failed_index_download_stops_the_study",
+          "params": [
+            "monkeypatch",
+            "ticker_class"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [
+        {
+          "name": "_NoPrices",
+          "methods": [
+            "__init__",
+            "history"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "_Unreachable",
+          "methods": [
+            "__init__"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "imports": [
+        {
+          "source": "numpy",
+          "specifiers": [
+            "np"
+          ]
+        },
+        {
+          "source": "pandas",
+          "specifiers": [
+            "pd"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "studies.universe",
+          "specifiers": [
+            "universe"
+          ]
+        },
+        {
+          "source": "studies.universe",
+          "specifiers": [
+            "IndexDownloadError",
+            "index_returns",
+            "over_days",
+            "point_in_time_screen"
+          ]
+        }
+      ],
+      "exports": [
+        "test_the_universe_on_a_day_uses_only_traded_value_from_before_it",
+        "test_the_index_is_compared_over_the_portfolios_own_days",
+        "_NoPrices",
+        "_Unreachable",
+        "test_a_failed_index_download_stops_the_study"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
