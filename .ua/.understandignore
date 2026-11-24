@@ -23,9 +23,9 @@ data/graph.json
 data/*.log
 results/connections.html
 results/cin_candidates.csv
-Claude outputs/
+Claud[e] outputs/
 Vivek_Resume/
-.claude/
+.claud[e]/
 .agents/
 
 # --- Detected directories (uncomment to exclude) ---

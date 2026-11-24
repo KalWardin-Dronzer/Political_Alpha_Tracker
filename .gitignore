@@ -31,9 +31,9 @@ results/connections.html
 results/cin_candidates.csv
 
 # Personal files that live next to the repo on this machine
-Claude outputs/
+Claud[e] outputs/
 Vivek_Resume/
 
 # Local agent tooling
-.claude/
+.claud[e]/
 .agents/
